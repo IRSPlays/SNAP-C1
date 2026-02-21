@@ -27,8 +27,6 @@ from typing import Generator
 import torch
 import yaml
 from loguru import logger
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
 
 # Project imports
 import sys
@@ -36,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from memory.memory_manager import MemoryManager
 from inference.tool_executor import ToolExecutor
+from inference.lmstudio_backend import LMStudioBackend
 
 PROJECT_ROOT = Path(__file__).parent.parent
 CONFIG_DIR = PROJECT_ROOT / "config"
@@ -87,8 +86,15 @@ class SNAPPipeline:
         with open(CONFIG_DIR / "base_model.yaml", "r") as f:
             self.base_config = yaml.safe_load(f)
         
-        # Load model and tokenizer
-        self.model, self.tokenizer = self._load_model(adapters)
+        # Load LM Studio Backend
+        lm_cfg = self.base_config.get("lmstudio", {})
+        self.backend = LMStudioBackend(
+            base_url=lm_cfg.get("base_url", "http://localhost:1234/v1"),
+            model=lm_cfg.get("model", "local-model")
+        )
+        
+        if not self.backend.check_connection():
+            logger.warning("LM Studio connection failed. Please ensure the Local Server is running!")
         
         # Initialize memory system
         self.memory = MemoryManager() if enable_memory else None
@@ -97,74 +103,6 @@ class SNAPPipeline:
         self.tool_executor = ToolExecutor() if enable_tools else None
         
         logger.info("SNAP-C1 Pipeline initialized.")
-    
-    def _load_model(self, adapters: list[str] | None = None):
-        """Load the base model with optional LoRA adapters."""
-        model_name = self.base_config["model"]["name"]
-        quant_cfg = self.base_config["quantization"]
-        
-        # 4-bit quantization config
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=quant_cfg["load_in_4bit"],
-            bnb_4bit_quant_type=quant_cfg["bnb_4bit_quant_type"],
-            bnb_4bit_compute_dtype=getattr(torch, quant_cfg["bnb_4bit_compute_dtype"]),
-            bnb_4bit_use_double_quant=quant_cfg["bnb_4bit_use_double_quant"],
-        )
-        
-        logger.info(f"Loading base model: {model_name}")
-        
-        # Clear CUDA cache
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name,
-            trust_remote_code=True,
-            padding_side="left",  # Left padding for generation
-        )
-        
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-        
-        # Build max_memory map for tight VRAM
-        max_memory = self.base_config.get("hardware", {}).get("max_memory", None)
-        compute_dtype = getattr(torch, quant_cfg["bnb_4bit_compute_dtype"])
-        
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            quantization_config=bnb_config,
-            device_map="auto",
-            trust_remote_code=True,
-            torch_dtype=compute_dtype,
-            max_memory=max_memory,
-            low_cpu_mem_usage=True,
-        )
-        
-        # Load adapters if available
-        if adapters is None:
-            # Auto-detect available adapters
-            adapters = []
-            for adapter_name in ["team_thinking", "self_correction", "tool_use"]:
-                adapter_path = ADAPTERS_DIR / adapter_name / "final"
-                if adapter_path.exists():
-                    adapters.append(adapter_name)
-        
-        for adapter_name in adapters:
-            adapter_path = ADAPTERS_DIR / adapter_name / "final"
-            if adapter_path.exists():
-                logger.info(f"Loading adapter: {adapter_name}")
-                model = PeftModel.from_pretrained(
-                    model,
-                    str(adapter_path),
-                    adapter_name=adapter_name,
-                )
-            else:
-                logger.warning(f"Adapter not found: {adapter_path}")
-        
-        model.eval()
-        logger.info(f"Model ready with adapters: {adapters or 'none'}")
-        
-        return model, tokenizer
     
     def _build_messages(self, user_input: str, conversation_history: list[dict] | None = None) -> list[dict]:
         """Build the message list with system prompt, memory, and conversation history."""
@@ -190,41 +128,14 @@ class SNAPPipeline:
         return messages
     
     def _generate(self, messages: list[dict]) -> str:
-        """Generate a response from the model."""
-        # Apply chat template
-        input_text = self.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
-        
-        inputs = self.tokenizer(
-            input_text,
-            return_tensors="pt",
-            truncation=True,
-            max_length=self.base_config["tokenizer"]["max_length"],
-        ).to(self.model.device)
-        
+        """Generate a response using the LM Studio backend."""
         # Generation config
-        inf_cfg = self.base_config["inference"]
+        inf_cfg = self.base_config.get("inference", {})
         
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=inf_cfg["max_new_tokens"],
-                temperature=inf_cfg["temperature"],
-                top_p=inf_cfg["top_p"],
-                top_k=inf_cfg["top_k"],
-                repetition_penalty=inf_cfg["repetition_penalty"],
-                do_sample=inf_cfg["do_sample"],
-                pad_token_id=self.tokenizer.pad_token_id,
-            )
+        # Use our simplified backend which talks to the loaded GGUF model via API
+        response = self.backend.generate(messages, **inf_cfg)
         
-        # Decode only the new tokens
-        new_tokens = outputs[0][inputs["input_ids"].shape[1]:]
-        response = self.tokenizer.decode(new_tokens, skip_special_tokens=True)
-        
-        return response.strip()
+        return response
     
     def _extract_tool_calls(self, response: str) -> list[dict]:
         """Extract tool calls from the response."""
@@ -301,9 +212,12 @@ class SNAPPipeline:
         # Generate initial response
         response = self._generate(messages)
         
-        # Process any tool calls
+        # Process any tool calls and append results
         if self.enable_tools and "<tool_call>" in response:
-            response = self._process_tool_calls(response, messages)
+            full_response = self._process_tool_calls(response, messages)
+            # Find the final AI response after tool outputs
+            # Assuming the last chunk of the full response contains the final answer
+            response = full_response
         
         # Store interaction in memory
         if self.memory:
