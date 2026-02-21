@@ -66,6 +66,16 @@ def run_datacenter_training(data_path: str):
         num_layers=4
     ).to(device)
 
+    # 2.5 Auto-Resume from Aborted Run
+    checkpoint_path = "v2_core/frc_pretrained_core_A6000.pt"
+    if os.path.exists(checkpoint_path):
+        logger.warning(f"Found existing Checkpoint! Injecting Weights: {checkpoint_path}")
+        try:
+            core.load_state_dict(torch.load(checkpoint_path, map_location=device))
+            logger.success("Resuming 12-Layer Training with preserved mathematical progress.")
+        except Exception as e:
+            logger.error(f"Failed to load checkpoint: {e}")
+
     # 3. Load Training Data
     logger.info(f"Loading Logic Dataset from: {data_path}")
     dataset = LogicDataset(data_path) 
