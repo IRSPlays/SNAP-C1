@@ -1,0 +1,1376 @@
+{
+  "humaneval": {
+    "benchmark": "humaneval",
+    "passed": 24,
+    "total": 50,
+    "score": 0.48,
+    "results": [
+      {
+        "task_id": "HumanEval/0",
+        "passed": true,
+        "error": "",
+        "elapsed": 6.567473888397217,
+        "response_len": 288
+      },
+      {
+        "task_id": "HumanEval/2",
+        "passed": true,
+        "error": "",
+        "elapsed": 7.882849216461182,
+        "response_len": 385
+      },
+      {
+        "task_id": "HumanEval/3",
+        "passed": true,
+        "error": "",
+        "elapsed": 3.3015551567077637,
+        "response_len": 146
+      },
+      {
+        "task_id": "HumanEval/11",
+        "passed": false,
+        "error": "TypeError: unsupported operand type(s) for ^: 'str' and 'str'",
+        "elapsed": 2.177912473678589,
+        "response_len": 52
+      },
+      {
+        "task_id": "HumanEval/14",
+        "passed": true,
+        "error": "",
+        "elapsed": 4.1815667152404785,
+        "response_len": 175
+      },
+      {
+        "task_id": "HumanEval/16",
+        "passed": true,
+        "error": "",
+        "elapsed": 6.700928449630737,
+        "response_len": 313
+      },
+      {
+        "task_id": "HumanEval/17",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 11.506853103637695,
+        "response_len": 600
+      },
+      {
+        "task_id": "HumanEval/18",
+        "passed": true,
+        "error": "",
+        "elapsed": 12.0968017578125,
+        "response_len": 523
+      },
+      {
+        "task_id": "HumanEval/19",
+        "passed": false,
+        "error": "TypeError: 'dict_keys' object is not subscriptable",
+        "elapsed": 16.436112642288208,
+        "response_len": 705
+      },
+      {
+        "task_id": "HumanEval/30",
+        "passed": true,
+        "error": "",
+        "elapsed": 10.704422235488892,
+        "response_len": 280
+      },
+      {
+        "task_id": "HumanEval/32",
+        "passed": false,
+        "error": "NameError: name 'poly' is not defined",
+        "elapsed": 22.569544076919556,
+        "response_len": 882
+      },
+      {
+        "task_id": "HumanEval/38",
+        "passed": false,
+        "error": "NameError: name 'encode_cyclic' is not defined",
+        "elapsed": 11.132407426834106,
+        "response_len": 471
+      },
+      {
+        "task_id": "HumanEval/42",
+        "passed": true,
+        "error": "",
+        "elapsed": 10.003512144088745,
+        "response_len": 257
+      },
+      {
+        "task_id": "HumanEval/43",
+        "passed": true,
+        "error": "",
+        "elapsed": 3.7560667991638184,
+        "response_len": 166
+      },
+      {
+        "task_id": "HumanEval/49",
+        "passed": true,
+        "error": "",
+        "elapsed": 11.562665700912476,
+        "response_len": 329
+      },
+      {
+        "task_id": "HumanEval/52",
+        "passed": true,
+        "error": "",
+        "elapsed": 3.3259568214416504,
+        "response_len": 135
+      },
+      {
+        "task_id": "HumanEval/53",
+        "passed": true,
+        "error": "",
+        "elapsed": 4.8167009353637695,
+        "response_len": 147
+      },
+      {
+        "task_id": "HumanEval/54",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 1.8700463771820068,
+        "response_len": 53
+      },
+      {
+        "task_id": "HumanEval/61",
+        "passed": true,
+        "error": "",
+        "elapsed": 5.669252395629883,
+        "response_len": 253
+      },
+      {
+        "task_id": "HumanEval/63",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 9.064122438430786,
+        "response_len": 272
+      },
+      {
+        "task_id": "HumanEval/64",
+        "passed": false,
+        "error": "AssertionError: Test 2",
+        "elapsed": 13.23922348022461,
+        "response_len": 544
+      },
+      {
+        "task_id": "HumanEval/65",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 4.470430135726929,
+        "response_len": 176
+      },
+      {
+        "task_id": "HumanEval/66",
+        "passed": true,
+        "error": "",
+        "elapsed": 3.320030689239502,
+        "response_len": 142
+      },
+      {
+        "task_id": "HumanEval/67",
+        "passed": false,
+        "error": "ValueError: invalid literal for int() with base 10: 'apples'",
+        "elapsed": 25.388339042663574,
+        "response_len": 1124
+      },
+      {
+        "task_id": "HumanEval/72",
+        "passed": true,
+        "error": "",
+        "elapsed": 7.499633312225342,
+        "response_len": 336
+      },
+      {
+        "task_id": "HumanEval/75",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 7.3912599086761475,
+        "response_len": 345
+      },
+      {
+        "task_id": "HumanEval/76",
+        "passed": true,
+        "error": "",
+        "elapsed": 7.513674736022949,
+        "response_len": 252
+      },
+      {
+        "task_id": "HumanEval/88",
+        "passed": false,
+        "error": "IndexError: list index out of range",
+        "elapsed": 4.922745704650879,
+        "response_len": 178
+      },
+      {
+        "task_id": "HumanEval/95",
+        "passed": false,
+        "error": "AssertionError: Fifth test error: False",
+        "elapsed": 6.234058141708374,
+        "response_len": 286
+      },
+      {
+        "task_id": "HumanEval/99",
+        "passed": true,
+        "error": "",
+        "elapsed": 21.110631227493286,
+        "response_len": 1058
+      },
+      {
+        "task_id": "HumanEval/102",
+        "passed": true,
+        "error": "",
+        "elapsed": 15.549781084060669,
+        "response_len": 646
+      },
+      {
+        "task_id": "HumanEval/104",
+        "passed": true,
+        "error": "",
+        "elapsed": 4.2644898891448975,
+        "response_len": 181
+      },
+      {
+        "task_id": "HumanEval/105",
+        "passed": true,
+        "error": "",
+        "elapsed": 14.350147724151611,
+        "response_len": 615
+      },
+      {
+        "task_id": "HumanEval/109",
+        "passed": false,
+        "error": "SyntaxError: unterminated string literal (detected at line 45) (<string>, line 45)",
+        "elapsed": 63.100743532180786,
+        "response_len": 3122
+      },
+      {
+        "task_id": "HumanEval/112",
+        "passed": false,
+        "error": "SyntaxError: unterminated string literal (detected at line 22) (<string>, line 22)",
+        "elapsed": 62.427149534225464,
+        "response_len": 2960
+      },
+      {
+        "task_id": "HumanEval/115",
+        "passed": false,
+        "error": "AssertionError: Error",
+        "elapsed": 5.336212873458862,
+        "response_len": 200
+      },
+      {
+        "task_id": "HumanEval/118",
+        "passed": false,
+        "error": "SyntaxError: unterminated string literal (detected at line 39) (<string>, line 39)",
+        "elapsed": 61.6740198135376,
+        "response_len": 2807
+      },
+      {
+        "task_id": "HumanEval/121",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 4.096692323684692,
+        "response_len": 148
+      },
+      {
+        "task_id": "HumanEval/123",
+        "passed": true,
+        "error": "",
+        "elapsed": 24.447717666625977,
+        "response_len": 1106
+      },
+      {
+        "task_id": "HumanEval/124",
+        "passed": true,
+        "error": "",
+        "elapsed": 48.699604749679565,
+        "response_len": 1860
+      },
+      {
+        "task_id": "HumanEval/127",
+        "passed": true,
+        "error": "",
+        "elapsed": 32.376903772354126,
+        "response_len": 1572
+      },
+      {
+        "task_id": "HumanEval/128",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 6.791563272476196,
+        "response_len": 290
+      },
+      {
+        "task_id": "HumanEval/130",
+        "passed": false,
+        "error": "IndexError: list index out of range",
+        "elapsed": 19.937811136245728,
+        "response_len": 757
+      },
+      {
+        "task_id": "HumanEval/132",
+        "passed": false,
+        "error": "SyntaxError: unterminated string literal (detected at line 31) (<string>, line 31)",
+        "elapsed": 62.241156816482544,
+        "response_len": 3121
+      },
+      {
+        "task_id": "HumanEval/137",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 7.706676483154297,
+        "response_len": 339
+      },
+      {
+        "task_id": "HumanEval/144",
+        "passed": false,
+        "error": "AssertionError: test1",
+        "elapsed": 22.439685106277466,
+        "response_len": 1028
+      },
+      {
+        "task_id": "HumanEval/145",
+        "passed": false,
+        "error": "ValueError: invalid literal for int() with base 10: '-'",
+        "elapsed": 3.2256505489349365,
+        "response_len": 128
+      },
+      {
+        "task_id": "HumanEval/154",
+        "passed": false,
+        "error": "AssertionError: test #1",
+        "elapsed": 4.7777464389801025,
+        "response_len": 191
+      },
+      {
+        "task_id": "HumanEval/158",
+        "passed": true,
+        "error": "",
+        "elapsed": 7.094391345977783,
+        "response_len": 392
+      },
+      {
+        "task_id": "HumanEval/159",
+        "passed": false,
+        "error": "AssertionError: Error",
+        "elapsed": 5.611357688903809,
+        "response_len": 240
+      }
+    ]
+  },
+  "gsm8k": {
+    "benchmark": "gsm8k",
+    "passed": 44,
+    "total": 50,
+    "score": 0.88,
+    "results": [
+      {
+        "question": "Melanie is a door-to-door saleswoman. She sold a third of her vacuum cleaners at the green house, 2 ",
+        "ground_truth": "18",
+        "predicted": "18",
+        "correct": true,
+        "elapsed": 181.75957536697388
+      },
+      {
+        "question": "Tom's ship can travel at 10 miles per hour.  He is sailing from 1 to 4 PM.  He then travels back at ",
+        "ground_truth": "5",
+        "predicted": "5",
+        "correct": true,
+        "elapsed": 50.36691379547119
+      },
+      {
+        "question": "The Doubtfire sisters are driving home with 7 kittens adopted from the local animal shelter when the",
+        "ground_truth": "40",
+        "predicted": "55",
+        "correct": false,
+        "elapsed": 78.63237404823303
+      },
+      {
+        "question": "Janet buys a brooch for her daughter.  She pays $500 for the material to make it and then another $8",
+        "ground_truth": "1430",
+        "predicted": "1430",
+        "correct": true,
+        "elapsed": 42.47544813156128
+      },
+      {
+        "question": "Jim spends 2 hours watching TV and then decides to go to bed and reads for half as long.  He does th",
+        "ground_truth": "36",
+        "predicted": "36",
+        "correct": true,
+        "elapsed": 70.72638893127441
+      },
+      {
+        "question": "Marilyn's first record sold 10 times as many copies as Harald's. If they sold 88,000 copies combined",
+        "ground_truth": "8000",
+        "predicted": "8000",
+        "correct": true,
+        "elapsed": 48.61596703529358
+      },
+      {
+        "question": "Anakin and Locsin went to the beach today. Anakin caught 10 starfish, 6 sea horses, and 3 clownfish.",
+        "ground_truth": "32",
+        "predicted": "32",
+        "correct": true,
+        "elapsed": 60.47057485580444
+      },
+      {
+        "question": "Rani has ten more crabs than Monic, who has 4 fewer crabs than Bo. If Bo has 40 crabs, calculate the",
+        "ground_truth": "122",
+        "predicted": "122",
+        "correct": true,
+        "elapsed": 40.284364223480225
+      },
+      {
+        "question": "Three friends spent $20.25 on 3 tickets to the fair. They also spent $4.50 less on food than on the ",
+        "ground_truth": "34",
+        "predicted": "34",
+        "correct": true,
+        "elapsed": 79.20737910270691
+      },
+      {
+        "question": "Ducks need to eat 3.5 pounds of insects each week to survive. If there is a flock of ten ducks, how ",
+        "ground_truth": "5",
+        "predicted": "0.5",
+        "correct": false,
+        "elapsed": 34.852604150772095
+      },
+      {
+        "question": "Elaine initially had 20 Pokemon cards. After a month, she collected three times that number. In the ",
+        "ground_truth": "320",
+        "predicted": "320",
+        "correct": true,
+        "elapsed": 87.1323893070221
+      },
+      {
+        "question": "Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Cal",
+        "ground_truth": "145",
+        "predicted": "145",
+        "correct": true,
+        "elapsed": 134.02000761032104
+      },
+      {
+        "question": "Kalinda is working on a 360 piece puzzle with her mom. Kalinda can normally add 4 pieces per minute.",
+        "ground_truth": "1",
+        "predicted": "1",
+        "correct": true,
+        "elapsed": 32.30369162559509
+      },
+      {
+        "question": "Ten stalls have 20 cows each. Mr. Sylas buys 40 cows and divides them equally, putting an equal numb",
+        "ground_truth": "192",
+        "predicted": "96",
+        "correct": false,
+        "elapsed": 44.559699296951294
+      },
+      {
+        "question": "If Ann is 9 years old and her brother is twice her age, how old will her brother be in 3 years?",
+        "ground_truth": "21",
+        "predicted": "21",
+        "correct": true,
+        "elapsed": 14.954213619232178
+      },
+      {
+        "question": "If a classroom has 3 times as many girls as they do boys, and 1/10 as many nongendered children as t",
+        "ground_truth": "123",
+        "predicted": "123",
+        "correct": true,
+        "elapsed": 56.5692937374115
+      },
+      {
+        "question": "Some people got on a bus at the terminal. At the first bus stop, 5 more people got in. Then at the s",
+        "ground_truth": "14",
+        "predicted": "14",
+        "correct": true,
+        "elapsed": 70.22838354110718
+      },
+      {
+        "question": "Elliott is trying to walk 10,000 steps a day. He finished half of his steps on his walks to and from",
+        "ground_truth": "2000",
+        "predicted": "2000.",
+        "correct": true,
+        "elapsed": 201.284663438797
+      },
+      {
+        "question": "The area of Billie's rectangular bedroom is 360 square feet. If the length of his room is 3 yards, w",
+        "ground_truth": "98",
+        "predicted": "98",
+        "correct": true,
+        "elapsed": 40.80386996269226
+      },
+      {
+        "question": "Joey has 214 points before his turn in Scrabble. He scores 26 points. Then Marcy, who has 225 points",
+        "ground_truth": "5",
+        "predicted": "5",
+        "correct": true,
+        "elapsed": 74.45837163925171
+      },
+      {
+        "question": "On a certain day, the total cost of filling up 20 helium balloons was $900. Two days later, the cost",
+        "ground_truth": "11050",
+        "predicted": "11050",
+        "correct": true,
+        "elapsed": 93.32237553596497
+      },
+      {
+        "question": "While playing with her friends in their school playground, Katelyn saw 50 fairies flying above the n",
+        "ground_truth": "45",
+        "predicted": "45.",
+        "correct": true,
+        "elapsed": 193.9052402973175
+      },
+      {
+        "question": "Sarah went to buy books from the store and spent $300 on the books. If each book was $15 and she gav",
+        "ground_truth": "5",
+        "predicted": "5",
+        "correct": true,
+        "elapsed": 30.048243522644043
+      },
+      {
+        "question": "Mariah\u2019s grandma was teaching her to knit. Mariah used 1/4 of a skein of yarn. Her grandma used 1/2 ",
+        "ground_truth": "273",
+        "predicted": "273",
+        "correct": true,
+        "elapsed": 52.64781928062439
+      },
+      {
+        "question": "Elvis has a monthly saving target of $1125. In April, he wants to save twice as much daily in the se",
+        "ground_truth": "50",
+        "predicted": "50",
+        "correct": true,
+        "elapsed": 168.22512888908386
+      },
+      {
+        "question": "James decides to buy birthday candles for his 2 sons.  One of them is 12 and the other is 4 years yo",
+        "ground_truth": "12",
+        "predicted": "12",
+        "correct": true,
+        "elapsed": 121.76199126243591
+      },
+      {
+        "question": "Liam and Mitchell own competing lemonade stands across the street from one another. When Liam bragge",
+        "ground_truth": "21",
+        "predicted": "21",
+        "correct": true,
+        "elapsed": 56.824973344802856
+      },
+      {
+        "question": "Jamaal is at the gym. He has been using an 8-pound weight. He increases the weight that he uses by 5",
+        "ground_truth": "10",
+        "predicted": "10",
+        "correct": true,
+        "elapsed": 33.79745650291443
+      },
+      {
+        "question": "Manolo bought five lollipops and four candies that cost $3.20. If each lollipop costs $0.40, how muc",
+        "ground_truth": "7",
+        "predicted": "7.00",
+        "correct": true,
+        "elapsed": 232.4688696861267
+      },
+      {
+        "question": "Students in class 3B are collecting school points for behavior. If they get enough points in total, ",
+        "ground_truth": "145",
+        "predicted": "145",
+        "correct": true,
+        "elapsed": 104.80477213859558
+      },
+      {
+        "question": "Gerald and Julia divided $100 in the ratio 3:2. If Gerald spent $10 on a book, how much money did he",
+        "ground_truth": "50",
+        "predicted": "50",
+        "correct": true,
+        "elapsed": 44.629587173461914
+      },
+      {
+        "question": "In a student council election, candidate A got 20% of the votes while candidate B got 50% more than ",
+        "ground_truth": "50",
+        "predicted": "50",
+        "correct": true,
+        "elapsed": 57.4201762676239
+      },
+      {
+        "question": "Henry needs to assemble some toys, specifically 57 cars and 73 motorcycles. Henry knows that to asse",
+        "ground_truth": "276",
+        "predicted": "276",
+        "correct": true,
+        "elapsed": 47.54492902755737
+      },
+      {
+        "question": "At the local Pick Your Own fruit orchard, you could pick your own peaches for $2.00 per pound, plums",
+        "ground_truth": "38",
+        "predicted": "38",
+        "correct": true,
+        "elapsed": 54.855512857437134
+      },
+      {
+        "question": "While working at the restaurant, each of the forty customers who came into the restaurant gave Rafae",
+        "ground_truth": "1520",
+        "predicted": "1520",
+        "correct": true,
+        "elapsed": 74.74071645736694
+      },
+      {
+        "question": "George, a grade six teacher, ordered 600 burritos for the sixth-grade class picnic. If there were 50",
+        "ground_truth": "80",
+        "predicted": "80",
+        "correct": true,
+        "elapsed": 41.5847647190094
+      },
+      {
+        "question": "A bumper car rink has 12 red cars. They have 2 fewer green cars than they have red cars. They have 3",
+        "ground_truth": "23",
+        "predicted": "23",
+        "correct": true,
+        "elapsed": 68.628422498703
+      },
+      {
+        "question": "To raise money for their class fund, each of the 30 students from one class sold lollipops that cost",
+        "ground_truth": "90",
+        "predicted": "90",
+        "correct": true,
+        "elapsed": 53.61787676811218
+      },
+      {
+        "question": "For the children's day celebration, children are to perform mass drills in the presence of the Presi",
+        "ground_truth": "280",
+        "predicted": "56",
+        "correct": false,
+        "elapsed": 193.74898099899292
+      },
+      {
+        "question": "Ted starts with $200. He buys 3 books for 16 dollars each and 3 pencils for 6 dollars each. How much",
+        "ground_truth": "66",
+        "predicted": "66",
+        "correct": true,
+        "elapsed": 29.434163808822632
+      },
+      {
+        "question": "Jeff is 10 years older than his younger sister, Martha. Martha, on the other hand, is 4 years younge",
+        "ground_truth": "30",
+        "predicted": "30",
+        "correct": true,
+        "elapsed": 21.96761465072632
+      },
+      {
+        "question": "Last year there were 50 students enrolled in a calligraphy class. This year, there was a 20% increas",
+        "ground_truth": "60",
+        "predicted": "60",
+        "correct": true,
+        "elapsed": 48.82295823097229
+      },
+      {
+        "question": "Nik has 200 crayons. He wants to separate them into groups of 8 and put them into boxes.  Each box w",
+        "ground_truth": "25",
+        "predicted": "25",
+        "correct": true,
+        "elapsed": 71.76349377632141
+      },
+      {
+        "question": "Jen got 3 fish.  They each need $1 worth of food a day.  How much does she spend on food in the mont",
+        "ground_truth": "93",
+        "predicted": "93",
+        "correct": true,
+        "elapsed": 21.00985622406006
+      },
+      {
+        "question": "John decides to get a loan by mortgaging his home.  His house is worth $250,000.  He gets a loan wor",
+        "ground_truth": "40000",
+        "predicted": "100000.",
+        "correct": false,
+        "elapsed": 193.2444987297058
+      },
+      {
+        "question": "Brian's basement was damp and musty, so he bought a dehumidifier to remove moisture out of the air. ",
+        "ground_truth": "29",
+        "predicted": "29",
+        "correct": true,
+        "elapsed": 46.739017724990845
+      },
+      {
+        "question": "Eve had 20 pieces of pomelos. After giving her friend some pomelos, Eve is left with 1/4 of the pome",
+        "ground_truth": "15",
+        "predicted": "15",
+        "correct": true,
+        "elapsed": 27.402991771697998
+      },
+      {
+        "question": "Madeline ate 6 grapes. Her brother wanted to make grape juice and used up 5 times as many grapes the",
+        "ground_truth": "84",
+        "predicted": "84",
+        "correct": true,
+        "elapsed": 74.30536842346191
+      },
+      {
+        "question": "In a family, there are 2 brothers and 3 sisters. All sisters are the same age, which is 16. One of t",
+        "ground_truth": "84",
+        "predicted": "84",
+        "correct": true,
+        "elapsed": 43.24518442153931
+      },
+      {
+        "question": "The girls are trying to raise money for a carnival. Kim raises $320 more than Alexandra, who raises ",
+        "ground_truth": "2280",
+        "predicted": "2180",
+        "correct": false,
+        "elapsed": 82.72736430168152
+      }
+    ]
+  },
+  "tool_use": {
+    "benchmark": "tool_use",
+    "passed": 40,
+    "total": 50,
+    "score": 0.8,
+    "results": [
+      {
+        "query": "Read the contents of main.py",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 81.76749777793884
+      },
+      {
+        "query": "Show me what's in the config/settings.yaml file",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 27.78984022140503
+      },
+      {
+        "query": "Search for all functions that handle authentication in the codebase",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 30.65826654434204
+      },
+      {
+        "query": "Run the test suite with pytest",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.95,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 21.872532844543457
+      },
+      {
+        "query": "Create a new file called utils/helpers.py with a basic logging setup",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "write_file",
+          "expected_tool": "write_file",
+          "args_match": true
+        },
+        "elapsed": 19.354198217391968
+      },
+      {
+        "query": "Execute this Python code: print(sum(range(100)))",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 11.038627862930298
+      },
+      {
+        "query": "Find all TODO comments in Python files",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 27.448930978775024
+      },
+      {
+        "query": "Edit server.py and change the port from 8080 to 3000",
+        "expected_tool": "edit_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "edit_file",
+          "expected_tool": "edit_file",
+          "args_match": true
+        },
+        "elapsed": 23.068753480911255
+      },
+      {
+        "query": "List all files in the src directory",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.75,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "shell_command",
+          "args_match": false
+        },
+        "elapsed": 36.239922285079956
+      },
+      {
+        "query": "Read the package.json to check dependencies",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 38.5997531414032
+      },
+      {
+        "query": "Search the project for any hardcoded API keys",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 33.81670928001404
+      },
+      {
+        "query": "Run python manage.py migrate",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "shell_command",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 8.591405630111694
+      },
+      {
+        "query": "Write a test file tests/test_auth.py with basic test cases",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "write_file",
+          "expected_tool": "write_file",
+          "args_match": true
+        },
+        "elapsed": 82.15801692008972
+      },
+      {
+        "query": "Execute: import platform; print(platform.system())",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 8.81327748298645
+      },
+      {
+        "query": "Open and read the README.md file",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 11.279534339904785
+      },
+      {
+        "query": "Find all files importing the requests library",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 25.942355632781982
+      },
+      {
+        "query": "Run npm install in the frontend directory",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.7,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 80.62473726272583
+      },
+      {
+        "query": "Create a .env file with DATABASE_URL=postgres://localhost/mydb",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "write_file",
+          "args_match": false
+        },
+        "elapsed": 5.955820560455322
+      },
+      {
+        "query": "Check the git status of the project",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "shell_command",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 81.17183136940002
+      },
+      {
+        "query": "Read the first 50 lines of database/models.py",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 63.79354977607727
+      },
+      {
+        "query": "Search for deprecated function calls in the codebase",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 0.8,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": false
+        },
+        "elapsed": 32.52696919441223
+      },
+      {
+        "query": "Execute a quick benchmark: [x**2 for x in range(1000)]",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 26.699052810668945
+      },
+      {
+        "query": "Edit config.yaml to change debug mode from true to false",
+        "expected_tool": "edit_file",
+        "score": {
+          "score": 0.7,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "edit_file",
+          "args_match": true
+        },
+        "elapsed": 24.077943325042725
+      },
+      {
+        "query": "Show me the contents of the Dockerfile",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 23.277409315109253
+      },
+      {
+        "query": "Run the linter: flake8 src/",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.7,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 82.84459185600281
+      },
+      {
+        "query": "Find all classes that inherit from BaseModel",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 0.3,
+          "has_tags": true,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "search_files",
+          "args_match": false
+        },
+        "elapsed": 35.0508177280426
+      },
+      {
+        "query": "Create a migration script at db/migrations/001_init.sql",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "write_file",
+          "expected_tool": "write_file",
+          "args_match": true
+        },
+        "elapsed": 15.692534685134888
+      },
+      {
+        "query": "Execute: len(open('data.csv').readlines())",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 18.14797830581665
+      },
+      {
+        "query": "Read the nginx.conf configuration file",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 57.121203899383545
+      },
+      {
+        "query": "Search for all error handling blocks (try/except)",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 82.42230224609375
+      },
+      {
+        "query": "Run docker-compose up -d",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "shell_command",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 81.97084999084473
+      },
+      {
+        "query": "Edit requirements.txt to add flask==3.0.0",
+        "expected_tool": "edit_file",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "edit_file",
+          "args_match": false
+        },
+        "elapsed": 8.419880628585815
+      },
+      {
+        "query": "Show the contents of the .gitignore file",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 85.86801505088806
+      },
+      {
+        "query": "Find all files with SQL injection vulnerabilities (raw SQL queries)",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "search_files",
+          "args_match": false
+        },
+        "elapsed": 83.05275058746338
+      },
+      {
+        "query": "Execute: import sys; print(sys.version)",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 15.265214443206787
+      },
+      {
+        "query": "Create a new script deploy.sh with basic deployment steps",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "write_file",
+          "args_match": false
+        },
+        "elapsed": 83.82172632217407
+      },
+      {
+        "query": "Read the Makefile to see available commands",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 23.154433727264404
+      },
+      {
+        "query": "Run the database seed script: python seed_data.py",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "shell_command",
+          "args_match": false
+        },
+        "elapsed": 81.56607913970947
+      },
+      {
+        "query": "Search for all environment variable references in the code",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "search_files",
+          "args_match": false
+        },
+        "elapsed": 81.00727200508118
+      },
+      {
+        "query": "Edit app.py to add CORS support",
+        "expected_tool": "edit_file",
+        "score": {
+          "score": 0.3,
+          "has_tags": true,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "edit_file",
+          "args_match": false
+        },
+        "elapsed": 81.08350014686584
+      },
+      {
+        "query": "Show the project's pyproject.toml configuration",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 0.7,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 80.9859766960144
+      },
+      {
+        "query": "Execute a quick test: assert 2+2 == 4, 'Math is broken'",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 17.574228525161743
+      },
+      {
+        "query": "Find all files larger than 1MB in the project",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.3,
+          "has_tags": true,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "shell_command",
+          "args_match": false
+        },
+        "elapsed": 44.97628855705261
+      },
+      {
+        "query": "Search for all print statements that should be replaced with logging",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 25.36652708053589
+      },
+      {
+        "query": "Create a new Python module at lib/cache.py with Redis connection",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "write_file",
+          "expected_tool": "write_file",
+          "args_match": true
+        },
+        "elapsed": 11.75328540802002
+      },
+      {
+        "query": "Read the CI/CD configuration from .github/workflows/main.yml",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 81.45849180221558
+      },
+      {
+        "query": "Run black formatter on the src directory",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.7,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 13.101453304290771
+      },
+      {
+        "query": "Edit docker-compose.yml to add a Redis service",
+        "expected_tool": "edit_file",
+        "score": {
+          "score": 0.3,
+          "has_tags": true,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "edit_file",
+          "args_match": false
+        },
+        "elapsed": 81.51133251190186
+      },
+      {
+        "query": "Execute: from collections import Counter; print(Counter('abracadabra'))",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 18.556203603744507
+      },
+      {
+        "query": "Search for all async functions in the codebase",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 24.3168044090271
+      }
+    ]
+  }
+}

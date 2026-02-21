@@ -1,0 +1,18 @@
+{
+  "gsm8k": {
+    "benchmark": "gsm8k",
+    "passed": 0,
+    "total": 1,
+    "score": 0.0,
+    "results": [
+      {
+        "question": "The girls are trying to raise money for a carnival. Kim raises $320 more than Alexandra, who raises ",
+        "ground_truth": "2280",
+        "predicted": "1",
+        "correct": false,
+        "elapsed": 19.08564329147339,
+        "response": "<think>\n[Round 1 \u2014 Initial Positions]\n[Architect] The problem provides statements about each person's contribution. We need to calculate the total.\n[Critic] Ensure we don't mix up the variables, like Maryam vs. Sarah.\n[Researcher] I'll calculate each person's contribution step by step.\n[Implementer] I'll compute the final total.\n</think> \u0645\u0633\u0627\u0639\u062f\u0629 user\n\n[Round 1 \u2014 Initial Positions]\n[Architect] The problem provides statements about each person's contribution. We need to calculate the total.\n[Critic] Ensure we don't mix up the variables, like Maryam vs. Sarah.\n[Researcher] I'll calculate each person's contribution step by step.\n[Implementer] I'll compute the final total.\n[Closing]"
+      }
+    ]
+  }
+}

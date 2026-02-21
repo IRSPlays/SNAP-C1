@@ -1,0 +1,34 @@
+{
+  "gsm8k": {
+    "benchmark": "gsm8k",
+    "passed": 0,
+    "total": 3,
+    "score": 0.0,
+    "results": [
+      {
+        "question": "Tom's ship can travel at 10 miles per hour.  He is sailing from 1 to 4 PM.  He then travels back at ",
+        "ground_truth": "5",
+        "predicted": "3.5",
+        "correct": false,
+        "elapsed": 9.781670570373535,
+        "response": "<think>\n[Round 1: Strategy]\n[Architect] The problem is about Tom's round trip. We need to calculate the time for each leg.\n[Critic] I'll verify the math with a different approach.\n[Researcher] I'll calculate the distance one way first.\n[Implementer] I'll compute the total time.\n</think>\n\n<final_answer>\n3.5\n</final_answer>"
+      },
+      {
+        "question": "Kalinda is working on a 360 piece puzzle with her mom. Kalinda can normally add 4 pieces per minute.",
+        "ground_truth": "1",
+        "predicted": "3",
+        "correct": false,
+        "elapsed": 10.669841766357422,
+        "response": "<think>\n[Round 1: Strategy]\n[Architect] This is a rate problem. We need to find the total time.\n[Critic] Check if the inputs are clear (e.g., 360 pieces).\n[Researcher] Figure out the combined rate.\n[Implementer] Write the formula: Time = Total / (Rate1 + Rate2).\n[Finalizer] Combine all steps.\n</think>\n\n<final_answer>\n3\n</final_answer>"
+      },
+      {
+        "question": "The girls are trying to raise money for a carnival. Kim raises $320 more than Alexandra, who raises ",
+        "ground_truth": "2280",
+        "predicted": "1150",
+        "correct": false,
+        "elapsed": 11.608523845672607,
+        "response": "<think>\n[Round 1: Strategy]\n[Architect] The problem is about calculating total funds raised by multiple people.\n[Critic] I'll verify the calculations step by step.\n[Researcher] I'll identify the variables: Kim, Alexandra, Maryam, Sarah.\n[Implementer] I'll compute each part separately.\n[Finalizer] I'll present the final answer.\n</think>\n<final_answer>\nThe total amount raised is $1,150.\n</final_answer>"
+      }
+    ]
+  }
+}

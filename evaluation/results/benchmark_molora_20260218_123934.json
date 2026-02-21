@@ -1,0 +1,566 @@
+{
+  "humaneval": {
+    "benchmark": "humaneval",
+    "passed": 12,
+    "total": 20,
+    "score": 0.6,
+    "results": [
+      {
+        "task_id": "HumanEval/0",
+        "passed": true,
+        "error": "",
+        "elapsed": 6.79671311378479,
+        "response_len": 288
+      },
+      {
+        "task_id": "HumanEval/11",
+        "passed": false,
+        "error": "TypeError: unsupported operand type(s) for ^: 'str' and 'str'",
+        "elapsed": 2.0837199687957764,
+        "response_len": 52
+      },
+      {
+        "task_id": "HumanEval/17",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 11.711870193481445,
+        "response_len": 600
+      },
+      {
+        "task_id": "HumanEval/18",
+        "passed": true,
+        "error": "",
+        "elapsed": 12.289692401885986,
+        "response_len": 523
+      },
+      {
+        "task_id": "HumanEval/30",
+        "passed": true,
+        "error": "",
+        "elapsed": 10.869434833526611,
+        "response_len": 280
+      },
+      {
+        "task_id": "HumanEval/42",
+        "passed": true,
+        "error": "",
+        "elapsed": 10.220523118972778,
+        "response_len": 257
+      },
+      {
+        "task_id": "HumanEval/52",
+        "passed": true,
+        "error": "",
+        "elapsed": 3.334672212600708,
+        "response_len": 135
+      },
+      {
+        "task_id": "HumanEval/61",
+        "passed": true,
+        "error": "",
+        "elapsed": 5.696647882461548,
+        "response_len": 253
+      },
+      {
+        "task_id": "HumanEval/66",
+        "passed": true,
+        "error": "",
+        "elapsed": 3.3999366760253906,
+        "response_len": 142
+      },
+      {
+        "task_id": "HumanEval/88",
+        "passed": false,
+        "error": "IndexError: list index out of range",
+        "elapsed": 4.394686937332153,
+        "response_len": 178
+      },
+      {
+        "task_id": "HumanEval/104",
+        "passed": true,
+        "error": "",
+        "elapsed": 4.29100227355957,
+        "response_len": 181
+      },
+      {
+        "task_id": "HumanEval/105",
+        "passed": true,
+        "error": "",
+        "elapsed": 13.996705293655396,
+        "response_len": 615
+      },
+      {
+        "task_id": "HumanEval/121",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 3.7372164726257324,
+        "response_len": 148
+      },
+      {
+        "task_id": "HumanEval/123",
+        "passed": true,
+        "error": "",
+        "elapsed": 23.91211724281311,
+        "response_len": 1106
+      },
+      {
+        "task_id": "HumanEval/124",
+        "passed": true,
+        "error": "",
+        "elapsed": 48.535200119018555,
+        "response_len": 1860
+      },
+      {
+        "task_id": "HumanEval/127",
+        "passed": true,
+        "error": "",
+        "elapsed": 32.555410861968994,
+        "response_len": 1572
+      },
+      {
+        "task_id": "HumanEval/130",
+        "passed": false,
+        "error": "IndexError: list index out of range",
+        "elapsed": 19.735396146774292,
+        "response_len": 757
+      },
+      {
+        "task_id": "HumanEval/137",
+        "passed": false,
+        "error": "AssertionError: ",
+        "elapsed": 7.611798048019409,
+        "response_len": 339
+      },
+      {
+        "task_id": "HumanEval/145",
+        "passed": false,
+        "error": "ValueError: invalid literal for int() with base 10: '-'",
+        "elapsed": 3.3043313026428223,
+        "response_len": 128
+      },
+      {
+        "task_id": "HumanEval/154",
+        "passed": false,
+        "error": "AssertionError: test #1",
+        "elapsed": 4.979326486587524,
+        "response_len": 191
+      }
+    ]
+  },
+  "gsm8k": {
+    "benchmark": "gsm8k",
+    "passed": 17,
+    "total": 20,
+    "score": 0.85,
+    "results": [
+      {
+        "question": "Tom's ship can travel at 10 miles per hour.  He is sailing from 1 to 4 PM.  He then travels back at ",
+        "ground_truth": "5",
+        "predicted": "5",
+        "correct": true,
+        "elapsed": 47.66978454589844
+      },
+      {
+        "question": "The Doubtfire sisters are driving home with 7 kittens adopted from the local animal shelter when the",
+        "ground_truth": "40",
+        "predicted": "55",
+        "correct": false,
+        "elapsed": 48.4505774974823
+      },
+      {
+        "question": "Janet buys a brooch for her daughter.  She pays $500 for the material to make it and then another $8",
+        "ground_truth": "1430",
+        "predicted": "1430",
+        "correct": true,
+        "elapsed": 30.602540254592896
+      },
+      {
+        "question": "Jim spends 2 hours watching TV and then decides to go to bed and reads for half as long.  He does th",
+        "ground_truth": "36",
+        "predicted": "36",
+        "correct": true,
+        "elapsed": 68.04208970069885
+      },
+      {
+        "question": "Rani has ten more crabs than Monic, who has 4 fewer crabs than Bo. If Bo has 40 crabs, calculate the",
+        "ground_truth": "122",
+        "predicted": "122",
+        "correct": true,
+        "elapsed": 42.37653183937073
+      },
+      {
+        "question": "Ducks need to eat 3.5 pounds of insects each week to survive. If there is a flock of ten ducks, how ",
+        "ground_truth": "5",
+        "predicted": "0.5",
+        "correct": false,
+        "elapsed": 41.16273546218872
+      },
+      {
+        "question": "Twenty dozen cups cost $1200 less than the total cost of half a dozen plates sold at $6000 each. Cal",
+        "ground_truth": "145",
+        "predicted": "145",
+        "correct": true,
+        "elapsed": 128.26439905166626
+      },
+      {
+        "question": "Kalinda is working on a 360 piece puzzle with her mom. Kalinda can normally add 4 pieces per minute.",
+        "ground_truth": "1",
+        "predicted": "1",
+        "correct": true,
+        "elapsed": 28.538028717041016
+      },
+      {
+        "question": "If Ann is 9 years old and her brother is twice her age, how old will her brother be in 3 years?",
+        "ground_truth": "21",
+        "predicted": "21",
+        "correct": true,
+        "elapsed": 15.168201208114624
+      },
+      {
+        "question": "Joey has 214 points before his turn in Scrabble. He scores 26 points. Then Marcy, who has 225 points",
+        "ground_truth": "5",
+        "predicted": "5",
+        "correct": true,
+        "elapsed": 55.21248149871826
+      },
+      {
+        "question": "While playing with her friends in their school playground, Katelyn saw 50 fairies flying above the n",
+        "ground_truth": "45",
+        "predicted": "45.",
+        "correct": true,
+        "elapsed": 193.8592026233673
+      },
+      {
+        "question": "Sarah went to buy books from the store and spent $300 on the books. If each book was $15 and she gav",
+        "ground_truth": "5",
+        "predicted": "5",
+        "correct": true,
+        "elapsed": 24.835159063339233
+      },
+      {
+        "question": "Mariah\u2019s grandma was teaching her to knit. Mariah used 1/4 of a skein of yarn. Her grandma used 1/2 ",
+        "ground_truth": "273",
+        "predicted": "273",
+        "correct": true,
+        "elapsed": 51.723597288131714
+      },
+      {
+        "question": "James decides to buy birthday candles for his 2 sons.  One of them is 12 and the other is 4 years yo",
+        "ground_truth": "12",
+        "predicted": "12",
+        "correct": true,
+        "elapsed": 72.91529130935669
+      },
+      {
+        "question": "George, a grade six teacher, ordered 600 burritos for the sixth-grade class picnic. If there were 50",
+        "ground_truth": "80",
+        "predicted": "80",
+        "correct": true,
+        "elapsed": 45.603126525878906
+      },
+      {
+        "question": "Ted starts with $200. He buys 3 books for 16 dollars each and 3 pencils for 6 dollars each. How much",
+        "ground_truth": "66",
+        "predicted": "66",
+        "correct": true,
+        "elapsed": 33.392319202423096
+      },
+      {
+        "question": "Last year there were 50 students enrolled in a calligraphy class. This year, there was a 20% increas",
+        "ground_truth": "60",
+        "predicted": "60",
+        "correct": true,
+        "elapsed": 35.78723669052124
+      },
+      {
+        "question": "Brian's basement was damp and musty, so he bought a dehumidifier to remove moisture out of the air. ",
+        "ground_truth": "29",
+        "predicted": "29",
+        "correct": true,
+        "elapsed": 33.39515399932861
+      },
+      {
+        "question": "Eve had 20 pieces of pomelos. After giving her friend some pomelos, Eve is left with 1/4 of the pome",
+        "ground_truth": "15",
+        "predicted": "15",
+        "correct": true,
+        "elapsed": 36.299500703811646
+      },
+      {
+        "question": "The girls are trying to raise money for a carnival. Kim raises $320 more than Alexandra, who raises ",
+        "ground_truth": "2280",
+        "predicted": "2180",
+        "correct": false,
+        "elapsed": 100.08161497116089
+      }
+    ]
+  },
+  "tool_use": {
+    "benchmark": "tool_use",
+    "passed": 18,
+    "total": 20,
+    "score": 0.9,
+    "results": [
+      {
+        "query": "Read the contents of main.py",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 0.7,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "shell_command",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 82.02737736701965
+      },
+      {
+        "query": "Show me what's in the config/settings.yaml file",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 25.195833206176758
+      },
+      {
+        "query": "Search for all functions that handle authentication in the codebase",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 30.949846982955933
+      },
+      {
+        "query": "Run the test suite with pytest",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.95,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 22.279484272003174
+      },
+      {
+        "query": "Create a new file called utils/helpers.py with a basic logging setup",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "write_file",
+          "expected_tool": "write_file",
+          "args_match": true
+        },
+        "elapsed": 18.726789951324463
+      },
+      {
+        "query": "Execute this Python code: print(sum(range(100)))",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 11.4976487159729
+      },
+      {
+        "query": "Find all TODO comments in Python files",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 23.847086191177368
+      },
+      {
+        "query": "Edit server.py and change the port from 8080 to 3000",
+        "expected_tool": "edit_file",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "edit_file",
+          "args_match": false
+        },
+        "elapsed": 8.179596185684204
+      },
+      {
+        "query": "List all files in the src directory",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.75,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "shell_command",
+          "args_match": false
+        },
+        "elapsed": 81.18488502502441
+      },
+      {
+        "query": "Read the package.json to check dependencies",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 39.219775438308716
+      },
+      {
+        "query": "Search the project for any hardcoded API keys",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 38.16131019592285
+      },
+      {
+        "query": "Run python manage.py migrate",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "shell_command",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 10.661367893218994
+      },
+      {
+        "query": "Write a test file tests/test_auth.py with basic test cases",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "write_file",
+          "expected_tool": "write_file",
+          "args_match": true
+        },
+        "elapsed": 81.747065782547
+      },
+      {
+        "query": "Execute: import platform; print(platform.system())",
+        "expected_tool": "execute_code",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "execute_code",
+          "args_match": true
+        },
+        "elapsed": 14.658898830413818
+      },
+      {
+        "query": "Open and read the README.md file",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 25.616142988204956
+      },
+      {
+        "query": "Find all files importing the requests library",
+        "expected_tool": "search_files",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "search_files",
+          "expected_tool": "search_files",
+          "args_match": true
+        },
+        "elapsed": 20.76393437385559
+      },
+      {
+        "query": "Run npm install in the frontend directory",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 0.7,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "execute_code",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 81.41538715362549
+      },
+      {
+        "query": "Create a .env file with DATABASE_URL=postgres://localhost/mydb",
+        "expected_tool": "write_file",
+        "score": {
+          "score": 0.0,
+          "has_tags": false,
+          "valid_json": false,
+          "found_tool": null,
+          "expected_tool": "write_file",
+          "args_match": false
+        },
+        "elapsed": 6.204899787902832
+      },
+      {
+        "query": "Check the git status of the project",
+        "expected_tool": "shell_command",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "shell_command",
+          "expected_tool": "shell_command",
+          "args_match": true
+        },
+        "elapsed": 17.265224933624268
+      },
+      {
+        "query": "Read the first 50 lines of database/models.py",
+        "expected_tool": "read_file",
+        "score": {
+          "score": 1.0,
+          "has_tags": true,
+          "valid_json": true,
+          "found_tool": "read_file",
+          "expected_tool": "read_file",
+          "args_match": true
+        },
+        "elapsed": 81.30582046508789
+      }
+    ]
+  }
+}

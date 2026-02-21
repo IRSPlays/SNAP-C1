@@ -1,0 +1,19 @@
+{
+  "humaneval": {
+    "benchmark": "humaneval",
+    "passed": 1,
+    "total": 1,
+    "score": 1.0,
+    "results": [
+      {
+        "task_id": "HumanEval/61",
+        "passed": true,
+        "error": "",
+        "elapsed": 18.868086338043213,
+        "response_len": 634,
+        "response": "<think>\n[Round 1 \u2014 Initial Positions]\n[Architect] Proposes the solution using a stack-based approach.\n[Critic] Warns about edge cases like empty strings or mismatched brackets.\n[Researcher] Suggests using Python's built-in `str.count` for quick checks.\n[Implementer] Writes the `correct_bracketing` function.\n</think>\n\n<final_answer>\n```python\ndef correct_bracketing(brackets: str):\n    stack = []\n    for char in brackets:\n        if char == '(':\n            stack.append(char)\n        elif char == ')':\n            if not stack or stack[-1] != '(':\n                return False\n            stack.pop()\n    return len(stack) == 0\n```",
+        "extracted_code": "def correct_bracketing(brackets: str):\n    stack = []\n    for char in brackets:\n        if char == '(':\n            stack.append(char)\n        elif char == ')':\n            if not stack or stack[-1] != '(':\n                return False\n            stack.pop()\n    return len(stack) == 0"
+      }
+    ]
+  }
+}

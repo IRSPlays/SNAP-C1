@@ -1,0 +1,31 @@
+# SNAP-C1: Self-Neural Adaptive Processing - Core 1
+# Base model: Qwen3-4B | Hardware: NVIDIA RTX 2050 (4GB VRAM)
+
+# Core ML
+torch>=2.1.0              # PyTorch (CUDA build — pip install torch with --index-url for CUDA 12.x)
+transformers>=4.45.0       # HuggingFace Transformers (Qwen3 support)
+accelerate>=0.34.0         # Distributed/mixed-precision training
+peft>=0.13.0               # LoRA/QLoRA adapter training
+bitsandbytes>=0.44.0       # 4-bit quantization for QLoRA
+trl>=0.12.0                # Training utilities (SFTTrainer)
+datasets>=3.0.0            # HuggingFace Datasets
+
+# Memory System
+chromadb>=0.5.0            # Persistent vector database
+sentence-transformers>=3.0.0  # Embedding models for memory retrieval
+
+# Data & Config
+pyyaml>=6.0                # YAML config parsing
+jsonlines>=4.0.0           # JSONL dataset handling
+
+# Evaluation
+rouge-score>=0.1.2         # Text evaluation metrics
+nltk>=3.9                  # NLP utilities
+
+# Utilities
+tqdm>=4.66.0               # Progress bars
+rich>=13.0.0               # Rich terminal output
+loguru>=0.7.0              # Logging
+
+# Export
+# llama-cpp-python         # For GGUF export (install separately)
