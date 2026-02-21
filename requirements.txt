@@ -2,7 +2,9 @@
 # Base model: Qwen3-4B | Hardware: NVIDIA RTX 2050 (4GB VRAM)
 
 # Core ML
-torch>=2.1.0              # PyTorch (CUDA build — pip install torch with --index-url for CUDA 12.x)
+# AMD on Windows requires torch-directml instead of the standard torch CUDA build
+torch>=2.1.0              # Install CPU version first: pip install torch torchvision torchaudio
+torch-directml            # Hardware acceleration for AMD: pip install torch-directml
 transformers>=4.45.0       # HuggingFace Transformers (Qwen3 support)
 accelerate>=0.34.0         # Distributed/mixed-precision training
 peft>=0.13.0               # LoRA/QLoRA adapter training
