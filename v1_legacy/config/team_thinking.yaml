@@ -1,0 +1,63 @@
+# SNAP-C1 Team Thinking LoRA Configuration
+# Trains multi-perspective internal reasoning
+# Target: Qwen3-8B on Colab T4 GPU (16GB VRAM)
+
+adapter:
+  name: "team_thinking"
+  description: "Multi-perspective reasoning from internal team of specialists"
+
+lora:
+  r: 16                                # LoRA rank — T4 has enough VRAM for r16
+  lora_alpha: 16                       # Scaling factor (alpha = 2*r is standard)
+  lora_dropout: 0.05                   # Light dropout for regularization
+  target_modules:                      # Attention-only (MLP OOMs on 4GB even at r16)
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+training:
+  num_epochs: 8                        # More epochs to learn structured format (was 3)
+  batch_size: 1                        # Micro batch (4GB VRAM constraint)
+  gradient_accumulation_steps: 4       # Reduced from 16 — more frequent updates for small datasets
+  learning_rate: 3.0e-4                # Slightly higher LR to push format learning
+  lr_scheduler: "cosine"
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  max_seq_length: 1280                 # Reduced from 2048 to 1280 (OOM prevention on 4GB VRAM)
+  fp16: false                          # Disabled — Qwen3 has bf16 internals that conflict with fp16 AMP GradScaler
+  bf16: false                          # RTX 2050 has no native bf16; train in fp32 (only 3.2M params, negligible overhead)
+  optim: "paged_adamw_8bit"            # Memory-efficient optimizer
+  logging_steps: 10
+  save_steps: 100
+  seed: 42
+
+data:
+  path: "data/team_thinking/"
+  format: "jsonl"
+  train_split: "train_v3_agentic.jsonl"
+  eval_split: "eval.jsonl"
+  # Expected format per example:
+  # {
+  #   "instruction": "user query",
+  #   "output": "<think>\n[Architect] analysis...\n[Critic] challenges...\n[Researcher] evidence...\n[Synthesizer] integration...\n</think>\n\nFinal answer..."
+  # }
+
+personas:
+  - name: "Architect"
+    role: "Systems design, structure, high-level planning"
+    style: "Strategic, sees the big picture, proposes frameworks"
+  - name: "Critic"
+    role: "Find flaws, challenge assumptions, stress-test ideas"
+    style: "Skeptical, rigorous, asks 'what could go wrong?'"
+  - name: "Researcher"
+    role: "Gather evidence, cite facts, provide depth"
+    style: "Thorough, data-driven, references sources"
+  - name: "Implementer"
+    role: "Practical execution, code, concrete steps"
+    style: "Hands-on, specific, writes actual code/commands"
+  - name: "Synthesizer"
+    role: "Merge perspectives, resolve conflicts, form consensus"
+    style: "Balanced, integrative, produces final coherent answer"
