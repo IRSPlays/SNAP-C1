@@ -112,7 +112,8 @@ class FractalRecurrentCore(nn.Module):
                 z = layer(z)
                 
             # Evaluate whether we have reached mathematical certainty
-            halt_prob = self.halt_gate(z).item()
+            # Use .mean() to handle batches during Colab Training (e.g. batch_size > 1)
+            halt_prob = self.halt_gate(z).mean().item()
             halt_probs.append(halt_prob)
             
             if halt_prob > self.halt_threshold:
