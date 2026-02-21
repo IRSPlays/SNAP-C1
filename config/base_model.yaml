@@ -1,37 +1,39 @@
 # SNAP-C1 Base Model Configuration
-# Qwen3-1.7B loaded in 4-bit quantization for QLoRA training
-# Downgraded from Qwen3-4B: bnb 4-bit + CPU offloading has meta tensor bug,
-# and without offloading only 0.37GB free — not enough for training.
-# Hardware: NVIDIA RTX 2050 (4GB VRAM)
+# Hardware: AMD Ryzen 5 7600 (16GB RAM) + AMD RX 7600 (8GB VRAM)
+# Strategy: Train on CPU (float16), Inference on GPU via LM Studio (Vulkan)
 
 model:
-  name: "Qwen/Qwen3-1.7B"
+  name: "Qwen/Qwen3-4B"
   revision: "main"
   trust_remote_code: true
-  # Original (doesn't fit for training):
-  # original: "Qwen/Qwen3-4B"
 
+# No quantization — bitsandbytes is CUDA-only
+# Model loads in float16 on CPU (~8GB RAM)
 quantization:
-  load_in_4bit: true
-  bnb_4bit_quant_type: "nf4"           # NormalFloat4 - best for QLoRA
-  bnb_4bit_compute_dtype: "float32"    # fp32 — bf16 CUBLAS fails on RTX 2050 at higher LoRA ranks
-  bnb_4bit_use_double_quant: true      # Nested quantization saves ~0.3GB
+  load_in_4bit: false
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_use_double_quant: false
 
 tokenizer:
   padding_side: "right"
   add_eos_token: true
-  max_length: 2048                      # Reduced from 4096 — 4GB can't afford longer
+  max_length: 1024                      # Short sequences for 16GB RAM
 
 hardware:
-  device: "auto"                        # auto device_map — 1.7B 4-bit fits entirely on GPU
+  device: "cpu"                         # CPU training — no CUDA/ROCm available
   gradient_checkpointing: true          # Critical — trades compute for memory
-  cpu_offload: false                    # Not needed for 1.7B
-  # max_memory removed — 1.7B 4-bit is ~1.5GB, leaving ~2.5GB for training
+  cpu_offload: false
 
 inference:
-  max_new_tokens: 1024                  # Reduced for VRAM
+  max_new_tokens: 1024
   temperature: 0.7
   top_p: 0.9
   top_k: 50
   repetition_penalty: 1.05
   do_sample: true
+
+# LM Studio local server for GPU inference (Vulkan)
+lmstudio:
+  base_url: "http://localhost:1234/v1"
+  model: "qwen3-4b"                    # Model identifier in LM Studio

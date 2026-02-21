@@ -1,8 +1,11 @@
 """
-SNAP-C1 Universal QLoRA Training Script
-========================================
+SNAP-C1 Universal LoRA Training Script (CPU Edition)
+=====================================================
 Trains any SNAP-C1 LoRA adapter (team_thinking, self_correction, tool_use)
-on Qwen3-8B using QLoRA (4-bit quantization + Low-Rank Adaptation).
+on Qwen3-4B using LoRA on CPU (float16).
+
+Hardware: AMD Ryzen 5 7600 (16GB RAM) — no CUDA/ROCm available.
+After training, merge adapters and export to GGUF for LM Studio inference.
 
 Usage:
     python train_lora.py --config config/team_thinking.yaml
@@ -23,13 +26,10 @@ from datasets import Dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments,
 )
 from peft import (
     LoraConfig,
     get_peft_model,
-    prepare_model_for_kbit_training,
     TaskType,
 )
 from trl import SFTTrainer, SFTConfig
@@ -50,32 +50,20 @@ def load_base_config() -> dict:
     return load_config(str(CONFIG_DIR / "base_model.yaml"))
 
 
-def setup_quantization(base_config: dict) -> BitsAndBytesConfig:
-    """Create BitsAndBytesConfig for 4-bit QLoRA."""
-    quant_cfg = base_config["quantization"]
+def load_model_and_tokenizer(base_config: dict):
+    """Load model on CPU in float16 for LoRA training.
     
-    compute_dtype = getattr(torch, quant_cfg["bnb_4bit_compute_dtype"])
-    
-    return BitsAndBytesConfig(
-        load_in_4bit=quant_cfg["load_in_4bit"],
-        bnb_4bit_quant_type=quant_cfg["bnb_4bit_quant_type"],
-        bnb_4bit_compute_dtype=compute_dtype,
-        bnb_4bit_use_double_quant=quant_cfg["bnb_4bit_use_double_quant"],
-        llm_int8_enable_fp32_cpu_offload=True,  # Required: keeps CPU-offloaded layers in fp32
-    )
-
-
-def load_model_and_tokenizer(base_config: dict, bnb_config: BitsAndBytesConfig):
-    """Load Qwen3-4B in 4-bit with tokenizer. Optimized for 4GB VRAM with CPU offloading."""
+    Qwen3-4B in float16 = ~8GB RAM, leaving ~6GB for training overhead.
+    No quantization needed (bitsandbytes is CUDA-only).
+    """
     model_name = base_config["model"]["name"]
     logger.info(f"Loading model: {model_name}")
+    logger.info("Running on CPU (AMD RX 7600 — no CUDA/ROCm support)")
     
-    # Clear CUDA cache before loading
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        gpu_mem = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-        free_mem = torch.cuda.mem_get_info()[0] / (1024**3)
-        logger.info(f"GPU: {torch.cuda.get_device_name(0)} ({gpu_mem:.1f} GB total, {free_mem:.1f} GB free)")
+    import psutil
+    ram_gb = psutil.virtual_memory().total / (1024**3)
+    ram_free = psutil.virtual_memory().available / (1024**3)
+    logger.info(f"System RAM: {ram_gb:.1f} GB total, {ram_free:.1f} GB free")
     
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
@@ -88,54 +76,27 @@ def load_model_and_tokenizer(base_config: dict, bnb_config: BitsAndBytesConfig):
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
     
-    # Build max_memory map — key to CPU offloading
-    # Limits GPU usage so some layers spill to CPU RAM
-    max_memory = None
-    hw_config = base_config.get("hardware", {})
-    if "max_memory" in hw_config:
-        max_memory = {}
-        for k, v in hw_config["max_memory"].items():
-            # Convert string keys like "0" to int for GPU indices
-            try:
-                max_memory[int(k)] = v
-            except ValueError:
-                max_memory[k] = v  # "cpu" stays as string
-        logger.info(f"Memory map: {max_memory}")
-    
-    # Use fp16 for RTX 2050
-    compute_dtype = getattr(torch, base_config["quantization"]["bnb_4bit_compute_dtype"])
-    
+    # Load in float16 on CPU — ~8GB for 4B model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        quantization_config=bnb_config,
-        device_map="auto",              # auto distributes across GPU + CPU
+        torch_dtype=torch.float16,
+        device_map="cpu",
         trust_remote_code=base_config["model"]["trust_remote_code"],
-        dtype=compute_dtype,
-        max_memory=max_memory,
         low_cpu_mem_usage=True,
     )
     
-    # Log device distribution
-    if hasattr(model, 'hf_device_map'):
-        devices = set(str(v) for v in model.hf_device_map.values())
-        gpu_layers = sum(1 for v in model.hf_device_map.values() if str(v) == '0')
-        cpu_layers = sum(1 for v in model.hf_device_map.values() if str(v) == 'cpu')
-        logger.info(f"Device map: {gpu_layers} layers on GPU, {cpu_layers} layers on CPU")
-    
-    # Prepare for QLoRA training
-    model = prepare_model_for_kbit_training(
-        model,
-        use_gradient_checkpointing=hw_config.get("gradient_checkpointing", True),
-    )
-    
-    # Log VRAM after loading
-    if torch.cuda.is_available():
-        free_after = torch.cuda.mem_get_info()[0] / (1024**3)
-        logger.info(f"Free VRAM after model load: {free_after:.2f} GB")
+    # Enable gradient checkpointing to save memory
+    hw_config = base_config.get("hardware", {})
+    if hw_config.get("gradient_checkpointing", True):
+        model.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs={"use_reentrant": False}
+        )
+        logger.info("Gradient checkpointing enabled (saves ~40% memory)")
     
     logger.info(f"Model loaded. Parameters: {model.num_parameters():,}")
-    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    logger.info(f"Trainable params before LoRA: {trainable:,}")
+    
+    ram_after = psutil.virtual_memory().available / (1024**3)
+    logger.info(f"Free RAM after model load: {ram_after:.1f} GB")
     
     return model, tokenizer
 
@@ -246,10 +207,10 @@ def train(config_path: str, resume_from: str | None = None):
     adapter_name = adapter_config["adapter"]["name"]
     logger.info(f"=== SNAP-C1 Training: {adapter_name} ===")
     logger.info(f"Description: {adapter_config['adapter']['description']}")
+    logger.info("Mode: CPU LoRA (no quantization, float16)")
     
-    # Setup
-    bnb_config = setup_quantization(base_config)
-    model, tokenizer = load_model_and_tokenizer(base_config, bnb_config)
+    # Setup — no quantization on CPU
+    model, tokenizer = load_model_and_tokenizer(base_config)
     model, peft_config = setup_lora(model, adapter_config)
     
     # Load data
@@ -263,36 +224,38 @@ def train(config_path: str, resume_from: str | None = None):
     if eval_dataset:
         eval_dataset = eval_dataset.map(format_fn)
     
-    # Training arguments
+    # Training arguments — optimized for CPU with 16GB RAM
     train_cfg = adapter_config["training"]
     output_dir = PROJECT_ROOT / "adapters" / adapter_name
     
     training_args = SFTConfig(
         output_dir=str(output_dir),
         num_train_epochs=train_cfg["num_epochs"],
-        per_device_train_batch_size=train_cfg["batch_size"],
-        gradient_accumulation_steps=train_cfg["gradient_accumulation_steps"],
+        per_device_train_batch_size=1,        # Tiny batch for 16GB RAM
+        gradient_accumulation_steps=train_cfg.get("gradient_accumulation_steps", 8),
         learning_rate=train_cfg["learning_rate"],
         lr_scheduler_type=train_cfg["lr_scheduler"],
         warmup_ratio=train_cfg["warmup_ratio"],
         weight_decay=train_cfg["weight_decay"],
-        max_length=train_cfg["max_seq_length"],
-        fp16=train_cfg["fp16"],
-        bf16=train_cfg["bf16"],
-        optim=train_cfg["optim"],
+        max_length=base_config["tokenizer"]["max_length"],
+        fp16=False,                           # CPU doesn't support fp16 training natively
+        bf16=False,
+        optim="adamw_torch",                  # Standard optimizer for CPU
         logging_steps=train_cfg["logging_steps"],
         save_steps=train_cfg["save_steps"],
         save_total_limit=3,
         seed=train_cfg["seed"],
-        gradient_checkpointing=base_config["hardware"]["gradient_checkpointing"],
+        gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
-        report_to="none",  # No wandb/tensorboard for now
+        report_to="none",
         dataset_text_field="text",
-        completion_only_loss=True,  # CRITICAL: Only compute loss on assistant response, not system/user tokens
         packing=False,
         # Eval
         eval_strategy="steps" if eval_dataset else "no",
         eval_steps=train_cfg["save_steps"] if eval_dataset else None,
+        # CPU-specific
+        no_cuda=True,                         # Force CPU training
+        dataloader_num_workers=0,             # Avoid multiprocessing overhead
     )
     
     # Initialize trainer
@@ -305,7 +268,8 @@ def train(config_path: str, resume_from: str | None = None):
     )
     
     # Train
-    logger.info("Starting training...")
+    logger.info("Starting training on CPU... (this will take a while)")
+    logger.info("Tip: Monitor RAM usage — if it exceeds 15GB, reduce max_length in config")
     if resume_from:
         logger.info(f"Resuming from checkpoint: {resume_from}")
         trainer.train(resume_from_checkpoint=resume_from)
@@ -326,11 +290,12 @@ def train(config_path: str, resume_from: str | None = None):
     logger.info(f"Metrics saved to: {metrics_path}")
     
     logger.info(f"=== Training complete: {adapter_name} ===")
+    logger.info("Next step: Run merge_adapters.py then export_gguf.py to create your SNAP-C1 GGUF model")
     return str(final_path)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SNAP-C1 QLoRA Training")
+    parser = argparse.ArgumentParser(description="SNAP-C1 LoRA Training (CPU)")
     parser.add_argument(
         "--config",
         type=str,

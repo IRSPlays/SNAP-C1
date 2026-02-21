@@ -1,12 +1,13 @@
 # SNAP-C1 Self-Correction LoRA Configuration
 # Trains review → identify errors → fix → validate loops
+# Target: Qwen3-8B on Colab T4 GPU (16GB VRAM)
 
 adapter:
   name: "self_correction"
   description: "Structured self-review and error correction capability"
 
 lora:
-  r: 8                                 # r16 OOMs backward pass on 4GB; r8 = 3.2M params, proven to fit
+  r: 16                                # LoRA rank — T4 has enough VRAM for r16
   lora_alpha: 16
   lora_dropout: 0.05
   target_modules:                      # Attention-only (MLP OOMs on 4GB even at r16)

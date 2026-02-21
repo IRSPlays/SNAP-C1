@@ -1,12 +1,13 @@
 # SNAP-C1 Team Thinking LoRA Configuration
 # Trains multi-perspective internal reasoning
+# Target: Qwen3-8B on Colab T4 GPU (16GB VRAM)
 
 adapter:
   name: "team_thinking"
   description: "Multi-perspective reasoning from internal team of specialists"
 
 lora:
-  r: 8                                 # LoRA rank (r16 OOMs backward pass on 4GB; r8 = 3.2M params, proven to fit)
+  r: 16                                # LoRA rank — T4 has enough VRAM for r16
   lora_alpha: 16                       # Scaling factor (alpha = 2*r is standard)
   lora_dropout: 0.05                   # Light dropout for regularization
   target_modules:                      # Attention-only (MLP OOMs on 4GB even at r16)
