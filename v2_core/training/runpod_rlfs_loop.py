@@ -139,5 +139,10 @@ class RunpodRLFSTrainer:
             logger.success(f"Saved Checkpoint: {save_path}")
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Run the Phase 5 formal systems loop.")
+    parser.add_argument("--epochs", type=int, default=500, help="Number of training epochs (100 tasks each)")
+    args = parser.parse_args()
+
     trainer = RunpodRLFSTrainer()
-    trainer.run_training_loop(epochs=5)
+    trainer.run_training_loop(epochs=args.epochs)
