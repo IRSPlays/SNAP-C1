@@ -57,6 +57,13 @@ class RunpodRLFSTrainer:
         for param in self.core.parameters():
             param.requires_grad = False
             
+        # 4. Auto-Resume Checkpoint Logic
+        decoder_path = Path(project_root) / "v2_core" / "neuromorphic_decoder_A6000.pt"
+        if decoder_path.exists():
+            logger.warning(f"Found existing Decoder Checkpoint: {decoder_path}")
+            self.decoder.load_state_dict(torch.load(decoder_path, map_location=self.device))
+            logger.success("Resuming Formal Systems training from saved progress!")
+            
         self.optimizer = AdamW(self.decoder.parameters(), lr=5e-5)
         self.scaler = GradScaler()
         
