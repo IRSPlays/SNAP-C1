@@ -9,6 +9,7 @@ pure math into grammatical English, Python, or bash commands.
 
 import torch
 import torch.nn as nn
+import tiktoken
 from loguru import logger
 
 class ConceptDecoder(nn.Module):
@@ -18,7 +19,7 @@ class ConceptDecoder(nn.Module):
     """
     def __init__(
         self, 
-        vocab_size: int = 32000, 
+        vocab_size: int = 100277, # OpenAI cl100k_base vocabulary size
         concept_dim: int = 1024, 
         decoder_dim: int = 256, 
         num_layers: int = 4
@@ -94,11 +95,31 @@ class ConceptDecoder(nn.Module):
             # Append token
             current_tokens = torch.cat([current_tokens, next_token], dim=1)
             
-            # Simulated EOS check (assuming standard EOF or EOS=2)
-            if (next_token == 2).any():
+            # Simulated EOS check (standard EOF/EOS for tiktoken)
+            if (next_token == 100257).any(): # <|endoftext|> in cl100k_base
                 break
                 
         return current_tokens
+
+    def generate_string(self, concept_vector: torch.Tensor, max_new_tokens: int = 64) -> str:
+        """
+        Helper method that runs the generation loop and decodes the resulting
+        token IDs immediately into a human-readable string.
+        """
+        # Ensure we are passing raw logits/tokens without unneeded gradient math
+        with torch.no_grad():
+            token_ids = self.generate(concept_vector, max_new_tokens)
+            
+        # Extract the sequence from the batch (assuming batch_size=1 for chatting)
+        sequence = token_ids[0].tolist()
+        
+        # Load the GPT-4 level tokenizer
+        encoding = tiktoken.get_encoding("cl100k_base")
+        
+        # Decode ignoring the BOS and EOS tokens
+        decoded_string = encoding.decode([t for t in sequence if t < 100000])
+        return decoded_string
+
 
 
 if __name__ == "__main__":
@@ -116,11 +137,11 @@ if __name__ == "__main__":
     
     start = time.perf_counter()
     
-    # Generate 20 tokens of syntax
-    tokens = decoder.generate(pure_math_concept, max_new_tokens=20)
+    # Generate 20 tokens of syntax directly to string!
+    text_output = decoder.generate_string(pure_math_concept, max_new_tokens=20)
     
     ms = (time.perf_counter() - start) * 1000
     
-    print(f"Generated 20 grammatical sequence tokens in {ms:.2f} ms")
-    print(f"Token Output IDs: {tokens[0].tolist()}")
+    print(f"Generated grammatical string in {ms:.2f} ms")
+    print(f"Decoded Output:\n'{text_output}'")
     print("Syntax unbundling successful. Core FLOPs preserved for pure logic.")
