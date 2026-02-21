@@ -119,7 +119,12 @@ class RunpodRLFSTrainer:
                 dummy_logits = self.decoder.lm_head(dummy_out)
                 
                 # Execute securely in the Sandbox
-                logger.debug(f"Task {i+1}: Validating Formal System syntax...")
+                # logger.debug(f"Task {i+1}: Validating Formal System syntax...")
+                # To show the user the AIs actual syntactic generation attempts in real-time
+                if i % 10 == 0:  # Print every 10th generation to avoid complete console spam
+                    logger.info(f"\n[AI Generated Output - Task {i+1}]")
+                    logger.info(f"\n{generated_code}")
+                
                 results = self.sandbox.run(generated_code)
                 
                 # Calculate Formal Systems Reward (-10 for exception, +1 for execution)
