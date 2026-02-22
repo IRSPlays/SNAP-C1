@@ -53,13 +53,14 @@ class V4ContextRouter(nn.Module):
     def __init__(self, context_dim: int = 1024, num_experts: int = 8):
         super().__init__()
         self.num_experts = num_experts
+        self._device = get_device()
         
         # A tiny feed-forward network to analyze the context Hologram
         self.routing_matrix = nn.Sequential(
             nn.Linear(context_dim, 256),
             nn.GELU(),
             nn.Linear(256, num_experts)
-        )
+        ).to(self._device)
         self.streamer = SSDStreamer(experts_dir="v4_core/experts")
         
     def forward(self, context_vector: torch.Tensor, top_k: int = 2) -> Tuple[torch.Tensor, List[int]]:

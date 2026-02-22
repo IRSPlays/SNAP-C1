@@ -57,7 +57,13 @@ class V4HyperAssembly(nn.Module):
         self.bpe_wrapper = HybridTokenDecoder()
         
         # For testing, we mock a "SWE-Bench" Context Vector since we aren't training End-to-End yet
-        self.mock_db_vector = torch.nn.Linear(d_model, d_model).to(self.device)
+        self.mock_db_vector = torch.nn.Linear(d_model, d_model)
+        
+        # Move ALL nn.Module parameters to GPU in one shot
+        # This works on CUDA (RunPod). On DirectML (local AMD), individual modules 
+        # handle their own device placement via get_device() in their __init__
+        if torch.cuda.is_available():
+            self.to(self.device)
         
         logger.info("V4 Architecture Matrix Synapses Fully Assembled.")
 

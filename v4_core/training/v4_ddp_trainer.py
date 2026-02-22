@@ -81,13 +81,14 @@ class V4DistributedTrainer:
         
         # ============================================================
         #  PARALLELIZATION 3: torch.compile (PyTorch 2.x JIT)
-        #  Fuses multiple small GPU kernel launches into optimized blocks
-        #  Only works on CUDA — gracefully skipped on DirectML
+        #  We compile ONLY the pure-tensor submodules, not the full model,
+        #  because V4Assembly.forward() contains untraceable ops (ChromaDB, logging)
         # ============================================================
         if self.is_cuda and hasattr(torch, 'compile'):
             try:
-                self.model = torch.compile(self.model, mode="reduce-overhead")
-                logger.info("torch.compile() ENABLED — kernel fusion active")
+                self.model.logic_core = torch.compile(self.model.logic_core, mode="reduce-overhead")
+                self.model.compressor = torch.compile(self.model.compressor, mode="reduce-overhead")
+                logger.info("torch.compile() ENABLED on logic_core + compressor (kernel fusion active)")
             except Exception as e:
                 logger.warning(f"torch.compile() skipped: {e}")
         
