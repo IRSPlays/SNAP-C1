@@ -120,13 +120,11 @@ class V4DistributedTrainer:
         # ===== Forward: entire batch in one GPU launch =====
         if self.amp_enabled:
             with torch.amp.autocast('cuda'):
-                output = self.model(prompts, batch_size=B)
-                # Differentiable loss from the loss_head logits
-                loss_logits = output["loss_logits"].squeeze(-1)  # [B]
-                # MSE between predicted quality scores and target node counts
+                output = self.model(prompts, batch_size=B, training_mode=True)
+                loss_logits = output["loss_logits"].squeeze(-1)
                 loss = nn.functional.mse_loss(loss_logits, target_nodes)
         else:
-            output = self.model(prompts, batch_size=B)
+            output = self.model(prompts, batch_size=B, training_mode=True)
             loss_logits = output["loss_logits"].squeeze(-1)
             loss = nn.functional.mse_loss(loss_logits, target_nodes)
         
