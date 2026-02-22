@@ -65,19 +65,23 @@ class V4ContextRouter(nn.Module):
         
     def forward(self, context_vector: torch.Tensor, top_k: int = 2) -> Tuple[torch.Tensor, List[int]]:
         """
-        Receives the input problem.
+        Receives the batched input problem [B, seq, dim].
         Returns the routing probabilities and the IDs of the Top-K experts to stream.
         """
         # Calculate logits for each potential expert
-        router_logits = self.routing_matrix(context_vector) # [batch, num_experts]
+        router_logits = self.routing_matrix(context_vector) # [B, seq, num_experts]
+        
+        # Average routing across batch to select shared experts
+        # (loading experts once for the whole batch is faster than per-chunk)
+        avg_logits = router_logits.mean(dim=(0, 1))  # [num_experts]
         
         # Softmax probabilities
-        routing_probs = torch.softmax(router_logits, dim=-1)
+        routing_probs = torch.softmax(avg_logits, dim=-1)
         
         # Identify the exact Experts we need to physically load from the NVMe Drive
         topk_probs, topk_indices = torch.topk(routing_probs, k=top_k, dim=-1)
         
-        return topk_probs, topk_indices.tolist()[0] # Assume batch size 1 for V4 offline inference
+        return topk_probs, topk_indices.tolist()
 
 if __name__ == "__main__":
     print("\n=== Testing V4 SSD Micro-MoE Router ===")

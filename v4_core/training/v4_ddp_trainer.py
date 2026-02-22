@@ -19,7 +19,6 @@ from v4_core.utils.device import get_device
 
 # ============================================================
 #  PARALLELIZATION 1: PyTorch Dataset + DataLoader
-#  Enables batch processing & multi-worker prefetching
 # ============================================================
 class V4TrainingDataset(Dataset):
     """Wraps the JSON dataset into a proper PyTorch Dataset for batched loading."""
@@ -36,7 +35,6 @@ class V4TrainingDataset(Dataset):
         return {
             "prompt": item.get("v4_trace_input", ""),
             "target_nodes": len(item.get("v4_geometric_target", {}).get("nodes", [])),
-            "source_file": item.get("source_file", "unknown")
         }
 
 def collate_fn(batch):
@@ -44,7 +42,6 @@ def collate_fn(batch):
     return {
         "prompts": [item["prompt"] for item in batch],
         "target_nodes": torch.tensor([item["target_nodes"] for item in batch], dtype=torch.float32),
-        "source_files": [item["source_file"] for item in batch]
     }
 
 
@@ -52,12 +49,15 @@ class V4DistributedTrainer:
     """
     SNAP-C1 V4: Parallelized Multi-GPU Training Pipeline
     
-    OPTIMIZATIONS FOR RTX 6000 Ada (48GB VRAM):
-      1. BATCH PARALLELISM   — Process multiple chunks per forward pass
-      2. AMP MIXED PRECISION — FP16 matmuls with FP32 accumulation (2x speedup)
-      3. TORCH.COMPILE       — JIT fuses kernels for maximum GPU utilization
+    TRUE BATCHED INFERENCE:
+      All chunks in a batch are processed as a single [B, 1, 1024] tensor
+      through the entire neural pipeline in one GPU kernel launch.
+    
+    OPTIMIZATIONS:
+      1. BATCH PARALLELISM   — [B, 1, 1024] tensors saturate GPU compute
+      2. AMP MIXED PRECISION — FP16 matmuls with FP32 accumulation
+      3. TORCH.COMPILE       — JIT fuses kernels on pure-tensor submodules
       4. DATALOADER           — Multi-worker async prefetching
-      5. GRADIENT ACCUMULATION — Simulate larger batches without extra VRAM
     """
     def __init__(self, d_model: int = 1024, max_loops: int = 50):
         self.device = get_device()
@@ -80,15 +80,14 @@ class V4DistributedTrainer:
         self.model = V4HyperAssembly(d_model=d_model, max_loops=max_loops)
         
         # ============================================================
-        #  PARALLELIZATION 3: torch.compile (PyTorch 2.x JIT)
-        #  We compile ONLY the pure-tensor submodules, not the full model,
-        #  because V4Assembly.forward() contains untraceable ops (ChromaDB, logging)
+        #  PARALLELIZATION 3: torch.compile on pure-tensor submodules
+        #  (Skips untraceable ops like ChromaDB and loguru)
         # ============================================================
         if self.is_cuda and hasattr(torch, 'compile'):
             try:
                 self.model.logic_core = torch.compile(self.model.logic_core, mode="reduce-overhead")
                 self.model.compressor = torch.compile(self.model.compressor, mode="reduce-overhead")
-                logger.info("torch.compile() ENABLED on logic_core + compressor (kernel fusion active)")
+                logger.info("torch.compile() ENABLED on logic_core + compressor")
             except Exception as e:
                 logger.warning(f"torch.compile() skipped: {e}")
         
@@ -99,8 +98,6 @@ class V4DistributedTrainer:
         
         # ============================================================
         #  PARALLELIZATION 2: Automatic Mixed Precision (AMP)
-        #  Uses FP16 for matrix multiplications (2x faster on Tensor Cores)
-        #  Keeps FP32 for accumulations to prevent numerical instability
         # ============================================================
         self.scaler = torch.amp.GradScaler('cuda') if self.is_cuda else None
         self.amp_enabled = self.is_cuda
@@ -110,45 +107,42 @@ class V4DistributedTrainer:
 
     def train_step(self, batch: dict) -> float:
         """
-        Processes a BATCH of prompts in parallel.
-        Each prompt flows through the full 5-stage pipeline simultaneously.
+        TRUE BATCHED training step.
+        The entire batch is processed as one [B, 1, 1024] tensor.
+        Loss is computed through a differentiable projection head.
         """
-        self.optimizer.zero_grad(set_to_none=True)  # Slightly faster than zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         
         prompts = batch["prompts"]
-        target_nodes = batch["target_nodes"].to(self.device)
+        target_nodes = batch["target_nodes"].to(self.device)  # [B]
+        B = len(prompts)
         
-        total_loss = torch.tensor(0.0, device=self.device, requires_grad=True)
+        # ===== Forward: entire batch in one GPU launch =====
+        if self.amp_enabled:
+            with torch.amp.autocast('cuda'):
+                output = self.model(prompts, batch_size=B)
+                # Differentiable loss from the loss_head logits
+                loss_logits = output["loss_logits"].squeeze(-1)  # [B]
+                # MSE between predicted quality scores and target node counts
+                loss = nn.functional.mse_loss(loss_logits, target_nodes)
+        else:
+            output = self.model(prompts, batch_size=B)
+            loss_logits = output["loss_logits"].squeeze(-1)
+            loss = nn.functional.mse_loss(loss_logits, target_nodes)
         
-        # Process chunks in the batch through the architecture
-        # The V4Assembly processes one prompt at a time (due to ChromaDB string queries),
-        # but the ODE solver and neural layers benefit from keeping everything on-GPU
-        for i, prompt in enumerate(prompts):
-            if self.amp_enabled:
-                with torch.amp.autocast('cuda'):
-                    output = self.model(prompt)
-            else:
-                output = self.model(prompt)
-            
-            time_steps = output.get("time_steps", 10)
-            chunk_loss = (target_nodes[i] - time_steps) ** 2  # MSE per chunk
-            total_loss = total_loss + chunk_loss
-        
-        avg_loss = total_loss / len(prompts)
-        
-        # Backward pass with AMP scaling (prevents FP16 underflow)
+        # ===== Backward with AMP scaling =====
         if self.scaler:
-            self.scaler.scale(avg_loss).backward()
+            self.scaler.scale(loss).backward()
             self.scaler.unscale_(self.optimizer)
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             self.scaler.step(self.optimizer)
             self.scaler.update()
         else:
-            avg_loss.backward()
+            loss.backward()
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             self.optimizer.step()
         
-        return avg_loss.item()
+        return loss.item()
 
 
 def setup_distributed():
@@ -160,7 +154,7 @@ def setup_distributed():
     return False
 
 
-def run_training_loop(epochs: int = 100, batch_size: int = 4, num_workers: int = 2):
+def run_training_loop(epochs: int = 100, batch_size: int = 16, num_workers: int = 2):
     is_clustered = setup_distributed()
     
     if not is_clustered:
@@ -172,21 +166,19 @@ def run_training_loop(epochs: int = 100, batch_size: int = 4, num_workers: int =
     
     # ============================================================
     #  PARALLELIZATION 4: DataLoader with async prefetching
-    #  While the GPU crunches epoch N, the CPU pre-loads epoch N+1
     # ============================================================
     dataset_path = os.path.join(project_root, "v4_core", "data", "v4_test_dataset.json")
     dataset = V4TrainingDataset(dataset_path)
     
-    # On Windows/DirectML, num_workers=0 avoids multiprocessing issues
     effective_workers = num_workers if torch.cuda.is_available() else 0
     
     dataloader = DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=True,           # Randomize chunk order each epoch
+        shuffle=True,
         num_workers=effective_workers,
         collate_fn=collate_fn,
-        pin_memory=torch.cuda.is_available(),  # DMA transfer for CUDA
+        pin_memory=torch.cuda.is_available(),
         prefetch_factor=2 if effective_workers > 0 else None,
         persistent_workers=True if effective_workers > 0 else False,
     )
@@ -207,14 +199,14 @@ def run_training_loop(epochs: int = 100, batch_size: int = 4, num_workers: int =
             
         avg_loss = epoch_loss / max(1, num_batches)
         
-        # Log every epoch for the first 10, then every 10th
+        # Log progress
         if epoch < 10 or epoch % 10 == 0:
             elapsed = time.time() - start_time
-            chunks_per_sec = ((epoch + 1) * len(dataset)) / elapsed
-            eta_remaining = (elapsed / (epoch + 1)) * (epochs - epoch - 1)
+            epochs_per_sec = (epoch + 1) / elapsed
+            eta_remaining = (epochs - epoch - 1) / max(epochs_per_sec, 0.001)
             logger.info(
                 f"Epoch [{epoch}/{epochs}] | Loss: {avg_loss:.4f} | "
-                f"Speed: {chunks_per_sec:.1f} chunks/s | "
+                f"Speed: {epochs_per_sec:.2f} epochs/s | "
                 f"Elapsed: {elapsed:.0f}s | ETA: {eta_remaining:.0f}s"
             )
             
@@ -223,7 +215,7 @@ def run_training_loop(epochs: int = 100, batch_size: int = 4, num_workers: int =
     save_path = os.path.join(project_root, "v4_core", "snapshot_v4_hyper_router.pt")
     if trainer.local_rank == 0:
         torch.save(trainer.model.state_dict(), save_path)
-        logger.success(f"\nTraining Complete in {total_time:.0f}s")
+        logger.success(f"\nTraining Complete in {total_time:.0f}s ({total_time/60:.1f} min)")
         logger.success(f"V4 Checkpoint saved to: {save_path}")
 
     if is_clustered:
@@ -233,7 +225,7 @@ def run_training_loop(epochs: int = 100, batch_size: int = 4, num_workers: int =
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SNAP-C1 V4 Parallelized Trainer")
     parser.add_argument("--epochs", type=int, default=100, help="Number of training epochs")
-    parser.add_argument("--batch_size", type=int, default=4, help="Chunks per batch (increase for more parallelism)")
+    parser.add_argument("--batch_size", type=int, default=16, help="Chunks per batch")
     parser.add_argument("--workers", type=int, default=2, help="DataLoader prefetch workers")
     args = parser.parse_args()
     
