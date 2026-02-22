@@ -1,103 +1,180 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=header&text=SNAP-C1&fontSize=90" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:16213e,100:0f3460&height=220&section=header&text=SNAP-C1&fontSize=80&fontColor=e94560&fontAlignY=35&desc=Structural%20Neural%20Architecture%20Pipeline&descSize=18&descAlignY=55&descColor=a7a7c5" />
 </div>
 
 <div align="center">
-  <h3><b>Generative Reasoning Engine (V3 Architecture)</b></h3>
-  <p><i>A mathematically-driven Neural Engine rendering massive datacenters obsolete. Built for infinite-context Mathematical Graph Decoding strictly on consumer-grade AMD/Nvidia GPUs.</i></p>
+  <p><b>An experimental neural architecture for code understanding through continuous-time differential equations, SSD-streamed Mixture-of-Experts, and AST-based structural decoding.</b></p>
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" />
-  <img src="https://img.shields.io/badge/VRAM Constraint-8GB Limit-blueviolet?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Architecture-AST%20Graph%20Decoder-success?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Compute-Native%20AMD%20DirectML-ff69b4?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/CUDA-12.x-76B900?style=for-the-badge&logo=nvidia&logoColor=white" />
+  <img src="https://img.shields.io/badge/DirectML-AMD_RX-ED1C24?style=for-the-badge&logo=amd&logoColor=white" />
 </div>
 
 <br/>
 
-> **The SNAP-C1 V3 Paradigm Shift:** We have officially abandoned string-based Reinforcement Learning (RLFS) OS timeouts. SNAP-C1 V3 completely removes Win32 subprocess spawning to verify logic. The model now natively decodes perfectly structured **Abstract Syntax Trees (ASTs)** mathematically mapped onto the GPU Matrix. 100% Offline, Zero hallucination rates.
+## What is SNAP-C1?
+
+SNAP-C1 is a **research project** exploring whether code reasoning can be approached structurally rather than sequentially. Instead of predicting the next token like traditional language models, SNAP-C1 processes code through a pipeline of specialized neural components that operate on mathematical representations of program structure.
+
+> **Status:** Active research & development. Currently training on open-source Python codebases (Django, Flask, scikit-learn) and evaluating against SWE-Bench Verified.
 
 ---
 
-## 🏛️ The V3 Continuous Hardware Stack
+## Architecture Overview
 
-Standard LLMs predict text (like `print("Hello")`) blindly character by character. The V3 Engine predicts structural logic (like `Module -> FunctionDef -> Assign`) mapped directly into continuous time matrices.
-
-<details>
-<summary><b>1. AST Graph Neural Decoder (Zero Grammar Hallucinations)</b></summary>
-The network predicts the pure geometric shape of Python abstract grammar. By routing the graph nodes directly into PyTorch's loss algorithms, the model guarantees that every generated function is syntactically flawless before it even converts to English text.
-</details>
-
-<details>
-<summary><b>2. Liquid Time-Constant (LTC) Core</b></summary>
-We removed discrete `max_loops` and replaced them with Continuous Ordinary Differential Equations (ODEs). The context mathematically "flows" down the recurrent memory state until it reaches thermodynamic equilibrium (the answer).
-</details>
-
-<details>
-<summary><b>3. Offline Bi-Directional Verifying (No OS Wait Times)</b></summary>
-V2 relied on Python `subprocess.run()` to test code, bottlenecking the multi-GPU matrix to 1 second per thought. V3 maps the execution trace into multidimensional tensors (`[CODE] -> [MEM]`), calculating execution penalties entirely offline inside the VRAM shaders in `0.002s`.
-</details>
-
-<details>
-<summary><b>4. Hot-Swapped AMD DirectML Optimization</b></summary>
-Heavily optimized PyTorch 2.x C++ Compilation bridges built strictly for Consumer hardware. The custom `DML_GRU` solver guarantees that tensor layers execute identically across RTX and RX 7600 DirectML architectures without PyTorch `aten` fallback crashes.
-</details>
-
-<br/>
-
-## 🧬 Architectural Flow Diagram
+The system has evolved through 4 major versions, each building on the last:
 
 ```mermaid
-graph TD
-    classDef core fill:#2C3E50,stroke:#34495E,stroke-width:2px,color:#fff;
-    classDef memory fill:#27AE60,stroke:#2ECC71,stroke-width:2px,color:#fff;
-    classDef target fill:#E67E22,stroke:#D35400,stroke-width:2px,color:#fff;
-    classDef decoder fill:#2980B9,stroke:#3498DB,stroke-width:2px,color:#fff;
+graph LR
+    classDef v2 fill:#1a1a2e,stroke:#e94560,stroke-width:2px,color:#eee
+    classDef v3 fill:#16213e,stroke:#0f3460,stroke-width:2px,color:#eee
+    classDef v4 fill:#0f3460,stroke:#53354a,stroke-width:2px,color:#eee
+    classDef io fill:#533549,stroke:#e94560,stroke-width:1px,color:#eee
 
-    Input["Human Prompt<br/>'Write a sorting algorithm'"] --> Compress
-    Compress["Holo-Compressor (d_model=1024)"]:::memory --> Core
+    A["📝 Code Prompt"]:::io --> B
+    B["V2: Holographic<br/>Compressor"]:::v2 --> C
+    C["V4: ChromaDB<br/>RAG Retrieval"]:::v4 --> D
+    D["V4: SSD MoE<br/>Expert Router"]:::v4 --> E
+    E["V3: ODE Liquid<br/>Time Core"]:::v3 --> F
+    F["V4: AST + BPE<br/>Decoder"]:::v4 --> G["📄 Output"]:::io
+```
 
-    subgraph "Native Consumer VRAM (RTX/RX 7600)"
-        Core["Liquid Time-Constant Core<br/>(Continuous ODE Solver)"]:::core
-        Dec["AST Graph Neural Decoder"]:::decoder
-        
-        Core -- "Equilibrium Math Vector" --> Dec
-    end
+### Component Breakdown
 
-    Dec -- "Generates Node Tensor" --> AST["Mathematical Branch Tree<br/>[0, 1, 2, 4, 15]"]:::target
-    
-    AST -- "Python ast.unparse()" --> Output["Executable Python String"]
+| Stage | Component | Version | What It Does |
+|:-----:|-----------|:-------:|-------------|
+| 1 | **Holographic Compressor** | V2 | Compresses input into a dense 1024-D state vector |
+| 2 | **ChromaDB RAG Engine** | V4 | Queries a vector database of indexed Python repositories to find relevant context |
+| 3 | **SSD Micro-Expert Router** | V4 | Softmax router that selects which expert weight shards to stream from disk into VRAM |
+| 4 | **Continuous Recurrent Core** | V3 | Processes the context vector through an ODE (Ordinary Differential Equation) solver that iterates until the hidden state converges to equilibrium |
+| 5 | **AST Pointer-Generator** | V4 | Decodes the equilibrium vector into Abstract Syntax Tree node predictions with a hybrid BPE copy mechanism |
+
+---
+
+## Key Design Decisions
+
+### 🔄 ODE-Based Reasoning (V3 Core)
+Instead of fixed-depth feedforward layers, the recurrent core uses **Liquid Time-Constant (LTC) neurons** governed by differential equations. The solver runs until the hidden state stabilizes — meaning harder problems naturally get more compute cycles. This is inspired by [Neural ODE](https://arxiv.org/abs/1806.07366) and [Liquid Time-Constant Networks](https://arxiv.org/abs/2006.04439).
+
+### 💾 SSD-Streamed Experts (V4 Router)
+To keep VRAM usage low, expert weight shards are stored on disk as `.safetensors` files and streamed into GPU memory on-demand via a softmax routing policy. Only the top-K experts needed for a given input are loaded.
+
+### 🌳 Structural Output (V4 Decoder)
+The model predicts AST node types and branching structure rather than raw text tokens. A pointer-generator mechanism allows copying BPE tokens from the retrieved context, giving the model access to an effectively unbounded vocabulary.
+
+### 🔀 Cross-Hardware Portability
+A centralized device resolver (`v4_core/utils/device.py`) automatically selects CUDA (NVIDIA), DirectML (AMD), or CPU — making the same codebase runnable on both cloud GPUs and consumer hardware.
+
+---
+
+## Project Structure
+
+```
+SNAP-C1/
+├── v2_core/                    # Holographic compression (Mamba-style SSM)
+│   └── architecture/
+│       └── holographic_compressor.py
+├── v3_core/                    # ODE recurrent core + training
+│   ├── architecture/
+│   │   └── recurrent_core.py   # Liquid Time-Constant ODE solver
+│   ├── data/                   # AST graph parser + dataset generation
+│   └── training/               # V3 standalone trainer
+├── v4_core/                    # Full pipeline assembly
+│   ├── architecture/
+│   │   ├── v4_assembly.py      # Master pipeline (connects all stages)
+│   │   └── ast_decoder.py      # Pointer-generator AST decoder
+│   ├── memory/
+│   │   ├── ssd_router.py       # Micro-expert SSD streaming router
+│   │   └── chroma_indexer.py   # ChromaDB vector retrieval
+│   ├── data/                   # BPE tokenizer + dataset builder
+│   ├── training/
+│   │   └── v4_ddp_trainer.py   # Parallelized trainer (AMP, DataLoader, compile)
+│   └── evaluation/
+│       ├── v4_inference.py     # Capability testing
+│       └── v4_swe_bench.py     # SWE-Bench Verified benchmark
+├── runpod_setup.sh             # Quick-start cloud training script
+└── runpod_expanded_training.sh # Full pipeline: clone repos → train → benchmark
 ```
 
 ---
 
-## 🚀 The Local Training Pipeline
+## Quick Start
 
-Because the V3 Generative engine decodes Logic rather than Wikipedia facts, it ships instantly playable across any architecture.
-
-### Step 1: Dynamic Graph Compilation
-Create variable-length Logic Execution Traces. The `ASTGraphParser` physically breaks your Python code down into mathematical graph dictionaries.
+### Prerequisites
 ```bash
-python v3_core/data/generate_dataset.py
+pip install torch tiktoken safetensors loguru chromadb numpy tqdm
 ```
 
-### Step 2: Continuous Hyperscale Learning
-Pass the Trace Arrays straight into the `V3GenerativeTrainer`.
+### Generate Training Data
+Extract structural logic from any Python codebase:
 ```bash
-python v3_core/training/run_v3_training.py
+python v4_core/data/v4_general_dataset_builder.py --target_dir /path/to/repo --output my_dataset.json
 ```
-*Calculates massive Cross-Entropy and execution trace penalties physically on the GPU without ever touching the OS.*
 
-### Step 3: Graphical AST Inference
-Evaluate the learned neural trees dynamically:
+### Train
 ```bash
-python v3_core/inference/v3_infer.py
-```
-Watch the AMD GPU mathematically construct Python logic natively across the VRAM shaders.
+# Local (AMD RX 7600 / NVIDIA GPU)
+python v4_core/training/v4_ddp_trainer.py --epochs 100 --batch_size 16
 
-<br/>
+# With expanded dataset + deeper ODE convergence
+python v4_core/training/v4_ddp_trainer.py \
+  --epochs 15 --batch_size 16 --workers 4 \
+  --dataset v4_core/data/v4_expanded_dataset.json \
+  --max_loops 100
+```
+
+### Evaluate
+```bash
+# Capability test (held-out prompts)
+python v4_core/evaluation/v4_inference.py --weights v4_core/snapshot_v4_hyper_router.pt
+
+# SWE-Bench Verified solvability benchmark
+python v4_core/evaluation/v4_swe_bench.py --weights v4_core/snapshot_v4_hyper_router.pt --max_instances 50
+```
+
+### Cloud Training (RunPod)
+One-shot script that clones Django/Flask/scikit-learn/requests, generates 43k+ training chunks, trains, and benchmarks:
+```bash
+chmod +x runpod_expanded_training.sh
+./runpod_expanded_training.sh
+```
+
+---
+
+## Training Optimizations
+
+The trainer implements several parallelization strategies for NVIDIA GPUs:
+
+- **True Batched Inference** — all chunks processed as a single `[B, 1, 1024]` tensor (11.8x speedup over sequential)
+- **AMP Mixed Precision** — FP16 matmuls with FP32 accumulation via `torch.amp`
+- **`torch.compile`** — JIT kernel fusion on the ODE core and compressor submodules
+- **Multi-worker DataLoader** — async prefetching with pinned memory
+
+---
+
+## Version History
+
+| Version | Focus | Key Innovation |
+|:-------:|-------|---------------|
+| **V1** | Prototype | Basic RLHF with subprocess-based code execution |
+| **V2** | Compression | Holographic state compression (SSM-based) |
+| **V3** | Reasoning | Continuous-time ODE solver replacing fixed-depth layers |
+| **V4** | Scale | RAG retrieval + SSD expert streaming + AST decoding + batched GPU training |
+
+---
+
+## References
+
+- [Neural Ordinary Differential Equations](https://arxiv.org/abs/1806.07366) — Chen et al., 2018
+- [Liquid Time-Constant Networks](https://arxiv.org/abs/2006.04439) — Hasani et al., 2020
+- [Mamba: Linear-Time Sequence Modeling](https://arxiv.org/abs/2312.00752) — Gu & Dao, 2023
+- [SWE-Bench](https://www.swebench.com/) — Jimenez et al., 2024
+
+---
 
 <div align="center">
-  <i>The trillion-parameter era was a stepping stone. True cognitive architecture is mathematically structural.</i>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:16213e,100:0f3460&height=120&section=footer" />
 </div>
