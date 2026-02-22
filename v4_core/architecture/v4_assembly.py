@@ -69,7 +69,7 @@ class V4HyperAssembly(nn.Module):
         
         logger.info("V4 Architecture Matrix Synapses Fully Assembled.")
 
-    def forward(self, prompts: list, batch_size: int = None, training_mode: bool = False) -> dict:
+    def forward(self, prompts: list, batch_size: int = None, training_mode: bool = False, generate: bool = False) -> dict:
         """
         TRUE BATCHED forward pass.
         
@@ -77,6 +77,7 @@ class V4HyperAssembly(nn.Module):
             prompts: List of string prompts (length B)
             batch_size: Override batch size (defaults to len(prompts))
             training_mode: If True, skip ChromaDB queries and suppress logging for max speed
+            generate: If True, auto-regressively generate the AST tokens
         """
         B = batch_size or len(prompts)
         
@@ -85,6 +86,7 @@ class V4HyperAssembly(nn.Module):
         compressed_batch = self.compressor(prompt_batch)
         
         context_batch = compressed_batch
+        context_ids = torch.zeros((B, 1), dtype=torch.long, device=self.device) # Dummy token ids if no RAG
         
         if not training_mode:
             # Stage 2: ChromaDB retrieval (SKIP in training — saves ~1s per batch)
@@ -92,6 +94,18 @@ class V4HyperAssembly(nn.Module):
             if retrieved_blocks:
                 logger.info(f"[V4 Step 2] RAG Engine Isolated: {retrieved_blocks[0]['file']}")
                 context_batch = self.mock_db_vector(context_batch)
+                
+                # Try to get the real token IDs for pointer copying, fallback to zeros
+                if 'tokens' in retrieved_blocks[0]:
+                    try:
+                        import ast
+                        tokens = ast.literal_eval(retrieved_blocks[0]['tokens'])
+                        # Truncate or pad to match context_batch length
+                        seq_len = context_batch.shape[1]
+                        tokens = tokens[:seq_len] + [0] * max(0, seq_len - len(tokens))
+                        context_ids = torch.tensor([tokens] * B, device=self.device)
+                    except:
+                        pass
         else:
             # In training: still apply the linear transform for gradient flow
             context_batch = self.mock_db_vector(context_batch)
@@ -106,16 +120,28 @@ class V4HyperAssembly(nn.Module):
         # Stage 4: BATCHED ODE Equilibrium (THE BIG GPU WORKLOAD)
         equilibrium_batch, time_steps = self.logic_core(context_batch)
         
-        # Stage 5: Loss Head
+        # Stage 5A: Training Loss Head
         pooled = equilibrium_batch.mean(dim=1)
         loss_logits = self.loss_head(pooled)
         
-        return {
+        result = {
             "loss_logits": loss_logits,
             "time_steps": time_steps,
             "experts_used": target_expert_ids,
             "batch_size": B
         }
+        
+        # Stage 5B: Actual Generation
+        if generate:
+            generated_tokens = self.ast_decoder(
+                input_equilibrium=equilibrium_batch,
+                context_vectors=context_batch,
+                context_token_ids=context_ids,
+                max_nodes=100
+            )
+            result["generated_tokens"] = generated_tokens
+            
+        return result
 
 if __name__ == "__main__":
     print("\n===============================================")

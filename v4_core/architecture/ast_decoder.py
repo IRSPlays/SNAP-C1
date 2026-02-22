@@ -116,22 +116,55 @@ class V4ASTDecoder(V3ASTDecoder):
         if hasattr(self, 'semantic_classifier'):
             del self.semantic_classifier
         
-    def forward(self, input_equilibrium: torch.Tensor, max_nodes: int = 50) -> Tuple[torch.Tensor, torch.Tensor, List[dict], None]:
+    def forward(self, input_equilibrium: torch.Tensor, context_vectors: torch.Tensor, context_token_ids: torch.Tensor, max_nodes: int = 50) -> List[List[int]]:
         """
-        V4 Override: We only care about the Geometric Graph generation.
-        We rip out the sub-process text predictions, as the BPE head handles semantics separately.
+        V4 Real Code Generation.
+        Auto-regressively predicts BPE tokens using the equilibrium vector as the starting state.
+        
+        Args:
+            input_equilibrium: [batch, 1, hidden_dim] - The solved ODE state
+            context_vectors: [batch, seq_len, context_dim] - The retrieved RAG context
+            context_token_ids: [batch, seq_len] - Original RAG tokens for pointer-copying
+        
+        Returns:
+            List of generated token ID sequences for each item in the batch
         """
         batch_size = input_equilibrium.shape[0]
         device = input_equilibrium.device
         
-        # We simply mock the returned tensors for the structural pass
-        # The true magic happens in the Liquid Core and BPE Router
-        dummy_nodes = torch.randn(batch_size, max_nodes, 250, device=device)
-        dummy_branches = torch.rand(batch_size, max_nodes, 2, device=device)
-        dummy_graph = [{"id": i, "type_str": "MockGeometry"} for i in range(1)]
+        # Start state is the pooled equilibrium vector
+        current_hidden = input_equilibrium.squeeze(1) # [batch, hidden_dim]
         
-        # Return None for semantic_logits, as V4 handles it via BPE Array
-        return dummy_nodes, dummy_branches, dummy_graph, None
+        generated_sequences = [[] for _ in range(batch_size)]
+        active_batches = torch.ones(batch_size, dtype=torch.bool, device=device)
+        
+        # Simple RNN state transition for generation
+        state_transition = nn.Linear(self.hidden_dim, self.hidden_dim).to(device)
+        
+        for step in range(max_nodes):
+            if not active_batches.any():
+                break
+                
+            # Predict next token distribution
+            token_probs = self.hybrid_bpe_head(current_hidden, context_vectors, context_token_ids)
+            
+            # Greedy decoding
+            next_tokens = torch.argmax(token_probs, dim=-1) # [batch]
+            
+            for i in range(batch_size):
+                if active_batches[i]:
+                    token_id = next_tokens[i].item()
+                    # Assume tiktoken EOS is roughly <|endoftext|> (usually 100257 in cl100k_base)
+                    # For safety, we just stop if it generates a pad/eos or hits max length
+                    if token_id == 100257 or token_id == 0: 
+                        active_batches[i] = False
+                    else:
+                        generated_sequences[i].append(token_id)
+            
+            # Step the latent state forward for the next token prediction
+            current_hidden = torch.tanh(state_transition(current_hidden))
+            
+        return generated_sequences
 
 if __name__ == "__main__":
     print("=== Testing V4 Pointer-Generator Copy Matrix ===")
