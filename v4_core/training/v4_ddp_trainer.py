@@ -153,8 +153,8 @@ def setup_distributed():
         return True
     return False
 
-
-def run_training_loop(epochs: int = 100, batch_size: int = 16, num_workers: int = 2):
+def run_training_loop(epochs: int = 100, batch_size: int = 16, num_workers: int = 2,
+                      dataset_path: str = None, max_loops: int = 50):
     is_clustered = setup_distributed()
     
     if not is_clustered:
@@ -162,12 +162,14 @@ def run_training_loop(epochs: int = 100, batch_size: int = 16, num_workers: int 
         print("  SNAP-C1 V4 Parallelized Training Pipeline                       ")
         print("==================================================================\n")
         
-    trainer = V4DistributedTrainer()
+    trainer = V4DistributedTrainer(max_loops=max_loops)
     
     # ============================================================
     #  PARALLELIZATION 4: DataLoader with async prefetching
     # ============================================================
-    dataset_path = os.path.join(project_root, "v4_core", "data", "v4_test_dataset.json")
+    if dataset_path is None:
+        dataset_path = os.path.join(project_root, "v4_core", "data", "v4_test_dataset.json")
+    
     dataset = V4TrainingDataset(dataset_path)
     
     effective_workers = num_workers if torch.cuda.is_available() else 0
@@ -184,9 +186,10 @@ def run_training_loop(epochs: int = 100, batch_size: int = 16, num_workers: int 
     )
     
     logger.info(f"DataLoader: batch_size={batch_size}, workers={effective_workers}, "
-                f"batches_per_epoch={len(dataloader)}")
+                f"batches_per_epoch={len(dataloader)}, max_loops={max_loops}")
     
     start_time = time.time()
+    best_loss = float('inf')
     
     for epoch in range(epochs):
         epoch_loss = 0.0
@@ -199,24 +202,35 @@ def run_training_loop(epochs: int = 100, batch_size: int = 16, num_workers: int 
             
         avg_loss = epoch_loss / max(1, num_batches)
         
+        # Save best model
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+        
         # Log progress
-        if epoch < 10 or epoch % 10 == 0:
+        if epoch < 10 or epoch % 10 == 0 or epoch == epochs - 1:
             elapsed = time.time() - start_time
             epochs_per_sec = (epoch + 1) / elapsed
             eta_remaining = (epochs - epoch - 1) / max(epochs_per_sec, 0.001)
             logger.info(
-                f"Epoch [{epoch}/{epochs}] | Loss: {avg_loss:.4f} | "
-                f"Speed: {epochs_per_sec:.2f} epochs/s | "
+                f"Epoch [{epoch}/{epochs}] | Loss: {avg_loss:.4f} | Best: {best_loss:.4f} | "
+                f"Speed: {epochs_per_sec:.2f} ep/s | "
                 f"Elapsed: {elapsed:.0f}s | ETA: {eta_remaining:.0f}s"
             )
+        
+        # Periodic checkpoint every 100 epochs
+        if (epoch + 1) % 100 == 0 and trainer.local_rank == 0:
+            ckpt_path = os.path.join(project_root, "v4_core", f"checkpoint_epoch_{epoch+1}.pt")
+            torch.save(trainer.model.state_dict(), ckpt_path)
+            logger.info(f"Checkpoint saved: {ckpt_path}")
             
-    # Save Model Weights
+    # Save Final Weights
     total_time = time.time() - start_time
     save_path = os.path.join(project_root, "v4_core", "snapshot_v4_hyper_router.pt")
     if trainer.local_rank == 0:
         torch.save(trainer.model.state_dict(), save_path)
         logger.success(f"\nTraining Complete in {total_time:.0f}s ({total_time/60:.1f} min)")
         logger.success(f"V4 Checkpoint saved to: {save_path}")
+        logger.success(f"Best Loss: {best_loss:.4f}")
 
     if is_clustered:
         dist.destroy_process_group()
@@ -227,6 +241,14 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=100, help="Number of training epochs")
     parser.add_argument("--batch_size", type=int, default=16, help="Chunks per batch")
     parser.add_argument("--workers", type=int, default=2, help="DataLoader prefetch workers")
+    parser.add_argument("--dataset", type=str, default=None, help="Path to training dataset JSON")
+    parser.add_argument("--max_loops", type=int, default=50, help="Max ODE solver iterations")
     args = parser.parse_args()
     
-    run_training_loop(epochs=args.epochs, batch_size=args.batch_size, num_workers=args.workers)
+    run_training_loop(
+        epochs=args.epochs, 
+        batch_size=args.batch_size, 
+        num_workers=args.workers,
+        dataset_path=args.dataset,
+        max_loops=args.max_loops
+    )

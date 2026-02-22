@@ -114,14 +114,24 @@ class V4GeneralDatasetBuilder:
         logger.info(f"V4 Dataset saved to {out_path} ({len(self.dataset)} samples)")
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="SNAP-C1 V4 Dataset Generator")
+    parser.add_argument("--target_dir", type=str, default=None,
+                        help="Path to the Python repo to extract training data from")
+    parser.add_argument("--output", type=str, default="v4_test_dataset.json",
+                        help="Output JSON filename (saved in v4_core/data/)")
+    args = parser.parse_args()
+    
     print("\n=======================================================")
     print("  Booting SNAP-C1 V4 (General Dataset Generator)       ")
     print("=======================================================\n")
     
-    # For testing the script natively on the RX 7600 constraints, 
-    # we point the dataset engine at our OWN legacy `v3_core` codebase!
-    # It will rip the intelligence out of V3 to train V4.
-    target_directory = os.path.abspath(os.path.join(project_root, "v3_core", "data"))
+    if args.target_dir:
+        target_directory = os.path.abspath(args.target_dir)
+    else:
+        # Default: use our own v3_core codebase
+        target_directory = os.path.abspath(os.path.join(project_root, "v3_core", "data"))
     
-    builder = V4GeneralDatasetBuilder(target_repo_path=target_directory, output_file="v4_test_dataset.json")
+    builder = V4GeneralDatasetBuilder(target_repo_path=target_directory, output_file=args.output)
     builder.generate_data()
+
