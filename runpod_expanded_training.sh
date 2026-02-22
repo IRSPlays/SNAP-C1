@@ -23,7 +23,7 @@ echo "  SNAP-C1 V4 — Expanded Training Pipeline"
 echo "========================================================"
 
 # Verify CUDA
-python -c "import torch; assert torch.cuda.is_available(); print(f'GPU: {torch.cuda.get_device_name(0)} | VRAM: {torch.cuda.get_device_properties(0).total_mem / 1e9:.1f} GB')"
+python -c "import torch; assert torch.cuda.is_available(); print(f'GPU: {torch.cuda.get_device_name(0)} | VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB')"
 
 # Install deps
 pip install --quiet tiktoken safetensors loguru chromadb onnxruntime numpy tqdm datasets
