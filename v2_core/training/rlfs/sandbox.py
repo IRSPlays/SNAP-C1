@@ -85,6 +85,7 @@ class PythonSandbox:
             logger.warning(f"Sandbox Timeout ({self.timeout}s): Model generated an infinite loop.")
             process.terminate()
             process.join() # Ensure cleanup
+            process.close() # Prevent Windows handle leak
             
             return {
                 "success": False,
@@ -96,14 +97,17 @@ class PythonSandbox:
             }
             
         # Process completed normally, retrieve results
-        if not queue.empty():
-            return queue.get()
-        else:
-            return {
+        try:
+            res = queue.get_nowait()
+        except Exception:
+            res = {
                 "success": False,
                 "error_type": "UnknownSandboxError",
                 "error_traceback": "Process exited without returning data to the IPC queue."
             }
+            
+        process.close() # Prevent Windows handle leak
+        return res
 
 if __name__ == "__main__":
     # Test the sandbox environment

@@ -14,6 +14,7 @@ from loguru import logger
 def upload_weights(
     instance_ip: str, 
     instance_port: int, 
+    key_name: str,
     instance_user: str = "root"
 ):
     """
@@ -22,6 +23,7 @@ def upload_weights(
     Args:
         instance_ip: The TCP IP provided by the RunPod Connect menu (e.g. 12.34.56.78)
         instance_port: The TCP Port provided by the RunPod Connect menu (e.g. 12345)
+        key_name: The name of the SSH key file in the ~/.ssh/ directory
     """
     logger.info("Initializing Secure P2P SFTP Transfer...")
     
@@ -33,14 +35,11 @@ def upload_weights(
         
     remote_path = "/workspace/SNAP-C1/v2_core/frc_pretrained_core_A6000_FINAL.pt"
     
-    # Locate the user's default SSH Key
-    key_path = Path.home() / ".ssh" / "id_ed25519"
-    if not key_path.exists():
-        # Fallback to RSA if ed25519 doesn't exist
-        key_path = Path.home() / ".ssh" / "id_rsa"
+    # Locate the user's custom SSH Key
+    key_path = Path.home() / ".ssh" / key_name
         
     if not key_path.exists():
-        logger.critical("No SSH keys found in ~/.ssh/ directory! Please configure RunPod SSH keys or use the Web drag-and-drop.")
+        logger.critical(f"SSH key not found at {key_path}! Please verify the key name.")
         sys.exit(1)
 
     try:
@@ -85,7 +84,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Securely upload SNAP-C1 weights to RunPod.")
     parser.add_argument("--ip", type=str, required=True, help="The RunPod SSH IP address")
     parser.add_argument("--port", type=int, required=True, help="The RunPod SSH Port")
+    parser.add_argument("--key", type=str, required=True, help="The name of your SSH key in ~/.ssh/")
     
     args = parser.parse_args()
     
-    upload_weights(instance_ip=args.ip, instance_port=args.port)
+    upload_weights(instance_ip=args.ip, instance_port=args.port, key_name=args.key)
