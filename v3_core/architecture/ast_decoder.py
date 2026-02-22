@@ -46,7 +46,7 @@ class ASTDecoder(nn.Module):
     A Graph Neural Network (GNN) approach ensures that invalid Python syntax 
     is physically impossible to generate.
     """
-    def __init__(self, concept_dim: int, ast_vocab_size: int = 250, hidden_dim: int = 512):
+    def __init__(self, concept_dim: int, ast_vocab_size: int = 250, hidden_dim: int = 512, semantic_vocab_size: int = 50):
         super().__init__()
         self.concept_dim = concept_dim
         self.hidden_dim = hidden_dim
@@ -71,6 +71,9 @@ class ASTDecoder(nn.Module):
             nn.Sigmoid()
         )
         
+        # 5. Predict the semantic string payload (Variables, Constants, Function Names)
+        self.semantic_classifier = nn.Linear(hidden_dim, semantic_vocab_size)
+        
     def forward(self, hologram: torch.Tensor, max_nodes: int = 100) -> torch.Tensor:
         """
         Takes the mathematical equilibrium vector from the Liquid Time-Constant Core
@@ -93,6 +96,7 @@ class ASTDecoder(nn.Module):
         generated_nodes = []
         branch_probabilities = []
         all_node_logits = []
+        all_semantic_logits = []
         
         # Auto-regressively build the graph nodes
         for step in range(max_nodes):
@@ -108,6 +112,10 @@ class ASTDecoder(nn.Module):
             branch_probabilities.append(branch_prob)
             all_node_logits.append(node_logits.unsqueeze(1))
             
+            # Predict Semantic String payload (Variables/Constants)
+            semantic_logits = self.semantic_classifier(out.squeeze(1)) # [batch, semantic_vocab_size]
+            all_semantic_logits.append(semantic_logits.unsqueeze(1))
+            
             # Form next structural concept as input context for the GRU
             # In a real GNN, this would include Edge embeddings as well
             current_node_emb = out
@@ -116,9 +124,10 @@ class ASTDecoder(nn.Module):
         final_tree_sequence = torch.stack(generated_nodes, dim=1)
         final_branch_probs = torch.cat(branch_probabilities, dim=1)
         final_node_logits = torch.cat(all_node_logits, dim=1)
+        final_semantic_logits = torch.cat(all_semantic_logits, dim=1)
         
         # We return the raw integer node lists, structural probabilities, and continuous logits for CrossEntropy
-        return final_tree_sequence, final_branch_probs, final_node_logits
+        return final_tree_sequence, final_branch_probs, final_node_logits, final_semantic_logits
 
 if __name__ == "__main__":
     print("\n--- Testing V3 Abstract Syntax Tree (AST) Decoder ---")
@@ -127,8 +136,9 @@ if __name__ == "__main__":
     # 1024-dimension thought vector passed perfectly from the Continuous Core
     mock_thought = torch.randn(2, 1024) 
     
-    tree_sequence, jump_probs = decoder(mock_thought, max_nodes=15)
+    tree_sequence, jump_probs, _, sem_logits = decoder(mock_thought, max_nodes=15)
     
     print(f"Generated a logic tree with {tree_sequence.shape[1]} structural nodes.")
     print(f"Tree Output Matrix Shape: {tree_sequence.shape}")
     print(f"Branch Probability Shape: {jump_probs.shape}")
+    print(f"Semantic Payload Matrix Shape: {sem_logits.shape}")

@@ -23,6 +23,29 @@ class ASTGraphParser:
         }
         self.next_id = 15
         
+        # A dictionary mapping text values (Variables, Constants, Function Names) to Semantic IDs
+        self.semantic_embeddings = {
+            "<pad>": 0, "solve_math": 1, "a": 2, "b": 3, "c": 4, "result": 5,
+            "15": 6, "25": 7,
+            "sum_array": 8, "arr": 9, "total": 10, "num": 11, "ans": 12,
+            "1": 13, "2": 14, "3": 15, "0": 16,
+            "reverse_string": 17, "s": 18, "rev": 19, "char": 20, "out": 21,
+            "RX7600": 22, "": 23,
+            "check_even": 24, "val": 25, "is_even": 26, "res": 27,
+            "10": 28, "True": 29, "False": 30,
+            "fib": 31, "i": 32, "temp": 33, "fib_ans": 34
+        }
+        self.max_semantic_vocab = 1000
+        
+    def _get_semantic_id(self, value: str) -> int:
+        """Dynamically retrieves or auto-registers a specific token ID for the Variable/Constant."""
+        if value not in self.semantic_embeddings:
+            if len(self.semantic_embeddings) < self.max_semantic_vocab:
+                self.semantic_embeddings[value] = len(self.semantic_embeddings)
+            else:
+                return 0 # Fallback to <pad> if the graph vocabulary limit is reached
+        return self.semantic_embeddings[value]
+        
     def _get_node_id(self, node_type: str) -> int:
         """Assigns a persistent mathematical ID to a specific node type."""
         if node_type not in self.node_embeddings:
@@ -52,16 +75,26 @@ class ASTGraphParser:
                 
                 # Extract any raw value (like an integer '5' or string 'hello')
                 value = None
+                semantic_id = 0
                 if isinstance(node, ast.Constant):
                     value = str(node.value)
+                    semantic_id = self._get_semantic_id(value)
                 elif isinstance(node, ast.Name):
                     value = node.id
+                    semantic_id = self._get_semantic_id(value)
+                elif isinstance(node, ast.arg):
+                    value = node.arg
+                    semantic_id = self._get_semantic_id(value)
+                elif isinstance(node, ast.FunctionDef):
+                    value = node.name
+                    semantic_id = self._get_semantic_id(value)
                     
                 nodes.append({
                     "id": current_idx,
                     "type": self._get_node_id(node_type),
                     "type_str": node_type,
-                    "value": value
+                    "value": value,
+                    "semantic_id": semantic_id
                 })
                 
                 # Link to parent

@@ -11,6 +11,7 @@ sys.path.insert(0, project_root)
 
 from v3_core.architecture.v3_assembly import V3GenerativeReasoningArchitecture
 from v2_core.architecture.holographic_compressor import HolographicCompressor
+from v3_core.data.ast_parser import ASTGraphParser
 
 class V3InferenceEngine:
     """
@@ -50,14 +51,19 @@ class V3InferenceEngine:
             logger.info(f"Loading Generative Weights: {weights_path}")
             
             # Handle torch.compile '_orig_mod.' prefix stripping
-            raw_state_dict = torch.load(weights_path, map_location=self.device)
+            # Load into CPU RAM first to prevent DirectML MemoryError alloc crashes
+            # AMD Tensors require custom deserialization, so weights_only=False is mandatory here.
+            raw_state_dict = torch.load(weights_path, map_location='cpu', weights_only=False, mmap=True)
             clean_state_dict = {}
             for k, v in raw_state_dict.items():
                 new_key = k.replace("_orig_mod.", "")
                 clean_state_dict[new_key] = v
                 
-            self.model.load_state_dict(clean_state_dict)
-            logger.success("V3 Offline Synapses mapped successfully.")
+            self.model.load_state_dict(clean_state_dict, strict=False)
+            
+            # Flush the CPU-staged weights BACK to the dedicated AMD RX 7600 VRAM!
+            self.model = self.model.to(self.device)
+            logger.success("V3 Offline Synapses physically mapped onto DirectML VRAM successfully.")
         else:
             logger.error(f"Cannot perform inference. Missing V3 Checkpoint at {weights_path}")
             sys.exit(1)
@@ -70,6 +76,10 @@ class V3InferenceEngine:
             4: "Assign", 5: "Name", 6: "Store", 7: "Constant", 8: "BinOp",
             9: "Load", 10: "Add", 11: "Mult", 12: "Return", 13: "For", 14: "If"
         }
+        
+        # Load the newly defined 50-space string variable/constant vocabulary
+        parser = ASTGraphParser()
+        self.semantic_vocab_reverse = {v: k for k, v in parser.semantic_embeddings.items()}
 
     @torch.no_grad()
     def generate_ast_graph(self, prompt: str, max_nodes: int = 15):
@@ -91,56 +101,71 @@ class V3InferenceEngine:
         equilibrium_vector, time_steps = self.model.core(math_vector)
         
         # 3. Predict the continuous AST Math structure natively on GPU (No timeouts!)
-        predicted_node_ids, branch_probabilities, _ = self.model.ast_decoder(equilibrium_vector, max_nodes=max_nodes)
+        predicted_node_ids, branch_probabilities, _, semantic_logits = self.model.ast_decoder(equilibrium_vector, max_nodes=max_nodes)
         
-        return predicted_node_ids[0].cpu().tolist(), branch_probabilities[0].cpu().tolist(), time_steps
+        # Determine the maximum likelihood payload variable names dynamically
+        predicted_semantics = torch.argmax(semantic_logits, dim=-1)[0].cpu().tolist()
+        
+        return predicted_node_ids[0].cpu().tolist(), branch_probabilities[0].cpu().tolist(), time_steps, predicted_semantics
 
-    def construct_python_code(self, node_list: list) -> str:
+    def construct_python_code(self, node_list: list, semantics_list: list = None) -> str:
         """
         Takes the mathematical branch tree (sequence of classification IDs)
         and attempts to structurally build a valid Python ast.AST object,
         then unparses it into readable text code!
         """
-        # We start with the root of all Python files: a Module
         module = ast.Module(body=[], type_ignores=[])
-        
         current_func_node = None
         current_args = []
         
-        for node_id in node_list:
+        # Keep track of the last Assign node to dynamically populate its target vs its logic
+        active_assign = None
+        
+        for i, node_id in enumerate(node_list):
             safe_id = node_id % 15 
             node_name = self.reverse_ast_vocab.get(safe_id, "Unknown")
             
+            # Map the exact Semantic string onto the Graph geometry
+            semantic_id = semantics_list[i] if semantics_list and i < len(semantics_list) else 0
+            semantic_val = self.semantic_vocab_reverse.get(semantic_id, "var_x")
+            if semantic_val == "<pad>":
+                semantic_val = "var_x" # default algorithmic safe fallback
+                
             if node_name == "FunctionDef":
-                # Create a generic function shell
+                func_name = semantic_val if semantic_val != "var_x" else "generated_logic"
                 current_func_node = ast.FunctionDef(
-                    name="generated_logic",
+                    name=func_name,
                     args=ast.arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]),
-                    body=[],
-                    decorator_list=[]
+                    body=[], decorator_list=[]
                 )
                 module.body.append(current_func_node)
                 
             elif node_name == "arg" and current_func_node is not None:
-                # Add a dummy argument
-                arg_name = f"var_{len(current_args)}"
+                arg_name = semantic_val if semantic_val != "var_x" else f"var_{len(current_args)}"
                 current_args.append(ast.arg(arg=arg_name))
                 current_func_node.args.args = current_args
                 
             elif node_name == "Assign" and current_func_node is not None:
-                # Target = Value
-                assign_node = ast.Assign(
-                    targets=[ast.Name(id="out_val", ctx=ast.Store())],
-                    value=ast.Constant(value=42)
-                )
-                current_func_node.body.append(assign_node)
+                active_assign = ast.Assign(targets=[], value=ast.Constant(value=None))
+                current_func_node.body.append(active_assign)
+                
+            elif node_name == "Name" and active_assign is not None:
+                if len(active_assign.targets) == 0:
+                    active_assign.targets.append(ast.Name(id=semantic_val, ctx=ast.Store()))
+                else:
+                    active_assign.value = ast.Name(id=semantic_val, ctx=ast.Load())
+                    
+            elif node_name == "Constant" and active_assign is not None:
+                val = semantic_val
+                if val.isdigit(): val = int(val)
+                elif val == "True": val = True
+                elif val == "False": val = False
+                active_assign.value = ast.Constant(value=val)
                 
             elif node_name == "Return" and current_func_node is not None:
-                # Return statement
-                return_node = ast.Return(value=ast.Name(id="out_val", ctx=ast.Load()))
+                return_node = ast.Return(value=ast.Name(id=semantic_val, ctx=ast.Load()))
                 current_func_node.body.append(return_node)
                 
-        # If the GPU generated absolutely zero logic, add a pass statement so unparse doesn't crash
         if current_func_node and not current_func_node.body:
             current_func_node.body.append(ast.Pass())
             
@@ -156,25 +181,26 @@ if __name__ == "__main__":
     
     test_prompt = "chat: Write a function that multiples two inputs."
     
-    nodes, branching_weights, step_time = engine.generate_ast_graph(test_prompt, max_nodes=15)
+    nodes, branching_weights, step_time, semantics = engine.generate_ast_graph(test_prompt, max_nodes=15)
     
     print(f"\nThe V3 Generative Engine arrived at a Mathematical Conclusion in {step_time} continuous steps.")
     print(f"Generated Mathematical Branch Tree:\n")
     
-    for i, (node_id, prob) in enumerate(zip(nodes, branching_weights)):
+    for i, (node_id, prob, sem_id) in enumerate(zip(nodes, branching_weights, semantics)):
         # If the network predicted a completely wild ID, cap it for the demo dictionary map
         safe_id = node_id % 15 
         node_name = engine.reverse_ast_vocab.get(safe_id, "Unknown")
+        payload = engine.semantic_vocab_reverse.get(sem_id, "<pad>")
         
         # Print a simple visual graph structure
         indent = "  " * (i % 3)
-        print(f"{indent}├── [{node_id}] {node_name} (Branching Confidence: {prob:.2f})")
+        print(f"{indent}├── [{node_id}] {node_name} ~ Payload: '{payload}' (Confidence: {prob:.2f})")
         
     print("\n-----------------------------------------------------------")
-    print("Translating Abstract Logic Tree into executable Python Text:")
+    print("Translating Abstract Logic & Dynamic Semantics into executable Python Text:")
     print("-----------------------------------------------------------")
     
-    generated_python_code = engine.construct_python_code(nodes)
+    generated_python_code = engine.construct_python_code(nodes, semantics_list=semantics)
     print(generated_python_code)
     
     print("\n-----------------------------------------------------------")

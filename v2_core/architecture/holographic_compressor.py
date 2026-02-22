@@ -12,6 +12,10 @@ import torch.nn as nn
 import tiktoken
 from loguru import logger
 
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from v4_core.utils.device import get_device
+
 class HolographicCompressor(nn.Module):
     """
     A simplified discrete State Space Model (SSM) roughly inspired by Mamba.
@@ -25,30 +29,27 @@ class HolographicCompressor(nn.Module):
     """
     def __init__(self, d_model: int, state_size: int = 128, vocab_size: int = 100277):
         super().__init__()
+        self.device = get_device()
         self.d_model = d_model
         self.state_size = state_size
         self.vocab_size = vocab_size
 
         # GPT-4 Token Embedder: Maps BPE token integers to d_model continuous space
-        self.embedding = nn.Embedding(vocab_size, d_model)
-        
-        # In a true SSM (like Mamba), these matrices are data-dependent and 
-        # computed via hardware-aware parallel scans. For this architectural 
-        # blueprint, we simulate the compression mechanics.
+        self.embedding = nn.Embedding(vocab_size, d_model).to(self.device)
         
         # State transition matrix (A) - simulated as a diagonal parameter for stability
-        self.A_log = nn.Parameter(torch.randn(d_model, state_size))
+        self.A_log = nn.Parameter(torch.randn(d_model, state_size, device=self.device))
         
         # Input projection (B) - maps token dimension to state space
-        self.B_proj = nn.Linear(d_model, state_size, bias=False)
+        self.B_proj = nn.Linear(d_model, state_size, bias=False).to(self.device)
         
         # Output projection (C) - maps state space back to token dimension
-        self.C_proj = nn.Linear(state_size, d_model, bias=False)
+        self.C_proj = nn.Linear(state_size, d_model, bias=False).to(self.device)
         
         # Skip connection D
-        self.D = nn.Parameter(torch.ones(d_model))
+        self.D = nn.Parameter(torch.ones(d_model, device=self.device))
         
-        self.out_norm = nn.RMSNorm(d_model)
+        self.out_norm = nn.RMSNorm(d_model).to(self.device)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """

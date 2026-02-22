@@ -44,7 +44,7 @@ class V3GenerativeReasoningArchitecture(nn.Module):
         # Replaces raw Python subprocess character generation (which caused execution errors).
         # Generates structurally perfect AST Graph Neural structures.
         logger.info("Initializing AST Graph Neural Network Decoder...")
-        self.ast_decoder = ASTDecoder(concept_dim=d_model, ast_vocab_size=ast_vocab_size, hidden_dim=512)
+        self.ast_decoder = ASTDecoder(concept_dim=d_model, ast_vocab_size=ast_vocab_size, hidden_dim=512, semantic_vocab_size=1000)
         
         # Formal Evaluator logic routes locally in loss loop
         self.reward_engine = ASTRewardEvaluator()
@@ -60,9 +60,9 @@ class V3GenerativeReasoningArchitecture(nn.Module):
         equilibrium_vector, time_steps_taken = self.core(hologram_sequence)
         
         # 3. Generate AST Math graph
-        ast_nodes, branch_probs = self.ast_decoder(equilibrium_vector, max_nodes=max_nodes)
+        ast_nodes, branch_probs, _, semantic_logits = self.ast_decoder(equilibrium_vector, max_nodes=max_nodes)
         
-        return ast_nodes, branch_probs, time_steps_taken
+        return ast_nodes, branch_probs, time_steps_taken, semantic_logits
 
 if __name__ == "__main__":
     print("\n=== Assembling the FULL SNAP-C1 V3 Architecture ===")
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     # Simulate a human prompt tokens (e.g. from cl100k_base)
     dummy_input = torch.randint(0, 100277, (1, 64)).to(device)
     
-    ast_nodes, branch_probs, continuous_thoughts = model(dummy_input, max_nodes=20)
+    ast_nodes, branch_probs, continuous_thoughts, semantic_logits = model(dummy_input, max_nodes=20)
     
     print(f"\nAssembly Validated Successfully.")
     print(f"Liquid Core Equilibrium Output Reached in {continuous_thoughts} fluid steps.")

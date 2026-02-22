@@ -78,7 +78,7 @@ class V3GenerativeTrainer:
         # Use SGD to bypass DirectML 'aten::lerp' AdamW bugs on AMD Hardware
         self.optimizer = SGD(self.model.parameters(), lr=1e-4, momentum=0.9)
 
-    def continuous_offline_epoch(self, target_hologram: torch.Tensor, target_sequence: list):
+    def continuous_offline_epoch(self, target_hologram: torch.Tensor, target_sequence: list, target_semantics: list = None):
         """
         The massive speedup loop. Bypasses Sandbox execution.
         """
@@ -92,13 +92,20 @@ class V3GenerativeTrainer:
         seq_len = len(target_sequence)
         
         # The Custom DML_GRU runs natively on the AMD RX 7600 GPU
-        predicted_node_ids, branch_probs, logits = self.model.ast_decoder(equilibrium_vector, max_nodes=seq_len)
+        predicted_node_ids, branch_probs, logits, semantic_logits = self.model.ast_decoder(equilibrium_vector, max_nodes=seq_len)
         
         # Pull the exact mathematical AST Branch sequence from the Trace Dataset
         ideal_target = torch.tensor([target_sequence], dtype=torch.long, device=self.device)
         
         # Mathematically calculate the true derivative loss across the Generative ODE core!
         loss_value = F.cross_entropy(logits.view(-1, 250), ideal_target.view(-1))
+        
+        # Morph semantic strings into the Native loss calculations natively dynamically mapped onto the GPU
+        if target_semantics is not None:
+            ideal_semantic = torch.tensor([target_semantics], dtype=torch.long, device=self.device)
+            semantic_loss = F.cross_entropy(semantic_logits.view(-1, self.model.ast_decoder.semantic_classifier.out_features), ideal_semantic.view(-1))
+            loss_value = loss_value + semantic_loss
+            
         branch_loss = F.mse_loss(branch_probs, torch.full_like(branch_probs, 0.5))
         bi_directional_loss = torch.tensor(0.1, device=self.device, requires_grad=True)
         

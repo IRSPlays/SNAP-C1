@@ -28,6 +28,7 @@ nltk>=3.9                  # NLP utilities
 tqdm>=4.66.0               # Progress bars
 rich>=13.0.0               # Rich terminal output
 loguru>=0.7.0              # Logging
+colorama>=0.4.6            # Windows terminal colors
 
 # Export
 # llama-cpp-python         # For GGUF export (install separately)

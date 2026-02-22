@@ -55,6 +55,7 @@ def build_training_pipeline(epochs: int = 100):
             # Dynamically parse the original code into a mathematical integer target sequence!
             graph = parser.parse_to_graph(raw_code)
             target_sequence = [n["type"] for n in graph["nodes"]]
+            target_semantics = [n.get("semantic_id", 0) for n in graph["nodes"]]
             
             # Compress the human prompt into the 1024-dimension V2 Holo-Concept vector
             target_hologram = compressor.process_string(raw_code, device=device)
@@ -63,7 +64,9 @@ def build_training_pipeline(epochs: int = 100):
             
             # 2. Fire the instantaneous Offline Math Loss Engine with real CrossEntropy 
             # This triggers the forward pass entirely inside the trainer natively
-            loss_value, branch_loss, bi_directional_loss = trainer.continuous_offline_epoch(target_hologram, target_sequence)
+            loss_value, branch_loss, bi_directional_loss = trainer.continuous_offline_epoch(
+                target_hologram, target_sequence, target_semantics
+            )
             
             # The Critical Missing Step: Actually Backpropagate the Error down the V3 Tree!
             trainer.optimizer.zero_grad()
