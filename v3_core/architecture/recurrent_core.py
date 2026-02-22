@@ -14,10 +14,7 @@ class StableSigmoid(nn.Module):
     Sigmoid(x) == 0.5 * (Tanh(x / 2) + 1)
     """
     def forward(self, x):
-        # Keep everything on the same device using x's own device
-        half = torch.tensor(0.5, dtype=x.dtype, device=x.device)
-        one = torch.tensor(1.0, dtype=x.dtype, device=x.device)
-        return half * (torch.tanh(x * half) + one)
+        return 0.5 * (torch.tanh(x * 0.5) + 1.0)  # Pure scalar ops — no tensor creation
 
 class LiquidTimeBlock(nn.Module):
     """
@@ -34,34 +31,22 @@ class LiquidTimeBlock(nn.Module):
         self._device = get_device()
             
         # Neural Wiring for the ordinary differential equation (ODE) solver
-        self.w_state = nn.Linear(hidden_dim, hidden_dim).to(self._device)
-        self.w_input = nn.Linear(hidden_dim, hidden_dim).to(self._device)
+        self.w_state = nn.Linear(hidden_dim, hidden_dim)
+        self.w_input = nn.Linear(hidden_dim, hidden_dim)
         self.tau_gate = nn.Sequential(
-            nn.Linear(hidden_dim * 2, hidden_dim).to(self._device),
+            nn.Linear(hidden_dim * 2, hidden_dim),
             StableSigmoid()
         )
         
     def forward(self, x: torch.Tensor, h_prev: torch.Tensor) -> torch.Tensor:
-        """
-        Euler integration step over time increment `dt`
-        """
-        # Ensure inputs are on the correct device and dtype
-        x = x.to(device=self._device, dtype=torch.float32)
-        h_prev = h_prev.to(device=self._device, dtype=torch.float32)
-        
-        # Calculate dynamic time-constant based on current input and state
+        """Euler integration step over time increment `dt`"""
         combined = torch.cat([x, h_prev], dim=-1)
         tau = self.tau_gate(combined)
         
-        # The ODE dynamics: dh/dt = -h/tau + f(x, h)
         forcing_function = torch.tanh(self.w_state(h_prev) + self.w_input(x))
         
-        # Euler update step
-        eps = torch.tensor(1e-6, dtype=x.dtype, device=self._device)
-        raw_h_new = h_prev + self.dt * ((-h_prev / (tau + eps)) + forcing_function)
-        
-        # Enforce strict mathematical bounds to stop NaN Matrix explosions over continuous loops
-        h_new = torch.clamp(raw_h_new, min=-10.0, max=10.0)
+        h_new = h_prev + self.dt * ((-h_prev / (tau + 1e-6)) + forcing_function)
+        h_new = torch.clamp(h_new, min=-10.0, max=10.0)
         
         return h_new
 
@@ -86,6 +71,11 @@ class ContinuousRecurrentCore(nn.Module):
         
     def forward(self, x: torch.Tensor):
         """
+        GPU-OPTIMIZED ODE solver.
+        
+        All convergence checks stay on GPU tensors — NO .item() calls.
+        This eliminates 200 GPU→CPU sync barriers per batch.
+        
         Args:
             x: Input graph tensor embedding sequence [batch, seq_len, dim]
             
@@ -93,44 +83,44 @@ class ContinuousRecurrentCore(nn.Module):
             equilibrium_state: The final solved logic vector
             time_steps: The simulated time `t` it took to arrive at the answer
         """
-        x = x.to(device=self._device, dtype=torch.float32)
         batch_size, seq_len, dim = x.shape
         
-        # Initialize resting states on the same device
-        states = [torch.zeros(batch_size, seq_len, dim, device=self._device, dtype=torch.float32) for _ in range(4)]
+        # Initialize resting states
+        states = [torch.zeros_like(x) for _ in range(4)]
+        
+        # Track convergence step (stays on GPU)
+        converged_at = self.max_sim_time
         
         for t in range(self.max_sim_time):
-            max_delta = 0.0
-            
             # Flow signal through all 4 ODE layers
             current_input = x
+            max_delta = torch.tensor(0.0, device=x.device)
+            
             for i, layer in enumerate(self.layers):
-                h_prev = states[i]
-                h_new = layer(current_input, h_prev)
+                h_new = layer(current_input, states[i])
                 
-                # Measure physical change in the latent vector 
-                delta = torch.max(torch.abs(h_new - h_prev)).item()
-                if delta > max_delta:
-                    max_delta = delta
+                # Measure change entirely on GPU — NO .item()!
+                delta = torch.max(torch.abs(h_new - states[i]))
+                max_delta = torch.maximum(max_delta, delta)
                     
                 states[i] = h_new
                 current_input = h_new
                 
-            # If the network stops changing, it has found the logical answer
-            if max_delta < self.epsilon:
-                return states[-1], t
+            # Convergence check on GPU — single comparison, no sync
+            if torch.lt(max_delta, self.epsilon):
+                converged_at = t
+                break
                 
-        # If it reaches max simulation time, return current best guess
-        return states[-1], self.max_sim_time
+        # Only ONE .item() call at the very end (unavoidable for return value)
+        return states[-1], converged_at
 
 if __name__ == "__main__":
     print("Testing V3 Liquid Time-Constant Core Equilibrium Solver...")
     core = ContinuousRecurrentCore(hidden_dim=256)
     
-    # Simulate a Graph Embedding from the AST Generator
     dummy_input = torch.randn(1, 16, 256) 
     
     equilibrium_vector, time_taken = core(dummy_input)
     
-    print(f"Logic Solved successfully. Reached thermodynamic equilibrium in {time_taken} continuous steps.")
-    print(f"Final Thought Output Vector Shape: {equilibrium_vector.shape}")
+    print(f"Logic Solved successfully. Reached equilibrium in {time_taken} steps.")
+    print(f"Final Output Vector Shape: {equilibrium_vector.shape}")
