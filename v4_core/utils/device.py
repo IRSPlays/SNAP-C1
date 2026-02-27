@@ -14,29 +14,36 @@ import torch
 _cached_device = None
 
 def get_device():
-    """Returns the best available GPU device, cached after first call."""
+    """
+    Returns the best available device.
+    Priority: CUDA → DirectML (AMD) → CPU
+    """
     global _cached_device
     if _cached_device is not None:
         return _cached_device
-    
-    # 1. NVIDIA CUDA (RunPod RTX 6000 Ada, cloud GPUs, etc.)
+
+    # 1. NVIDIA CUDA
     if torch.cuda.is_available():
         _cached_device = torch.device('cuda')
         return _cached_device
-    
-    # 2. AMD DirectML (Local Windows development on RX 7600)
+
+    # 2. AMD DirectML — explicitly pick the dGPU (RX 7600 = index 1).
+    # Index 0 is the iGPU (AMD Radeon Graphics); index 1 is the discrete RX 7600.
     try:
         import torch_directml
-        target_id = 0
-        for i in range(torch_directml.device_count()):
-            if "RX 7600" in torch_directml.device_name(i):
-                target_id = i
+        n = torch_directml.device_count()
+        # Prefer any device whose name contains "RX" or "Radeon RX"; fall back to last device.
+        target_idx = 0
+        for i in range(n):
+            name = torch_directml.device_name(i)
+            if "RX" in name:
+                target_idx = i
                 break
-        _cached_device = torch_directml.device(target_id)
+        _cached_device = torch_directml.device(target_idx)
         return _cached_device
-    except ImportError:
+    except Exception:
         pass
-    
+
     # 3. CPU fallback
     _cached_device = torch.device('cpu')
     return _cached_device

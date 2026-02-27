@@ -8,3 +8,4 @@ if torch.cuda.is_available():
     print(f"VRAM: {mem:.1f} GB")
 else:
     print("No GPU detected - check HSA_OVERRIDE_GFX_VERSION and AMD drivers")
+

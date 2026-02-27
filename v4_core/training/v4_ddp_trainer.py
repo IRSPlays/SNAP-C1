@@ -92,15 +92,22 @@ class V4DistributedTrainer:
                 logger.warning(f"torch.compile() skipped: {e}")
         
         if self.is_distributed:
-            self.model = DDP(self.model, device_ids=[self.local_rank], output_device=self.local_rank)
+            # Mirror the selective device placement from V4HyperAssembly.__init__:
+            # ast_geometry_decoder must remain on CPU (100k-dim head would OOM on 8 GB GPU).
+            # Using model.to(self.device) would overwrite that intentional CPU placement.
+            for _name, _module in self.model.named_children():
+                if _name != "ast_geometry_decoder":
+                    _module.to(self.device)
+            self.model = DDP(self.model, device_ids=[self.local_rank], output_device=self.local_rank,
+                             find_unused_parameters=True)
             
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-4)
         
         # ============================================================
         #  PARALLELIZATION 2: Automatic Mixed Precision (AMP)
         # ============================================================
-        self.scaler = torch.amp.GradScaler('cuda') if self.is_cuda else None
-        self.amp_enabled = self.is_cuda
+        self.amp_enabled = (self.device.type == 'cuda')
+        self.scaler = torch.amp.GradScaler('cuda') if self.amp_enabled else None
         
         if self.amp_enabled:
             logger.info("AMP Mixed Precision ENABLED — FP16 Tensor Core acceleration active")
@@ -121,12 +128,31 @@ class V4DistributedTrainer:
         if self.amp_enabled:
             with torch.amp.autocast('cuda'):
                 output = self.model(prompts, batch_size=B, training_mode=True)
-                loss_logits = output["loss_logits"].squeeze(-1)
-                loss = nn.functional.mse_loss(loss_logits, target_nodes)
+                # loss_head now outputs [B, 4] quality logits; reduce to scalar quality score per sample
+                # class weights: perfect=3, good=2, mediocre=1, wrong=0 → expected quality in [0, 3]
+                _qw = torch.tensor([3.0, 2.0, 1.0, 0.0], device=self.device)
+                loss_logits = (torch.softmax(output["loss_logits"], dim=-1) * _qw).sum(dim=-1)  # [B]
+                # Contrastive ranking: correct context should outscore a shuffled mismatch (fix #3)
+                if B > 1:
+                    shuffled = loss_logits[torch.randperm(B, device=self.device)]
+                    loss = nn.functional.margin_ranking_loss(
+                        loss_logits, shuffled, torch.ones(B, device=self.device), margin=0.5
+                    )
+                else:
+                    loss = nn.functional.mse_loss(loss_logits, target_nodes)
         else:
             output = self.model(prompts, batch_size=B, training_mode=True)
-            loss_logits = output["loss_logits"].squeeze(-1)
-            loss = nn.functional.mse_loss(loss_logits, target_nodes)
+            # loss_head now outputs [B, 4] quality logits; reduce to scalar quality score per sample
+            # class weights: perfect=3, good=2, mediocre=1, wrong=0 → expected quality in [0, 3]
+            _qw = torch.tensor([3.0, 2.0, 1.0, 0.0], device=self.device)
+            loss_logits = (torch.softmax(output["loss_logits"], dim=-1) * _qw).sum(dim=-1)  # [B]
+            if B > 1:
+                shuffled = loss_logits[torch.randperm(B, device=self.device)]
+                loss = nn.functional.margin_ranking_loss(
+                    loss_logits, shuffled, torch.ones(B, device=self.device), margin=0.5
+                )
+            else:
+                loss = nn.functional.mse_loss(loss_logits, target_nodes)
         
         # ===== Backward with AMP scaling =====
         if self.scaler:
@@ -172,10 +198,16 @@ def run_training_loop(epochs: int = 100, batch_size: int = 16, num_workers: int 
     
     effective_workers = num_workers if torch.cuda.is_available() else 0
     
+    sampler = None
+    if is_clustered:
+        from torch.utils.data.distributed import DistributedSampler
+        sampler = DistributedSampler(dataset)
+
     dataloader = DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=(sampler is None),
+        sampler=sampler,
         num_workers=effective_workers,
         collate_fn=collate_fn,
         pin_memory=torch.cuda.is_available(),

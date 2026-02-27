@@ -64,7 +64,7 @@ class HybridTokenDecoder:
                 
                 # Wrap it in generation bounds
                 sequence = [self.BOS_TOKEN] + sub_tokens + [self.EOS_TOKEN]
-                bpe_payloads[node["id"]] = sequence
+                bpe_payloads[str(node["id"])] = sequence
                 
         # Inject the new BPE mapping directly into the graph package
         base_graph["bpe_payloads"] = bpe_payloads

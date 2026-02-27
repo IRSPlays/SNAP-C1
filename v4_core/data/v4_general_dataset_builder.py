@@ -79,9 +79,15 @@ class V4GeneralDatasetBuilder:
                             
                         func_code = ast.unparse(node)
                         
+                        # Build a safe call to actually execute the function body for tracing
+                        func_name = node.name
+                        arg_count = len(node.args.args)
+                        mock_args = ", ".join(["None"] * arg_count)
+                        call_code = f"\ntry:\n    {func_name}({mock_args})\nexcept:\n    pass\n"
+                        
                         # Step 3: Run the code offline to get the memory trace (The magic step!)
                         # This generates the [CODE] ... [MEM] ... interleaved sequence
-                        memory_trace = self.simulator.generate_stubbed_trace(func_code)
+                        memory_trace = self.simulator.generate_stubbed_trace(func_code + call_code)
                         
                         # Step 4: Extract the AST Geometry & BPE Payloads (The actual Training Target)
                         try:

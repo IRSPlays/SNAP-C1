@@ -34,8 +34,12 @@ class HolographicCompressor(nn.Module):
         self.state_size = state_size
         self.vocab_size = vocab_size
 
-        # GPT-4 Token Embedder: Maps BPE token integers to d_model continuous space
+        # GPT-4 Token Embedder: Maps BPE token integers to d_model continuous space.
+        # Frozen (requires_grad=False): nn.Embedding backward uses scatter_add_ which
+        # DirectML rejects. Token meanings don't change during instruction fine-tuning;
+        # the SSM matrices (A_log, B_proj, C_proj, D) carry all the learnable signal.
         self.embedding = nn.Embedding(vocab_size, d_model).to(self.device)
+        self.embedding.weight.requires_grad_(False)
         
         # State transition matrix (A) - simulated as a diagonal parameter for stability
         self.A_log = nn.Parameter(torch.randn(d_model, state_size, device=self.device))
@@ -71,8 +75,8 @@ class HolographicCompressor(nn.Module):
             
         batch_size, seq_len, d_model = x.shape
         
-        # A matrix stability
-        A = -torch.exp(self.A_log)
+        # A matrix stability: constrain strictly between 0 and 1 to prevent exploding gradients over sequence length
+        A = torch.sigmoid(self.A_log)
         
         # Expand state to full batch
         # h shape: [batch, d_model, state_size]
@@ -85,22 +89,18 @@ class HolographicCompressor(nn.Module):
         for t in range(seq_len):
             xt = x[:, t, :]  # [batch, d_model]
             
-            # Compute data-dependent B and C (simplified as linear projections here)
-            # In true Mamba, B and C depend on x
-            Bt = self.B_proj(xt)  # [batch, state_size]
-            Ct = self.C_proj(torch.randn(batch_size, self.state_size, device=x.device)) # Mocking C for shape
-            
-            # Reshape B for broadcasting: [batch, 1, state_size]
-            Bt = Bt.unsqueeze(1)
+            # Compute data-dependent B and C
+            # B: How much of the current input to ingest into the state
+            Bt = torch.sigmoid(self.B_proj(xt)).unsqueeze(1) # [batch, 1, state_size]
             
             # State equation: h(t) = A * h(t-1) + B(t) * x(t)
-            # x(t) is [batch, d_model, 1]
-            xt_expanded = xt.unsqueeze(2) 
-            h = A * h + Bt * xt_expanded
+            # xt_expanded is [batch, d_model, 1]
+            h = A * h + Bt * xt.unsqueeze(2)
             
-            # Output equation: y(t) = C(t) * h(t) + D * x(t)
-            # Here we simplify the projection
-            yt = torch.sum(h, dim=2) + self.D * xt # [batch, d_model]
+            # Output equation: y(t) = C(h(t)) + D * x(t)
+            # C: Map state back to model dimension
+            # We treat the state_size dimension as a feature bank
+            yt = self.C_proj(h.mean(dim=1)) + self.D * xt # [batch, d_model]
             
             output_seq.append(yt)
             

@@ -1,3 +1,9 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "chat.tools.terminal.autoApprove": {
+        "/^python -c \"import json; data=json\\.load\\(open\\('v4_core/data/v4_test_dataset\\.json','r',encoding='utf-8'\\)\\); print\\(type\\(data\\)\\.__name__, len\\(data\\)\\); print\\(list\\(data\\[0\\]\\.keys\\(\\)\\) if data else 'empty'\\)\" 2>&1 \\| Select-Object -First 10$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
 }

@@ -45,7 +45,7 @@ class V4StubbedTraceSimulator:
         
     def _trace_dispatch(self, frame, event, arg):
         """ The `sys.settrace` hook (Carried over from V3) """
-        if event == "line":
+        if event == "line" and frame.f_code.co_filename == '<string>':
             line_no = frame.f_lineno
             # Convert memory variables to a serialized tensor string
             # We filter out complex un-printable mock objects to keep the string sequence clean for the AI

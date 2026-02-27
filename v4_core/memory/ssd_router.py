@@ -2,10 +2,30 @@ import sys
 import os
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from loguru import logger
 from safetensors import safe_open
 from typing import Dict, List, Tuple
 from v4_core.utils.device import get_device
+
+
+class V4LoRAExpert(nn.Module):
+    """
+    SNAP-C1 V4 — Lightweight domain-specific LoRA adapter.
+    Rank-16 bottleneck keeps each expert < 2 MB, all 8 fit comfortably in VRAM.
+    Zero-init on the up-projection ensures identity mapping at the start of fine-tuning,
+    so adding this module never degrades a freshly loaded checkpoint.
+    """
+    def __init__(self, d_model: int = 1024, rank: int = 16):
+        super().__init__()
+        self.down = nn.Linear(d_model, rank, bias=False)
+        self.up   = nn.Linear(rank, d_model, bias=False)
+        nn.init.zeros_(self.up.weight)   # identity at init — safe to insert anywhere
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Residual LoRA: x + up(gelu(down(x)))"""
+        return x + self.up(F.gelu(self.down(x)))
+
 
 class SSDStreamer:
     """
@@ -87,7 +107,8 @@ if __name__ == "__main__":
     print("\n=== Testing V4 SSD Micro-MoE Router ===")
     
     # 1024-Dimension context vector representing a SWE-Bench Python Bug
-    mock_context_hologram = torch.randn(1, 1024)
+    # Must be 3D [batch, seq_len, dim] because forward() averages over dim=(0,1)
+    mock_context_hologram = torch.randn(1, 1, 1024)
     
     router = V4ContextRouter(num_experts=8)
     
