@@ -11,8 +11,8 @@
 1. [Why V5 Exists — V1-V4 Autopsy Summary](#1-why-v5-exists)
 2. [The Core Insight — Dual-Speed Learning](#2-the-core-insight)
 3. [Architecture Overview](#3-architecture-overview)
-4. [Novel Component 1: Binary Embedding (scatter-free)](#4-binary-embedding)
-5. [Novel Component 2: Resonance Blocks (spectral + local attention)](#5-resonance-blocks)
+4. [Novel Component 1: Multi-Hash Embedding (scatter-free)](#4-binary-embedding)
+5. [Novel Component 2: Resonance Blocks (global linear + local attention)](#5-resonance-blocks)
 6. [Novel Component 3: Elastic Hierarchical Context (8192 tokens)](#6-elastic-context)
 7. [Novel Component 4: Observation Encoder](#7-observation-encoder)
 8. [Novel Component 5: Action Decoder (not text completion)](#8-action-decoder)
@@ -30,6 +30,7 @@
 20. [File Map](#20-file-map)
 21. [What's Kept vs. Deleted from V1-V4](#21-kept-vs-deleted)
 22. [DirectML Compatibility Guarantees](#22-directml)
+23. [Component Isolation Test Plan](#23-testing)
 
 ---
 
@@ -120,7 +121,7 @@ complementary learning for a code agent.
   User Request ────►│  ┌────────────────────────────────────────────┐      │
                     │  │         OBSERVATION ENCODER                 │      │
                     │  │  User text + tool outputs + error msgs     │      │
-                    │  │  → Binary Embedding → Elastic Context      │      │
+                    │  │  → Multi-Hash Embedding → Elastic Context  │      │
                     │  └─────────────────┬──────────────────────────┘      │
                     │                    │                                  │
                     │                    ▼                                  │
@@ -134,7 +135,7 @@ complementary learning for a code agent.
                     │  ┌─────────────────────────────────────┐             │
                     │  │     8× RESONANCE BLOCKS              │             │
                     │  │  Path A: Sliding Window Attention     │             │
-                    │  │  Path B: Spectral FFT Mixing          │             │
+                    │  │  Path B: Global Linear Attention      │             │
                     │  │  → Gated dual-path fusion             │             │
                     │  └─────────────┬───────────────────────┘             │
                     │                │                                      │
@@ -167,7 +168,7 @@ complementary learning for a code agent.
 
 ---
 
-## 4. Novel Component 1: Binary Embedding <a name="4-binary-embedding"></a>
+## 4. Novel Component 1: Multi-Hash Embedding (scatter-free) <a name="4-binary-embedding"></a>
 
 ### The Problem
 `nn.Embedding` uses a lookup table. Its backward pass uses `scatter_add_` to route
@@ -176,53 +177,126 @@ gradients to the correct row. DirectML (AMD) rejects scatter ops. This means:
 - V3: 102.7M frozen (83% of model)
 - V4: 154M frozen across two embedding tables (65% of model)
 
-### The Invention
-Represent each token ID as its **binary bit pattern**, then learn the embedding
-via standard matrix multiplies (which DirectML supports perfectly).
+### Why Not Binary Embedding?
+The original V5 design used raw bit decomposition (token_id → 17-bit binary → MLP).
+**Stress testing revealed a fatal flaw**: BPE token IDs are assigned by merge order,
+not semantics. Token 1023 (`"function"`) and 1024 (`"Ġthe"`) differ by 1 in ID but flip
+11 bits in binary — their Hamming distance is almost maximum despite being unrelated.
+Meanwhile, `"function"` and `"functions"` might differ by 40,000 in ID, flipping nearly
+all 17 bits. The bit pattern encodes tokenizer merge history, not meaning.
+
+A 2-layer MLP CAN theoretically learn arbitrary mappings from bits to embeddings, but
+it must first "undo" the arbitrary bit encoding before learning useful representations.
+This wastes capacity and slows convergence.
+
+### The Invention: Multi-Hash Embedding
+Instead of binary decomposition, use **K independent hash functions** with prime moduli.
+Each hash function maps the token ID to a small bucket, then looks up a learned vector
+for that bucket using DirectML-safe broadcast `==` (no scatter).
 
 ```python
 # Traditional (BROKEN on DirectML backward):
 embed = nn.Embedding(100279, 1024)  # 102.7M params, scatter_add_ in backward
 x = embed(token_ids)               # [B, T] → [B, T, 1024]
 
-# V5 Binary Embedding (FULLY TRAINABLE on DirectML):
-# token_id 4821 → binary [1,0,0,1,0,1,1,0,1,1,0,0,1,0,1,0,0]  (17 bits)
-# 2^17 = 131072 > 100279 vocab size ✓
-bits = ((token_ids.unsqueeze(-1) >> bit_positions) & 1).float()  # [B, T, 17]
-x = gelu(linear1(bits))  # [B, T, 256]   — Linear(17, 256)
-x = linear2(x)           # [B, T, 1024]  — Linear(256, 1024)
+# V5 Multi-Hash Embedding (FULLY TRAINABLE on DirectML):
+class MultiHashEmbedding(nn.Module):
+    def __init__(self, d_model=1024, K=8, d_hash=128):
+        super().__init__()
+        # 8 independent prime moduli — chosen to be coprime
+        self.primes = [251, 509, 1021, 2039, 4093, 8191, 997, 1999]
+        self.K = K
+        self.d_hash = d_hash
+
+        # Each hash function has its own small embedding table
+        # Stored as nn.Parameter (matrix), NOT nn.Embedding (no scatter)
+        self.tables = nn.ParameterList([
+            nn.Parameter(torch.randn(p, d_hash) * 0.02)
+            for p in self.primes
+        ])
+
+        # Fusion: K * d_hash → d_model
+        self.fusion = nn.Linear(K * d_hash, d_model)
+        self.norm = RMSNorm(d_model)
+
+    def forward(self, token_ids):
+        # token_ids: [B, T] long tensor
+        parts = []
+        for k in range(self.K):
+            bucket = token_ids % self.primes[k]         # [B, T] — which bucket
+            # Scatter-free lookup via broadcast == comparison
+            # one_hot: [B, T, P_k]
+            one_hot = (torch.arange(self.primes[k], device=token_ids.device)
+                       == bucket.unsqueeze(-1)).float()
+            # Matmul lookup: [B, T, P_k] @ [P_k, d_hash] → [B, T, d_hash]
+            part = one_hot @ self.tables[k]
+            parts.append(part)
+
+        # Concatenate all K views → [B, T, K * d_hash]
+        x = torch.cat(parts, dim=-1)
+        # Fuse to model dimension
+        return self.norm(self.fusion(x))  # [B, T, d_model]
 ```
 
-### Why This Works
-- `>>` (bit shift) and `& 1` (bitwise AND) have no backward — they're applied to integer
-  indices, not learnable parameters
-- `linear1` and `linear2` are standard `nn.Linear` — backward is pure matmul, no scatter
-- **17 × 256 + 256 × 1024 = 266,240 params** — replaces 102.7M frozen params
-- 100% trainable. Every param gets gradients.
+### Why This Works — Distributed Collision Resolution
 
-### Multi-Scale Variant (for richer representations)
-```python
-# Hash-based multi-scale: 3 different "views" of each token ID
-hash1 = token_id % 2048   → nn.Linear(11, 128)  # coarse semantic cluster
-hash2 = token_id % 16384  → nn.Linear(14, 128)  # medium detail
-hash3 = binary(token_id)  → nn.Linear(17, 128)  # exact identity
-concat [h1, h2, h3] → project to 1024           # fused embedding
+Each prime modulus creates a different "view" of the token space:
+```
+Token "function" (ID=1783):
+  hash_0 = 1783 % 251  = 27     → table_0[27]
+  hash_1 = 1783 % 509  = 256    → table_1[256]
+  hash_2 = 1783 % 1021 = 741    → table_2[741]
+  ...                                (8 lookups total)
+
+Token "Ġthe" (ID=1784):
+  hash_0 = 1784 % 251  = 28     → table_0[28]   ← DIFFERENT bucket
+  hash_1 = 1784 % 509  = 257    → table_1[257]  ← DIFFERENT bucket
+  hash_2 = 1784 % 1021 = 742    → table_2[742]  ← DIFFERENT bucket
+  ...
 ```
 
-This gives the model three semantic "lenses" to understand each token:
-what cluster it belongs to, a finer grouping, and its exact identity.
+- **No Hamming distance problem**: Hash buckets are determined by modular arithmetic,
+  not bit patterns. Nearby IDs map to nearby buckets (smooth gradient flow).
+- **Collision resolution**: If two tokens collide in one hash (hash_0), they almost
+  certainly differ in the other 7 hashes. With 8 independent primes, the probability
+  of total collision is ~1/(251×509×...×1999) ≈ 0. This is a **Bloom filter** for
+  embeddings — each token gets a unique fingerprint across the K tables.
+- **Smooth gradients**: Tokens with similar IDs share SOME hash buckets, creating
+  natural gradient neighborhoods. The fusion layer learns to combine these soft
+  similarities into useful representations.
+- **No scatter**: `==` broadcast comparison creates one-hot vectors. Matmul with
+  the parameter table is pure matrix multiply. 100% DirectML safe.
+
+### DirectML Safety
+- `%` (modulo): Integer op on indices, no backward needed. ✓
+- `==` broadcast: Creates one-hot mask, proven safe in V4. ✓
+- `@` (matmul): Standard nn.Parameter matmul, pure backward. ✓
+- `torch.cat` + `nn.Linear`: Standard ops. ✓
 
 ### Parameters
 | Component | Params | Trainable |
 |---|---|---|
-| Bit projection (17→256→1024) | 266K | 100% |
-| Multi-scale hash projections | ~200K | 100% |
-| Fusion projection (384→1024) | 394K | 100% |
-| Layer norms | 2K | 100% |
-| **Total** | **~860K** | **100%** |
+| Hash table 0 (251 × 128) | 32K | 100% |
+| Hash table 1 (509 × 128) | 65K | 100% |
+| Hash table 2 (1021 × 128) | 131K | 100% |
+| Hash table 3 (2039 × 128) | 261K | 100% |
+| Hash table 4 (4093 × 128) | 524K | 100% |
+| Hash table 5 (8191 × 128) | 1048K | 100% |
+| Hash table 6 (997 × 128) | 128K | 100% |
+| Hash table 7 (1999 × 128) | 256K | 100% |
+| Fusion projection (1024→1024) | 1049K | 100% |
+| RMSNorm | 1K | 100% |
+| **Total** | **~3.5M** | **100%** |
 
 Compare: V4 embedding = 154M (65% of model), 0% trainable on AMD.
-V5 embedding = 860K (0.06% of model), 100% trainable. **180x smaller, fully learnable.**
+V5 embedding = 3.5M (0.2% of model), 100% trainable. **44x smaller, fully learnable.**
+
+### Why Not Just Use a Bigger MLP on Bits?
+A 2-layer MLP(17→512→1024) has ~530K params and CAN memorize arbitrary mappings.
+But it must learn to "decode" the arbitrary bit encoding before learning semantics.
+Multi-Hash skips this: the hash functions provide STRUCTURE (locality, smooth gradients,
+collision resolution) that the MLP approach lacks. The fusion layer only needs to
+combine K already-meaningful sub-embeddings, not decode arbitrary bit patterns.
 
 ---
 
@@ -245,14 +319,14 @@ Input x ─────────────┬──────────
                      ▼                               ▼
           ┌──────────────────┐           ┌──────────────────────┐
           │  PATH A: LOCAL   │           │  PATH B: GLOBAL      │
-          │  Sliding Window  │           │  Spectral FFT Mix    │
-          │  Attention       │           │                      │
-          │  window=128      │           │  FFT → filter → iFFT │
-          │  O(n × 128)      │           │  O(n log n)          │
+          │  Sliding Window  │           │  Linear Attention    │
+          │  Attention       │           │  ELU+1 feature map   │
+          │  window=128      │           │  Q·(K^T·V) / Z      │
+          │  O(n × 128)      │           │  O(n × d²)           │
           │                  │           │                      │
-          │  Sees nearby     │           │  Sees repetition     │
-          │  tokens clearly  │           │  patterns across     │
-          │                  │           │  entire sequence     │
+          │  Sees nearby     │           │  Sees all tokens     │
+          │  tokens clearly  │           │  globally, linear    │
+          │                  │           │  in sequence length  │
           └────────┬─────────┘           └──────────┬───────────┘
                    │                                │
                    ▼                                ▼
@@ -282,51 +356,83 @@ Why sliding window: Code has strong LOCAL dependencies. The `if` on line 5 contr
 the `else` on line 7. Variable declared on line 10 is used on line 12. You don't
 need full attention to capture these — a 128-token window covers ~50 lines of code.
 
-### Path B: Spectral Global Mixing
+### Path B: Global Linear Attention (ELU+1 feature map)
+
+> **Design change:** The original design used FFT spectral mixing (zero-padded +
+> adaptive filter). During DirectML smoke testing, we discovered that `torch.fft.rfft`
+> returns `ComplexFloat` tensors, which DirectML rejects entirely:
+> `[F228] Invalid or unsupported data type ComplexFloat`.
+> Global Linear Attention provides the same architectural purpose (every position
+> attends to every other position) using only real-valued matmul ops.
+
 ```python
-# Transform to frequency domain
-X_freq = torch.fft.rfft(x, dim=1)  # [B, T//2+1, d] complex
+# Feature map: φ(x) = ELU(x) + 1 — ensures all values are positive
+# Positive features are required for the associativity trick to work.
+Q = F.elu(self.q_proj(x)) + 1  # [B, T, D] — positive
+K = F.elu(self.k_proj(x)) + 1  # [B, T, D] — positive
+V = self.v_proj(x)              # [B, T, D]
 
-# Learnable frequency filter — model decides which "rhythms" matter
-X_filtered = X_freq * self.freq_filter  # element-wise, learnable [T//2+1, d]
+# Standard attention: softmax(Q·K^T/√d) · V  → O(T² × d)  QUADRATIC
+# Linear attention:   Q · (K^T · V) / Z      → O(T × d²)  LINEAR
 
-# Transform back
-x_global = torch.fft.irfft(X_filtered, n=T, dim=1)  # [B, T, d]
+# By computing K^T·V first (d×d matrix, O(T·d²)),
+# then multiplying by Q (also O(T·d²)),
+# we avoid the T² bottleneck entirely.
+KV = torch.matmul(K.transpose(-2, -1), V)  # [B, H, d_h, d_h]
+QKV = torch.matmul(Q, KV)                  # [B, H, T, d_h]
+
+# Normalizer: prevents values from exploding
+Z = torch.matmul(Q, K.sum(dim=-2, keepdim=True).transpose(-2, -1))  # [B, H, T, 1]
+out = QKV / (Z + 1e-6)
 ```
 
-Why spectral: Code has GLOBAL repetition patterns. Function definitions repeat every
-~30 lines. Import blocks cluster at the top. Class methods follow `def ... self ...`
-patterns. These are literally frequencies in the token sequence. The FFT turns them
-into explicit signals that the model can filter and amplify.
+Why linear attention works for code:
+- **Global receptive field:** Every position attends to every other position —
+  the model can learn that `import numpy` at line 1 affects `np.array()` at line 50.
+- **O(T × d²) complexity:** Linear in sequence length (vs O(T²) for full attention).
+  For T=8192, d=256 per head: 8192 × 256² = 537M ops vs 8192² × 256 = 17B ops.
+- **Multi-head:** 4 heads with separate Q/K/V projections, each head d_model/4.
+- **No complex numbers:** Pure real-valued matmul — 100% DirectML safe.
 
-**This combination has never been done.** Existing architectures pick one:
+Comparison with the FFT design:
+- FFT was O(T log T × d) — Linear attention is O(T × d²). For typical d=256,
+  this is comparable. FFT had better asymptotic for very large d, but DirectML
+  can't run FFT at all, so the comparison is moot.
+- FFT had an adaptive frequency filter for content-dependent spectral control.
+  Linear attention achieves content-dependent mixing through learned Q/K projections.
+- Both provide global mixing. Linear attention has been validated theoretically
+  (Katharopoulos et al. 2020, "Transformers are RNNs").
+
+**The dual-path combination is uncommon.** Existing architectures pick one approach:
 - Transformers: full attention (O(n²), captures everything, way too expensive)
 - Mamba/RWKV: sequential recurrence (linear, captures long-range, can't parallelize)
 - Hyena: implicit long convolution (O(n log n), but no explicit local attention)
 
 V5 Resonance Blocks get BOTH local precision AND global pattern recognition,
-at O(n × 128 + n log n) cost.
+at O(n × 128 + n × d²) cost — both linear in sequence length.
 
 ### DirectML Safety
-- `torch.fft.rfft` / `torch.fft.irfft`: Pure math ops, no scatter. ✓
+- Global linear attention: `nn.Linear` projections + `F.elu` + `matmul`. ✓
+  - Note: `aten::elu.out` falls back to CPU on DirectML — minor perf impact. ✓
 - Sliding window attention: Uses `F.scaled_dot_product_attention` with a mask. ✓
 - `StableSigmoid` for gating (tanh-based, proven in V3). ✓
 - SwiGLU FFN: matmuls + elementwise. ✓
 - RMSNorm: `x * rsqrt(mean(x²))`. ✓
+- ~~`torch.fft.rfft`/`irfft`~~: **REMOVED** — returns `ComplexFloat`, DirectML rejects. ✗
 
 ### Parameters (per block)
 | Component | Params |
 |---|---|
 | QKV projection (d → 3d) | 3 × d² = 3.1M |
 | Attention out projection | d² = 1.05M |
-| Frequency filter | (T//2+1) × d ≈ 0.5M |
+| Adaptive filter net (d → (T+1)×d) | ~2.1M |
 | Spectral out projection | d² = 1.05M |
 | Gate projection (2d → d) | 2d² = 2.1M |
 | SwiGLU FFN (d → 4d → d) | 3 × d × 4d = 12.6M |
 | RMSNorm × 3 | 3d = 3K |
-| **Total per block** | **~20.4M** |
+| **Total per block** | **~22.0M** |
 
-**8 blocks × 20.4M = ~163M total** — all trainable.
+**8 blocks × 22.0M = ~176M total** — all trainable.
 
 ---
 
@@ -337,34 +443,85 @@ V4 hardcodes 256-token context. SWE-bench needs 5,000-50,000. The pointer-genera
 can only copy from tokens it can see.
 
 ### The Invention
-Multi-resolution compression: recent tokens at full detail, older tokens compressed.
+Multi-resolution **learnable** compression: recent tokens at full detail, older tokens
+compressed via strided convolutions with gated residuals.
 
 ```
 Input: 8192 tokens from conversation history
 
 Level 0 (recent):   tokens[0:1024]      → kept at full resolution      → 1024 slots
-Level 1 (medium):   tokens[1024:3072]   → avg_pool1d(kernel=4, stride=4) → 512 slots
-Level 2 (distant):  tokens[3072:8192]   → avg_pool1d(kernel=16, stride=16) → 320 slots
+Level 1 (medium):   tokens[1024:3072]   → Conv1d(stride=4) + gated res → 512 slots
+Level 2 (distant):  tokens[3072:8192]   → Conv1d(stride=16) + gated res → 320 slots
                                                                    Total: 1856 slots
 ```
 
-### Implementation
+### Why Not avg_pool?
+The original V5 design used `F.avg_pool1d` for compression. **Stress testing revealed
+a critical flaw**: averaging destroys precision-critical tokens in code.
+
+```python
+# Consider compressing these 4 tokens with avg_pool (kernel=4):
+tokens: ["if", "!", "user", ".is_admin"]
+
+# avg_pool averages their vectors:
+pooled = (embed("if") + embed("!") + embed("user") + embed(".is_admin")) / 4
+
+# The "!" (NOT operator) is 25% of the average — its signal is buried.
+# The model can't distinguish:
+#   "if ! user.is_admin"  (deny access)
+#   "if user.is_admin"    (grant access)
+# After pooling, these look nearly identical. Fatal for code understanding.
+```
+
+### The Fix: Learnable Downsampling + Gated Residual
+
 ```python
 class ElasticContext(nn.Module):
     def __init__(self, d_model=1024, levels=3):
         self.level_norms = nn.ModuleList([RMSNorm(d_model) for _ in range(levels)])
         self.level_projs = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(levels)])
+
+        # LEARNABLE downsampling via strided Conv1d (replaces avg_pool)
+        # The convolution LEARNS which tokens matter for compression
+        self.downsample_medium = nn.Conv1d(d_model, d_model, kernel_size=4, stride=4)
+        self.downsample_distant = nn.Conv1d(d_model, d_model, kernel_size=16, stride=16)
+
+        # Gated residual: critical tokens can "punch through" compression
+        self.gate_medium = nn.Linear(d_model, d_model)
+        self.gate_distant = nn.Linear(d_model, d_model)
+
         # Learnable scale weights — model decides how much to trust each level
         self.level_gates = nn.Parameter(torch.ones(levels) / levels)
+
+    def _compress_with_gate(self, x_full, downsample_conv, gate_proj):
+        """Compress with learnable downsampling + gated residual."""
+        # x_full: [B, T_chunk, d]
+
+        # Learnable downsampling (Conv1d needs [B, d, T] layout)
+        x_down = downsample_conv(x_full.transpose(1, 2)).transpose(1, 2)  # [B, T_compressed, d]
+
+        # Gated residual: let critical tokens punch through
+        # Interpolate full-res to match compressed length for residual
+        x_interp = F.interpolate(
+            x_full.transpose(1, 2),
+            size=x_down.shape[1],
+            mode='linear',
+            align_corners=False
+        ).transpose(1, 2)  # [B, T_compressed, d]
+
+        gate = stable_sigmoid(gate_proj(x_interp))  # [B, T_compressed, d]
+        return gate * x_interp + (1 - gate) * x_down
 
     def forward(self, tokens_embedded):
         # tokens_embedded: [B, T_full, d] where T_full can be up to 8192
         chunks = [
-            tokens_embedded[:, :1024, :],                              # Level 0: full
-            F.avg_pool1d(tokens_embedded[:, 1024:3072, :].transpose(1,2),
-                        kernel_size=4).transpose(1,2),                  # Level 1: 4:1
-            F.avg_pool1d(tokens_embedded[:, 3072:, :].transpose(1,2),
-                        kernel_size=16).transpose(1,2),                 # Level 2: 16:1
+            tokens_embedded[:, :1024, :],                                    # Level 0: full
+            self._compress_with_gate(
+                tokens_embedded[:, 1024:3072, :],
+                self.downsample_medium, self.gate_medium),                    # Level 1: 4:1
+            self._compress_with_gate(
+                tokens_embedded[:, 3072:, :],
+                self.downsample_distant, self.gate_distant),                  # Level 2: 16:1
         ]
         # Normalize and project each level
         processed = []
@@ -376,15 +533,22 @@ class ElasticContext(nn.Module):
 ```
 
 ### Why This Works
-- **Recent code (1024 tokens)**: Full resolution. The model sees every token in the
-  current file/function being edited. Enough for copying exact variable names.
-- **Medium range (2048→512 tokens)**: 4:1 compression. The model sees the structure
-  of surrounding code — class definitions, import blocks, function signatures.
-- **Long range (5120→320 tokens)**: 16:1 compression. The model sees the project
-  architecture — which files exist, what modules are imported, the overall shape.
+- **Learnable downsampling**: `Conv1d(stride=4)` learns WHAT to keep during compression.
+  Unlike avg_pool which treats all tokens equally, the convolution learns that operators
+  like `!`, `==`, `return` carry disproportionate semantic weight and should be amplified.
+- **Gated residual**: The gate lets critical tokens bypass compression entirely.
+  `gate * x_full + (1-gate) * x_compressed` means the model can set gate≈1 for
+  important tokens (keeping full information) and gate≈0 for filler tokens (using
+  the compressed representation). The `!` operator can punch through at full strength.
+- **Recent code (1024 tokens)**: Full resolution. No compression needed. The model
+  sees every token in the current file/function being edited.
+- **Medium range (2048→512 tokens)**: 4:1 learned compression. Structure-preserving.
+- **Long range (5120→320 tokens)**: 16:1 learned compression. Architectural overview.
 
 ### DirectML Safety
-- `F.avg_pool1d`: Fully supported on DirectML. No scatter. ✓
+- `nn.Conv1d`: Fully supported on DirectML, backward is matmul-based. ✓
+- `F.interpolate(mode='linear')`: Supported. ✓
+- `StableSigmoid`: Proven safe (tanh-based). ✓
 - Concatenation: `torch.cat`. ✓
 - RMSNorm + Linear: Pure matmul. ✓
 
@@ -393,8 +557,11 @@ class ElasticContext(nn.Module):
 |---|---|
 | 3× RMSNorm | 3K |
 | 3× Level projections (d→d) | 3.1M |
+| Conv1d medium (d×d×4) | 4.2M |
+| Conv1d distant (d×d×16) | 16.8M |
+| Gate projections × 2 (d→d) | 2.1M |
 | Level gates | 3 |
-| **Total** | **~3.1M** |
+| **Total** | **~26.2M** |
 
 ---
 
@@ -412,8 +579,8 @@ Memory retrieval: [Trace #38: similar import fix, solution was path correction]
                           │
                           ▼
               ┌──────────────────────┐
-              │  Binary Embedding     │  (Component 1)
-              │  token_ids → vectors │
+              │  Multi-Hash Embedding  │  (Component 1)
+              │  token_ids → vectors  │
               └──────────┬───────────┘
                          │
                          ▼
@@ -452,7 +619,7 @@ because the same text means different things in different contexts:
 | Segment position encoding (sinusoidal buffer) | 0 (buffer) |
 | **Total** | **~6K** |
 
-(Binary Embedding and Elastic Context are counted separately.)
+(Multi-Hash Embedding and Elastic Context are counted separately.)
 
 ---
 
@@ -1001,12 +1168,12 @@ Scenario: Model notices it's slow at generating long responses
 Step 1: INTROSPECT("v5_core/architecture/resonance_block.py", action="read")
   → Model reads its own block implementation
 
-Step 2: THINK("The spectral path processes all frequencies equally.
-  I could add a top-k frequency selection to skip irrelevant frequencies.")
+Step 2: THINK("The global attention path applies uniform weight across all positions.
+  I could add a locality bias to focus on nearby tokens more.")
 
 Step 3: INTROSPECT("v5_core/architecture/resonance_block.py",
   action="patch",
-  patch="add top_k selection after rfft, before filter multiply")
+  patch="add distance-based decay to linear attention K weights")
 
 Step 4: RUN("python -c 'import v5_core; v5_core.test_resonance_block()'")
   → Validates the modification works
@@ -1088,9 +1255,9 @@ Source 3: SWE-bench training set — 2,000+ real bug-fix traces
 
 **Model size for pre-training: 1.5B params**
 ```
-Binary Embedding:       ~0.9M
-8× Resonance Blocks:    ~163M   (d=1536 for 1.5B scale)
-Elastic Context:        ~4.7M
+Multi-Hash Embedding:       ~3.5M
+8× Resonance Blocks:    ~176M   (d=1536 for 1.5B scale)
+Elastic Context:        ~42M
 Observation Encoder:    ~7K
 Action Decoder:         ~15M
 Outcome Predictor:      ~0.8M
@@ -1140,27 +1307,27 @@ Weekly (optional, RunPod):
 
 | Component | Params | Trainable | VRAM (Q4) |
 |---|---|---|---|
-| Binary Embedding (multi-scale) | 860K | 860K (100%) | 0.4 MB |
-| 8× Resonance Blocks | 163M | 163M (100%) | 81.5 MB |
-| Elastic Context | 3.1M | 3.1M (100%) | 1.6 MB |
+| Multi-Hash Embedding (K=8) | 3.5M | 3.5M (100%) | 1.8 MB |
+| 8× Resonance Blocks | 176M | 176M (100%) | 88 MB |
+| Elastic Context (Conv1d + gated) | 26.2M | 26.2M (100%) | 13.1 MB |
 | Observation Encoder | 6K | 6K (100%) | 3 KB |
 | Action Decoder + Pointer-Gen | 10M | 10M (100%) | 5 MB |
 | Outcome Predictor | 0.5M | 0.5M (100%) | 0.25 MB |
 | LM Head (tied with embedding) | — | — | — |
-| **Total** | **~177M** | **177M (100%)** | **~89 MB** |
+| **Total** | **~216M** | **216M (100%)** | **~108 MB** |
 
 At 1.5B scale (RunPod trained):
 
 | Component | Params | VRAM (Q4) |
 |---|---|---|
-| Binary Embedding | 1.4M | 0.7 MB |
+| Multi-Hash Embedding | 5.6M | 2.8 MB |
 | 12× Resonance Blocks (d=1536) | 1.3B | 650 MB |
-| Elastic Context | 7M | 3.5 MB |
+| Elastic Context (Conv1d + gated) | 42M | 21 MB |
 | Observation Encoder | 10K | 5 KB |
 | Action Decoder | 25M | 12.5 MB |
 | Outcome Predictor | 1M | 0.5 MB |
 | Misc (norms, projections) | 10M | 5 MB |
-| **Total** | **~1.35B** | **~672 MB** |
+| **Total** | **~1.38B** | **~692 MB** |
 
 ### Comparison to previous versions
 
@@ -1170,10 +1337,10 @@ At 1.5B scale (RunPod trained):
 | V2 | 414M | 242M | 58% | ~1.6 GB |
 | V3 | 123M | 21M | 17% | ~500 MB |
 | V4 | 237M | 55M | 23% | ~950 MB |
-| **V5 (local)** | **177M** | **177M** | **100%** | **~89 MB** |
-| **V5 (RunPod)** | **1.35B** | **1.35B** | **100%** | **~672 MB (Q4)** |
+| **V5 (local)** | **216M** | **216M** | **100%** | **~108 MB** |
+| **V5 (RunPod)** | **1.38B** | **1.38B** | **100%** | **~692 MB (Q4)** |
 
-**V5 at 1.35B has more TRAINABLE parameters than V1-V4 COMBINED.**
+**V5 at 1.38B has more TRAINABLE parameters than V1-V4 COMBINED.**
 
 ---
 
@@ -1186,19 +1353,20 @@ v5_core/
 │
 ├── architecture/
 │   ├── __init__.py
-│   ├── binary_embedding.py        ← Component 1: Scatter-free trainable embedding
-│   │                                 - BitEncoder: token_id → 17-bit binary → MLP → vector
-│   │                                 - MultiScaleHash: 3 hash views per token
-│   │                                 - FusionProjection: concat → d_model
+│   ├── multi_hash_embedding.py     ← Component 1: Scatter-free trainable embedding
+│   │                                 - MultiHashEmbedding: K=8 prime-modulo hash tables
+│   │                                 - Broadcast == one-hot lookup (no scatter)
+│   │                                 - FusionProjection: K×d_hash → d_model
 │   │
-│   ├── resonance_block.py         ← Component 2: Dual-path spectral + local blocks
+│   ├── resonance_block.py         ← Component 2: Dual-path global + local blocks
 │   │                                 - SlidingWindowAttention: O(n × window)
-│   │                                 - SpectralMixer: FFT → filter → iFFT
+│   │                                 - GlobalLinearAttention: ELU+1 feature map, O(n×d²)
 │   │                                 - GatedFusion: gate * local + (1-gate) * global
 │   │                                 - ResonanceBlock: full block with FFN + norms
 │   │
 │   ├── elastic_context.py         ← Component 3: Multi-resolution 8K context
-│   │                                 - ElasticContext: 3-level pooling hierarchy
+│   │                                 - ElasticContext: 3-level Conv1d compression
+│   │                                 - GatedResidual: critical tokens punch through
 │   │                                 - LevelGating: learnable scale weights
 │   │
 │   ├── observation_encoder.py     ← Component 4: Encodes all model inputs
@@ -1276,7 +1444,7 @@ v5_core/
 
 | Component | Origin | Why Deleted |
 |---|---|---|
-| `nn.Embedding` (100K×d) | V2-V4 | 100M+ params, FROZEN on DirectML. Replaced by Binary Embedding. |
+| `nn.Embedding` (100K×d) | V2-V4 | 100M+ params, FROZEN on DirectML. Replaced by Multi-Hash Embedding. |
 | HolographicCompressor | V2-V4 | Sequential Python for-loop, 256 kernel launches. Dead. |
 | ContinuousRecurrentCore (ODE) | V3-V4 | Convergence ≠ correctness. 16.8M params wasted. |
 | FractalRecurrentCore | V2 | 214M params, trained on random targets. |
@@ -1298,7 +1466,7 @@ v5_core/
 |---|---|---|
 | `scatter_` | DirectML doesn't support partial dim scatter | Avoided entirely |
 | `scatter_add_` | Same | Avoided entirely |
-| `nn.Embedding.backward` | Uses scatter_add_ | Binary Embedding (matmul only) |
+| `nn.Embedding.backward` | Uses scatter_add_ | Multi-Hash Embedding (matmul only) |
 | `F.one_hot` | Uses scatter_ internally | `==` broadcast comparison |
 | `torch.gather.backward` | Uses scatter_add_ | Advanced indexing or broadcast mask |
 | `torch.max(dim=).backward` | Uses scatter_ | `.detach()` (safe for softmax) |
@@ -1306,6 +1474,8 @@ v5_core/
 | `aten::sigmoid` | AMD driver crash on some dims | StableSigmoid (tanh-based) |
 | `aten::lerp` | Not implemented | Avoided (use manual interpolation) |
 | `nn.GRU(bidirectional)` | Uses fused_gru_cell | Not used in V5 |
+| `ComplexFloat` dtype | DirectML rejects ComplexFloat entirely | Global Linear Attention (no FFT) |
+| `torch.fft.rfft`/`irfft` | Returns ComplexFloat → crash | Replaced with linear attention |
 
 ### Verified Safe Operations Used in V5
 
@@ -1313,16 +1483,18 @@ v5_core/
 |---|---|
 | `nn.Linear` (matmul) | Everything — backbone of all components |
 | `F.scaled_dot_product_attention` | Resonance Block Path A |
-| `torch.fft.rfft` / `torch.fft.irfft` | Resonance Block Path B |
-| `F.avg_pool1d` | Elastic Context compression |
+| `F.elu` + `torch.matmul` (linear attn) | Resonance Block Path B (global mixing) |
+| ~~`torch.fft.rfft`/`irfft`~~ | **REMOVED** — ComplexFloat unsupported on DirectML |
+| `nn.Conv1d` (strided) | Elastic Context learnable downsampling |
+| `F.interpolate(mode='linear')` | Elastic Context gated residual |
 | `torch.cat` / `torch.stack` | Context assembly |
 | `F.gelu` / `F.silu` | Activations |
 | `RMSNorm` (manual) | Normalization (x * rsqrt(mean(x²))) |
 | `F.softmax` (small dim) | Tool selection head (8-way) |
 | `chunked_softmax` (large dim) | Vocabulary projection if used |
 | Sinusoidal positional encoding | Buffer, no backward needed |
-| `==` broadcast comparison | Binary embedding bit extraction |
-| Bitwise `>>` and `& 1` | Binary encoding (integer ops, no backward) |
+| `==` broadcast comparison | Multi-Hash embedding bucket lookup |
+| Bitwise `>>` and `& 1` | Binary encoding (integer ops, no backward, kept as fallback) |
 
 ### Test Protocol
 Before any new operation enters the codebase:
@@ -1337,13 +1509,168 @@ print("✓ Safe for DirectML")
 
 ---
 
+## 23. Component Isolation Test Plan <a name="23-testing"></a>
+
+### Philosophy: Test Each Piece Before Combining
+
+V1-V4 combined untested components into monolithic systems. Predictably, bugs in one
+component cascaded into training failures that were impossible to diagnose. V5 learns
+from this: **every component is micro-benchmarked in isolation before assembly**.
+
+### Step 1: Multi-Hash Embedding Micro-Benchmark
+
+**Test**: Train Multi-Hash Embedding alone on next-token prediction.
+```python
+# Setup
+model = nn.Sequential(
+    MultiHashEmbedding(d_model=256, K=8, d_hash=32),
+    nn.Linear(256, 100279)  # straight to vocab prediction
+)
+
+# Dataset: 10,000 random code snippets (2048 tokens each)
+# Task: predict token[t+1] from token[t]
+# Metric: top-1 accuracy, perplexity
+
+# Baseline: frozen nn.Embedding(100279, 256) + nn.Linear(256, 100279)
+# (frozen because that's what AMD actually gives us)
+```
+
+**Pass criteria**: Multi-Hash must beat frozen nn.Embedding on perplexity within
+500 training steps. If it can't beat a frozen embedding table, the hash structure
+is wrong and needs redesign before proceeding.
+
+**What to watch for**:
+- Collision rate: log how many token pairs share ALL 8 hash buckets (should be ~0)
+- Gradient magnitude: compare grad norms of hash tables vs. fusion layer
+- Convergence speed: does it learn basic word→next-word patterns?
+
+### Step 2: Resonance Block Ablation
+
+**Test**: Train 2-block models on code completion, one path at a time.
+```
+Config A: Sliding window attention ONLY (no global path)
+Config B: Global linear attention ONLY (no local path)
+Config C: Both paths with gated fusion (full resonance block)
+```
+
+**Dataset**: Same code snippets, next-token prediction via full vocab projection.
+
+**Pass criteria**:
+- Config C must outperform both A and B individually
+- If A alone beats C, the global path is adding noise → needs debugging
+- If B alone beats C, the local attention path is redundant → simplify
+
+**What to watch for**:
+- Gate values: what fraction goes to local vs. global? (expect ~60/40 for code)
+- FFT zero-padding effect: compare with/without padding on sequences of length 512
+- Adaptive filter activation patterns: do different inputs produce different filters?
+
+### Step 3: Elastic Context Compression Test
+
+**Test**: Compress and reconstruct, measuring token-level fidelity.
+```python
+# Setup
+encoder = ElasticContext(d_model=256)
+decoder = nn.Linear(256, 100279)  # project compressed back to vocab
+
+# Feed 8192-token sequence through ElasticContext → get 1856 slots
+# For level 1 and 2 (compressed), reconstruct original tokens
+# Metric: token reconstruction accuracy per level
+
+# Level 0 (full res): should be ~100% reconstruction
+# Level 1 (4:1 Conv1d): measure how well "!" vs " " is distinguished
+# Level 2 (16:1 Conv1d): measure structural preservation (function boundaries)
+```
+
+**Pass criteria**:
+- Level 0: >99% reconstruction accuracy
+- Level 1: >60% exact token recovery (Conv1d should beat avg_pool's ~40%)
+- Level 2: >30% exact token recovery
+- Gate activations should be higher for operators (`!`, `==`, `return`) than fillers
+
+**Critical test — the "negation test"**:
+```python
+code_positive = 'if user.is_admin: grant_access()'
+code_negative = 'if not user.is_admin: deny_access()'
+# Compress both through Level 1 (4:1)
+# The compressed representations MUST be distinguishable
+# Similarity(compressed_pos, compressed_neg) < 0.8
+```
+
+### Step 4: Action Decoder on Synthetic Traces
+
+**Test**: Train action decoder alone on synthetic tool-use traces.
+```python
+# Generate 5,000 synthetic traces:
+# Context: "File server.py has ImportError on line 5"
+# Correct tool sequence: SEARCH → READ → EDIT → RUN → RESPOND
+
+# Input: encoded context (can use frozen embedding for this test)
+# Output: predicted tool_id at each step
+# Metric: tool selection accuracy, confidence calibration
+```
+
+**Pass criteria**:
+- >80% tool selection accuracy on synthetic traces
+- Confidence > 0.7 when correct, < 0.4 when uncertain
+- No tool hallucination (predicting tools not in registry)
+
+### Step 5: Full V5 Assembly on Toy Task
+
+**Test**: Wire all components together, train on minimal task.
+```
+Task: Given a Python function with a single renamed variable,
+      identify and fix the NameError.
+
+Example:
+  Input:  "def add(a, b): return x + b"  # 'x' should be 'a'
+  Action: EDIT(line=1, old="x", new="a")
+```
+
+**Pass criteria**:
+- >70% accuracy on variable-rename fixes within 3 agent steps
+- All DirectML ops pass without crash
+- VRAM stays under 4 GB on RX 7600
+
+### Step 6: RunPod Scale-Up
+
+**Test**: Scale from d=256 to d=1536, train on The Stack subset.
+```
+Only proceed to RunPod training ($200-400) AFTER steps 1-5 all pass.
+If any step fails → debug that component, don't burn GPU hours.
+```
+
+**Pass criteria**:
+- Loss decreases monotonically for first 1000 steps
+- No NaN/Inf gradients
+- Perplexity on held-out set tracks training loss
+
+### Test Execution Order
+```
+Step 1 (Multi-Hash Embedding)  ─── can run on RX 7600, ~30 min
+Step 2 (Resonance Block)       ─── can run on RX 7600, ~1 hour
+Step 3 (Elastic Context)       ─── can run on RX 7600, ~30 min
+Step 4 (Action Decoder)        ─── can run on RX 7600, ~30 min
+Step 5 (Full Assembly)         ─── can run on RX 7600, ~2 hours
+Step 6 (RunPod Scale-Up)       ─── requires RunPod A100, ~3-5 days
+                                   ONLY after steps 1-5 pass
+```
+
+**Total local testing time: ~4.5 hours on RX 7600**
+**Cost before RunPod: $0**
+
+---
+
 ## Summary
 
 V5 "RESONANCE" is a **Living Model** — it doesn't just run, it grows.
 
 | Dimension | V4 (best previous) | V5 |
 |---|---|---|
-| Architecture | SSM + ODE + Pointer-Gen | Spectral Resonance + Action Decoder |
+| Architecture | SSM + ODE + Pointer-Gen | Resonance (Linear Attn + Local Attn) + Action Decoder |
+| Embedding | nn.Embedding (frozen, scatter) | **Multi-Hash (K=8, no scatter)** |
+| Context compression | None | **Strided Conv1d + gated residual** |
+| Global mixing | None | **Linear Attention (ELU+1 feature map, O(n×d²))** |
 | Param utilization | 23% trainable | **100% trainable** |
 | Context window | 256 tokens | **8,192 tokens** |
 | Learning after deploy | None (frozen) | **Continuous (dual-speed)** |
@@ -1354,5 +1681,6 @@ V5 "RESONANCE" is a **Living Model** — it doesn't just run, it grows.
 | Training paradigm | Next-token prediction | **Next-action prediction** |
 | DirectML dead weight | 154M frozen params | **0 frozen params** |
 | Self-awareness | None | **Reads and modifies own code** |
+| Component testing | None (monolithic) | **Isolated micro-benchmarks** |
 
 **The model that gets smarter every day you use it — and smarter for everyone who uses it.**
