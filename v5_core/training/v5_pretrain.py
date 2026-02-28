@@ -79,6 +79,14 @@ CONFIGS = {
         vocab_size=100279, K_hash=8, d_hash=256,
         dropout=0.1,
     ),
+    # DigitalOcean H200 (141 GB VRAM) — ~7.8B params
+    # bf16: ~15.6 GB model, bs=32 seq=4096 fits ~100 GB with grad ckpt
+    '8b': dict(
+        d_model=3072, n_blocks=32, n_heads=24,
+        window_size=256, max_seq_len=4096,
+        vocab_size=100279, K_hash=8, d_hash=384,
+        dropout=0.1,
+    ),
     'runpod': dict(
         d_model=1536, n_blocks=12, n_heads=12,
         window_size=128, max_seq_len=8192,
@@ -192,7 +200,7 @@ def train(args):
     print(f"Model size: {model_mb:.1f} MB ({'bf16' if use_bf16 else 'fp32'})")
 
     # Enable gradient checkpointing for large models (saves ~40% activation memory)
-    if args.scale in ('4b', 'runpod', 'medium'):
+    if args.scale in ('4b', '8b', 'runpod', 'medium'):
         if hasattr(model.resonance, 'enable_gradient_checkpointing'):
             model.resonance.enable_gradient_checkpointing()
             print("Gradient checkpointing: ENABLED")
@@ -236,7 +244,7 @@ def train(args):
     print(f"Samples: {total_samples}, Batches per epoch: {total_batches}")
 
     # ── Optimizer ─────────────────────────────────────────────────────────
-    if is_cuda and HAS_BNB and args.scale in ('4b', 'runpod'):
+    if is_cuda and HAS_BNB and args.scale in ('4b', '8b', 'runpod'):
         optimizer = bnb.optim.AdamW8bit(
             model.parameters(),
             lr=args.lr,
@@ -454,7 +462,7 @@ def main():
                         help='Training sequence length')
 
     # Model
-    parser.add_argument('--scale', choices=['tiny', 'local', 'medium', '4b', 'runpod'],
+    parser.add_argument('--scale', choices=['tiny', 'local', 'medium', '4b', '8b', 'runpod'],
                         default='tiny', help='Model scale')
 
     # Training
