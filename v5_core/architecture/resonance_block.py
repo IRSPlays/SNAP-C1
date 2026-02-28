@@ -305,13 +305,14 @@ class ResonanceBlock(nn.Module):
 
 
 class ResonanceStack(nn.Module):
-    """Stack of N Resonance Blocks."""
+    """Stack of N Resonance Blocks with optional gradient checkpointing."""
 
     def __init__(self, n_blocks: int = 8, d_model: int = 1024,
                  n_heads: int = 8, window_size: int = 128,
                  d_ff: int = None, max_seq_len: int = 2048,
                  dropout: float = 0.0):
         super().__init__()
+        self.use_checkpoint = False
         self.blocks = nn.ModuleList([
             ResonanceBlock(
                 d_model=d_model, n_heads=n_heads,
@@ -322,7 +323,16 @@ class ResonanceStack(nn.Module):
         ])
         self.final_norm = RMSNorm(d_model)
 
+    def enable_gradient_checkpointing(self):
+        """Enable gradient checkpointing to trade compute for memory (~40% savings)."""
+        self.use_checkpoint = True
+
     def forward(self, x: torch.Tensor, causal: bool = True) -> torch.Tensor:
-        for block in self.blocks:
-            x = block(x, causal=causal)
+        if self.use_checkpoint:
+            from torch.utils.checkpoint import checkpoint as ckpt_fn
+            for block in self.blocks:
+                x = ckpt_fn(block, x, causal, use_reentrant=False)
+        else:
+            for block in self.blocks:
+                x = block(x, causal=causal)
         return self.final_norm(x)
