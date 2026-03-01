@@ -251,7 +251,7 @@ class CodingAgent:
         # Record DPO pair
         if self.learn and self.writer and best_result and worst_result:
             if best_result.reward != worst_result.reward:
-                self.writer.add_pair(
+                added = self.writer.add_pair(
                     prompt=task,
                     chosen_code=best_code,
                     rejected_code=worst_code,
@@ -259,7 +259,8 @@ class CodingAgent:
                     rejected_result=worst_result,
                     min_margin=0.5,
                 )
-                self.total_dpo_pairs += 1
+                if added:
+                    self.total_dpo_pairs += 1
 
         # Build result
         elapsed = time.time() - t0

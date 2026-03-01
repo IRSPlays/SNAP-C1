@@ -211,36 +211,58 @@ class CodeIntrospector:
                 isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                 and node.name == patch.target_function
             ):
-                # Replace fields in-place
-                for field, value in ast.iter_fields(new_func_node):
-                    setattr(node, field, value)
-                found = True
-                break
+                # Work on a copy to avoid corrupting the cached tree
+                import copy
+                working_tree = copy.deepcopy(ctx.tree)
+                # Find the node again in the copy
+                for wnode in ast.walk(working_tree):
+                    if (
+                        isinstance(wnode, (ast.FunctionDef, ast.AsyncFunctionDef))
+                        and wnode.name == patch.target_function
+                    ):
+                        for field, value in ast.iter_fields(new_func_node):
+                            setattr(wnode, field, value)
+                        break
+                # Invalidate cache BEFORE writing
+                self._cache.pop(str(full), None)
+                try:
+                    new_source = ast.unparse(working_tree)
+                except Exception as e:
+                    return False, f"ast.unparse failed: {e}"
+                # Write back
+                backup = str(full) + ".bak"
+                full.rename(backup)
+                try:
+                    full.write_text(new_source, encoding="utf-8")
+                except Exception as e:
+                    Path(backup).rename(full)
+                    return False, f"Write failed: {e}"
+                return True, "Patch applied successfully"
 
         if not found:
             # Not an existing function: append at module level
-            ctx.tree.body.append(new_func_node)
+            # Work on a copy to avoid corrupting cached tree
+            import copy
+            working_tree = copy.deepcopy(ctx.tree)
+            working_tree.body.append(new_func_node)
 
-        # Unparse the modified tree
-        try:
-            new_source = ast.unparse(ctx.tree)
-        except Exception as e:
-            return False, f"ast.unparse failed: {e}"
+            # Invalidate cache BEFORE writing
+            self._cache.pop(str(full), None)
 
-        # Write back
-        full = Path(patch.target_path)
-        backup = str(full) + ".bak"
-        full.rename(backup)  # backup first
-        try:
-            full.write_text(new_source, encoding="utf-8")
-        except Exception as e:
-            Path(backup).rename(full)  # restore backup
-            return False, f"Write failed: {e}"
+            try:
+                new_source = ast.unparse(working_tree)
+            except Exception as e:
+                return False, f"ast.unparse failed: {e}"
 
-        # Invalidate cache
-        self._cache.pop(
-            str(Path(patch.target_path).relative_to(self.root)), None
-        )
+            # Write back
+            backup = str(full) + ".bak"
+            full.rename(backup)  # backup first
+            try:
+                full.write_text(new_source, encoding="utf-8")
+            except Exception as e:
+                Path(backup).rename(full)  # restore backup
+                return False, f"Write failed: {e}"
+
         patch.accepted = True
         return True, f"Patch applied: {patch.target_function} in {patch.target_path}"
 

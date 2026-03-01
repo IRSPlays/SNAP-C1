@@ -172,23 +172,32 @@ class InstructionDataset(Dataset):
             response_tokens = self.tokenizer.encode(response)
 
             combined = prompt_tokens + sep + response_tokens
-            if len(combined) > seq_len:
-                combined = combined[:seq_len]
+            # Need seq_len+1 tokens for label shifting (like CodeFileDataset)
+            if len(combined) > seq_len + 1:
+                combined = combined[:seq_len + 1]
 
-            # Labels: -100 for prompt, actual tokens for response
+            # Pre-shift labels: labels[i] = combined[i+1] (next-token prediction)
+            # forward_pretrain does NOT shift internally, so we must do it here.
+            # This matches CodeFileDataset: token_ids = chunk[:-1], labels = chunk[1:]
             prompt_len = len(prompt_tokens) + len(sep)
-            labels = [-100] * min(prompt_len, len(combined))
-            labels += combined[prompt_len:]
+            token_ids = combined[:-1]
+            shifted_labels = list(combined[1:])
+
+            # Mask prompt labels: only train on predicting response tokens
+            # Response starts at combined[prompt_len], which appears in
+            # shifted_labels at index prompt_len - 1
+            for i in range(min(prompt_len - 1, len(shifted_labels))):
+                shifted_labels[i] = -100
 
             # Pad if needed
-            pad_len = seq_len - len(combined)
+            pad_len = seq_len - len(token_ids)
             if pad_len > 0:
-                combined += [0] * pad_len
-                labels += [-100] * pad_len
+                token_ids += [0] * pad_len
+                shifted_labels += [-100] * pad_len
 
             self.samples.append({
-                'token_ids': combined[:seq_len],
-                'labels': labels[:seq_len],
+                'token_ids': token_ids[:seq_len],
+                'labels': shifted_labels[:seq_len],
                 'type_id': item.get('tool_id', 0),
             })
 

@@ -375,6 +375,8 @@ def run_progressive_distill(args):
         from v5_core.training.auto_dpo_v5 import inject_lora, load_lora
         lora_modules = inject_lora(model, rank=16, alpha=32.0)
         load_lora(lora_modules, args.lora)
+        model._lora_injected = True
+        model._lora_modules = lora_modules
 
     # Load knowledge cache
     knowledge = load_knowledge_cache(args.knowledge_cache)
@@ -467,9 +469,9 @@ def run_progressive_distill(args):
                 if os.path.exists(lora_out):
                     try:
                         if not hasattr(model, '_lora_injected'):
-                            lora_modules = inject_lora(model, rank=16, alpha=32.0)
+                            model._lora_modules = inject_lora(model, rank=16, alpha=32.0)
                             model._lora_injected = True
-                        load_lora(model, lora_out)  # reload updated weights
+                        load_lora(model._lora_modules, lora_out)  # reload updated weights
                     except Exception as le:
                         print(f"  [Auto-DPO] LoRA reload warning: {le}")
             except Exception as e:

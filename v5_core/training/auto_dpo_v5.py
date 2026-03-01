@@ -123,8 +123,8 @@ def inject_lora(model: V5ResonanceModel, rank: int = 16, alpha: float = 32.0,
         dict mapping parameter names to LoRA modules (for saving/loading)
     """
     target_modules = target_modules or [
-        'local_attn.in_proj', 'local_attn.out_proj',
-        'global_attn', 'gate_proj', 'ffn',
+        'local_attn.qkv_proj', 'local_attn.out_proj',
+        'spectral', 'gate_proj', 'ffn',
         'lm_down', 'lm_up',
     ]
 
@@ -228,8 +228,18 @@ def compute_logprobs(model: V5ResonanceModel, token_ids: torch.Tensor,
 
     # Standard causal LM shift: logits[i] predicts token[i+1]
     S = logits.shape[1]
+    if S <= 1:
+        return torch.zeros(logits.shape[0], device=logits.device)
+
     shift_logits = logits[:, :-1, :]  # [B, S-1, V]
     shift_labels = labels[:, 1:S]     # [B, S-1] (align with logits length)
+
+    # Safety: align lengths if elastic context truncated logits
+    L = min(shift_logits.shape[1], shift_labels.shape[1])
+    if L == 0:
+        return torch.zeros(logits.shape[0], device=logits.device)
+    shift_logits = shift_logits[:, :L, :]
+    shift_labels = shift_labels[:, :L]
 
     log_probs = F.log_softmax(shift_logits.float(), dim=-1)  # [B, S-1, V]
 
@@ -499,12 +509,10 @@ def train_dpo(args):
 
     # Enable gradient checkpointing for low-VRAM GPUs
     if getattr(args, 'grad_checkpoint', False):
-        if hasattr(policy, 'gradient_checkpointing_enable'):
+        if hasattr(policy.resonance, 'enable_gradient_checkpointing'):
+            policy.resonance.enable_gradient_checkpointing()
+        elif hasattr(policy, 'gradient_checkpointing_enable'):
             policy.gradient_checkpointing_enable()
-        else:
-            # Manual: wrap resonance blocks
-            from torch.utils.checkpoint import checkpoint as ckpt_fn
-            policy._use_gradient_checkpointing = True
         print(f"[Memory] Gradient checkpointing enabled")
 
     # Reference model (frozen, no LoRA — used for KL computation)

@@ -228,7 +228,15 @@ class DPOBufferWriter:
                 for line in f:
                     line = line.strip()
                     if line:
-                        self.pairs.append(DPOPair(**json.loads(line)))
+                        try:
+                            data = json.loads(line)
+                            # Filter to only known DPOPair fields to avoid crashes
+                            valid_fields = {k for k in DPOPair.__dataclass_fields__}
+                            filtered = {k: v for k, v in data.items() if k in valid_fields}
+                            if 'prompt' in filtered and 'chosen' in filtered and 'rejected' in filtered:
+                                self.pairs.append(DPOPair(**filtered))
+                        except (json.JSONDecodeError, TypeError):
+                            continue  # skip malformed lines
             print(f"[DPOBufferWriter] Loaded {len(self.pairs)} existing pairs from {output_path}")
 
     def add_pair(
