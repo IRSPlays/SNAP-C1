@@ -28,6 +28,12 @@ Usage:
 
   # Interactive agent mode (use the model + learn from interactions):
   python local_selflearn.py --checkpoint ... --agent
+
+  # Distill from 8B knowledge cache (NOVEL — student vs teacher):
+  python local_selflearn.py --checkpoint ... --distill
+
+  # Harvest on H200 (run this on the big GPU before distilling):
+  python local_selflearn.py --checkpoint v5_core/checkpoints/v5_8b_instruct.pt --harvest
 """
 
 import os
@@ -102,6 +108,46 @@ def run_pipeline(args):
 
     dpo_buffer = args.dpo_buffer
     lora_path = args.lora or "v5_core/checkpoints/v5_lora_latest.pt"
+
+    # ── Mode: Harvest (H200 only) ────────────────────────────────────────
+    if args.harvest:
+        print("\n[Mode] Knowledge Harvest (run on H200 with 8B)")
+        print("  This generates the knowledge cache the local GPU trains against.")
+        from v5_core.training.knowledge_harvester import main as harvest_main
+        sys.argv = [
+            'knowledge_harvester.py',
+            '--checkpoint', checkpoint,
+            '--output', args.knowledge_cache,
+            '--max_tasks', str(args.harvest_tasks),
+            '--max_hours', str(args.harvest_hours),
+        ]
+        harvest_main()
+        return
+
+    # ── Mode: Distill (LOCAL — student vs teacher) ───────────────────────
+    if args.distill:
+        if not os.path.exists(args.knowledge_cache):
+            print(f"ERROR: Knowledge cache not found: {args.knowledge_cache}")
+            print("  Run with --harvest on H200 first to generate it.")
+            print("  Then copy knowledge_cache.jsonl to your local machine.")
+            return
+        print(f"\n[Mode] Progressive Distillation (Student vs Teacher)")
+        from v5_core.training.progressive_distill import main as distill_main
+        sys.argv = [
+            'progressive_distill.py',
+            '--student_checkpoint', checkpoint,
+            '--knowledge_cache', args.knowledge_cache,
+            '--dpo_output', dpo_buffer,
+            '--scoreboard', args.scoreboard,
+            '--rounds', str(args.distill_rounds),
+            '--tasks_per_round', str(args.distill_tasks_per_round),
+        ]
+        if os.path.exists(lora_path):
+            sys.argv += ['--lora', lora_path]
+        if args.continuous:
+            sys.argv.append('--continuous')
+        distill_main()
+        return
 
     # ── Mode: Agent ──────────────────────────────────────────────────────
     if args.agent:
@@ -247,6 +293,12 @@ Examples:
 
   # Interactive coding agent:
   python local_selflearn.py --checkpoint ... --agent
+
+  # Distill from 8B (novel: student vs teacher tracked):
+  python local_selflearn.py --checkpoint ... --distill --continuous
+
+  # Harvest on H200 (generates knowledge cache):
+  python local_selflearn.py --checkpoint v5_8b.pt --harvest --harvest_hours 5
         """,
     )
 
@@ -264,6 +316,10 @@ Examples:
                         help='Only train DPO on existing pairs')
     parser.add_argument('--agent', action='store_true',
                         help='Interactive coding agent mode')
+    parser.add_argument('--distill', action='store_true',
+                        help='Progressive distillation from 8B knowledge cache')
+    parser.add_argument('--harvest', action='store_true',
+                        help='Knowledge harvest (H200 only — generates cache)')
     parser.add_argument('--continuous', action='store_true',
                         help='Run self-play → DPO in an infinite loop')
     parser.add_argument('--vram_check', action='store_true',
@@ -280,6 +336,24 @@ Examples:
     # DPO training
     parser.add_argument('--dpo_steps', type=int, default=25,
                         help='DPO training steps per round')
+
+    # Distillation
+    parser.add_argument('--knowledge_cache',
+                        default='v5_core/data/knowledge_cache.jsonl',
+                        help='Path to 8B knowledge cache')
+    parser.add_argument('--scoreboard',
+                        default='v5_core/data/scoreboard.json',
+                        help='Scoreboard save path')
+    parser.add_argument('--distill_rounds', type=int, default=10,
+                        help='Distillation rounds')
+    parser.add_argument('--distill_tasks_per_round', type=int, default=50,
+                        help='Tasks per distillation round')
+
+    # Harvest
+    parser.add_argument('--harvest_tasks', type=int, default=5000,
+                        help='Max tasks to harvest on H200')
+    parser.add_argument('--harvest_hours', type=float, default=5.0,
+                        help='Max hours for harvest run')
 
     args = parser.parse_args()
     run_pipeline(args)
