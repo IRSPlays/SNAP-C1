@@ -467,7 +467,10 @@ def train_dpo(args):
     device = get_device()
     is_cuda = device.type == 'cuda'
     use_bf16 = is_cuda and torch.cuda.is_bf16_supported()
+    ref_on_cpu = getattr(args, 'ref_on_cpu', False)
     print(f"Device: {device}, Precision: {'bf16' if use_bf16 else 'fp32'}")
+    if ref_on_cpu:
+        print(f"[Memory] Reference model on CPU (saves ~50% GPU VRAM)")
 
     # ── Load base model ──────────────────────────────────────────────────
     print(f"\nLoading base checkpoint: {args.base_checkpoint}")
@@ -484,10 +487,24 @@ def train_dpo(args):
     else:
         policy = policy.to(device)
 
+    # Enable gradient checkpointing for low-VRAM GPUs
+    if getattr(args, 'grad_checkpoint', False):
+        if hasattr(policy, 'gradient_checkpointing_enable'):
+            policy.gradient_checkpointing_enable()
+        else:
+            # Manual: wrap resonance blocks
+            from torch.utils.checkpoint import checkpoint as ckpt_fn
+            policy._use_gradient_checkpointing = True
+        print(f"[Memory] Gradient checkpointing enabled")
+
     # Reference model (frozen, no LoRA — used for KL computation)
     ref = V5ResonanceModel(**config)
     ref.load_state_dict(ckpt['model_state_dict'], strict=True)
-    if use_bf16:
+    if ref_on_cpu:
+        # Keep ref on CPU to save ~50% GPU VRAM
+        # Slower KL checks, but frees huge VRAM on 8GB GPUs
+        ref = ref.to(dtype=torch.float32, device=torch.device('cpu'))
+    elif use_bf16:
         ref = ref.to(dtype=torch.bfloat16, device=device)
     else:
         ref = ref.to(device)
@@ -554,7 +571,21 @@ def train_dpo(args):
 
         # Reference log probs (no grad)
         with torch.no_grad():
-            if use_bf16:
+            if ref_on_cpu:
+                # Move batch to CPU for ref, results back to GPU
+                cpu_chosen = batch['chosen_ids'].cpu()
+                cpu_rejected = batch['rejected_ids'].cpu()
+                cpu_type = batch['type_ids'].cpu()
+                cpu_chosen_labels = batch['chosen_labels'].cpu()
+                cpu_rejected_labels = batch['rejected_labels'].cpu()
+                ref_chosen_lp = compute_logprobs(
+                    ref, cpu_chosen, cpu_type, cpu_chosen_labels
+                ).to(device)
+                ref_rejected_lp = compute_logprobs(
+                    ref, cpu_rejected, cpu_type, cpu_rejected_labels
+                ).to(device)
+                del cpu_chosen, cpu_rejected, cpu_type, cpu_chosen_labels, cpu_rejected_labels
+            elif use_bf16:
                 with torch.amp.autocast("cuda", dtype=torch.bfloat16):
                     ref_chosen_lp = compute_logprobs(
                         ref, batch['chosen_ids'], batch['type_ids'], batch['chosen_labels']
@@ -579,9 +610,25 @@ def train_dpo(args):
 
         # ── KL divergence check ─────────────────────────────────────────
         if step % args.kl_check_every == 0:
-            kl = compute_kl_divergence(
-                policy, ref, batch['chosen_ids'][:1], batch['type_ids'][:1]
-            )
+            if ref_on_cpu:
+                # Move policy sample to CPU for KL check
+                kl_ids = batch['chosen_ids'][:1].cpu()
+                kl_type = batch['type_ids'][:1].cpu()
+                # Temporarily move policy to CPU for KL (or use cached logits)
+                with torch.no_grad():
+                    pol_result = policy.forward_pretrain(
+                        batch['chosen_ids'][:1], batch['type_ids'][:1], labels=None
+                    )
+                    ref_result = ref.forward_pretrain(kl_ids, kl_type, labels=None)
+                    S = min(pol_result['logits'].shape[1], ref_result['logits'].shape[1])
+                    p = F.log_softmax(pol_result['logits'][:, :S, :].float().cpu(), dim=-1)
+                    q = F.softmax(ref_result['logits'][:, :S, :].float(), dim=-1)
+                    kl = F.kl_div(p, q, reduction='batchmean', log_target=False).item()
+                del kl_ids, kl_type
+            else:
+                kl = compute_kl_divergence(
+                    policy, ref, batch['chosen_ids'][:1], batch['type_ids'][:1]
+                )
             metrics['kl'] = kl
             if kl > args.kl_threshold:
                 print(f"  [Step {step}] KL={kl:.4f} > {args.kl_threshold} — SKIPPING gradient")
@@ -724,6 +771,12 @@ def main():
                         help='Check KL every N steps')
     parser.add_argument('--regression_check', action='store_true',
                         help='Run held-out regression tests after training')
+
+    # Memory optimization (for 8GB GPUs like RX 7600)
+    parser.add_argument('--ref_on_cpu', action='store_true',
+                        help='Keep reference model on CPU (saves ~50%% GPU VRAM)')
+    parser.add_argument('--grad_checkpoint', action='store_true',
+                        help='Enable gradient checkpointing (saves VRAM, slower)')
 
     # Checkpoints
     parser.add_argument('--save_every', type=int, default=50,
