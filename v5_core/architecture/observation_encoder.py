@@ -86,8 +86,8 @@ class ObservationEncoder(nn.Module):
         # Positional encoding (sinusoidal, buffer — no backward)
         self.pos_enc = SinusoidalPosEncoding(d_model, max_len=max_seq_len)
 
-        # Context compression
-        self.elastic = ElasticContext(d_model=d_model)
+        # Context compression (boundaries scale with max_seq_len)
+        self.elastic = ElasticContext(d_model=d_model, max_seq_len=max_seq_len)
 
         # Final norm
         self.norm = RMSNorm(d_model)

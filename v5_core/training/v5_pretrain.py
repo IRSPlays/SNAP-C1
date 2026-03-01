@@ -180,7 +180,7 @@ def train(args):
     print(f"Precision: {'bf16' if use_bf16 else 'fp32'}")
 
     # ── Model config ──────────────────────────────────────────────────────
-    config = CONFIGS[args.scale]
+    config = dict(CONFIGS[args.scale])  # Copy to avoid mutating shared dict
     seq_len = min(config['max_seq_len'], args.seq_len)
     config['max_think_steps'] = 0  # No THINK loop for pretrain
 

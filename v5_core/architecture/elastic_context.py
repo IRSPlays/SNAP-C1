@@ -1,11 +1,22 @@
 """
 SNAP-C1 V5: Elastic Hierarchical Context (Component 3)
 =======================================================
-Multi-resolution context compression: 8192 tokens → 1856 slots.
+Multi-resolution context compression with proportional boundaries.
 
-Level 0 (recent):   tokens[0:1024]      → full resolution (1024 slots)
-Level 1 (medium):   tokens[1024:3072]   → Conv1d stride=4 + gated residual (512 slots)
-Level 2 (distant):  tokens[3072:8192]   → Conv1d stride=16 + gated residual (320 slots)
+Boundaries default to [max_seq_len//2, max_seq_len*3//4, max_seq_len],
+giving 50% stride-1 (full loss signal), 25% stride-4, 25% stride-16.
+
+Example for max_seq_len=4096:
+  Level 0 (recent):   tokens[0:2048]      → full resolution (2048 slots)
+  Level 1 (medium):   tokens[2048:3072]   → Conv1d stride=4 + gated residual (256 slots)
+  Level 2 (distant):  tokens[3072:4096]   → Conv1d stride=16 + gated residual (64 slots)
+  Total: 2368 slots
+
+Example for max_seq_len=8192:
+  Level 0 (recent):   tokens[0:4096]      → full resolution (4096 slots)
+  Level 1 (medium):   tokens[4096:6144]   → Conv1d stride=4 + gated residual (512 slots)
+  Level 2 (distant):  tokens[6144:8192]   → Conv1d stride=16 + gated residual (128 slots)
+  Total: 4736 slots
 
 Why Conv1d instead of avg_pool:
   avg_pool treats all tokens equally → destroys precision-critical tokens like "!", "==", "return".
@@ -32,18 +43,26 @@ class ElasticContext(nn.Module):
 
     Args:
         d_model: Model dimension
+        max_seq_len: Maximum sequence length (used to compute default boundaries)
         level_boundaries: Token boundaries for each level.
-            Default: [1024, 3072, 8192] → level 0 is [0:1024], level 1 is [1024:3072], etc.
+            Default: [max_seq_len//2, max_seq_len*3//4, max_seq_len]
         strides: Compression stride per non-full-res level. Default: [1, 4, 16]
             Level 0 has stride=1 (full resolution), level 1 = 4:1, level 2 = 16:1
     """
 
     def __init__(self, d_model: int = 1024,
+                 max_seq_len: int = 8192,
                  level_boundaries: list = None,
                  strides: list = None):
         super().__init__()
         self.d_model = d_model
-        self.boundaries = level_boundaries or [1024, 3072, 8192]
+        # Boundaries proportional to max_seq_len: 50% stride-1, 25% stride-4, 25% stride-16
+        # This ensures the loss signal covers half the sequence at full resolution
+        self.boundaries = level_boundaries or [
+            max_seq_len // 2,
+            max_seq_len * 3 // 4,
+            max_seq_len
+        ]
         self.strides = strides or [1, 4, 16]
         self.n_levels = len(self.boundaries)
 

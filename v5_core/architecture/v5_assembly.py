@@ -96,7 +96,8 @@ class V5ResonanceModel(nn.Module):
 
         # LM Head for next-token prediction (pre-training)
         # Factored: d_model → bottleneck → vocab_size
-        self._lm_bottleneck = 512
+        # Bottleneck scales with d_model (min 512 for small configs)
+        self._lm_bottleneck = max(512, d_model // 2)
         self.lm_down = nn.Linear(d_model, self._lm_bottleneck)
         self.lm_up = nn.Linear(self._lm_bottleneck, vocab_size, bias=False)
 
@@ -124,28 +125,24 @@ class V5ResonanceModel(nn.Module):
         # Process through resonance blocks (causal for pretraining)
         hidden = self.resonance(context, causal=True)  # [B, slots, d]
 
-        # LM head
-        lm_logits = self.lm_up(F.gelu(self.lm_down(hidden)))  # [B, slots, vocab]
+        # LM head — only compute on stride-1 (uncompressed) slots
+        # Stride-1 slots have 1:1 correspondence with original positions;
+        # compressed slots can't map to single next-token labels.
+        # Computing LM head only on stride-1 saves ~3-4 GB VRAM.
+        stride1_boundary = self.encoder.elastic.boundaries[0]
+        stride1_slots = min(stride1_boundary, hidden.shape[1])
+        hidden_s1 = hidden[:, :stride1_slots, :]  # [B, s1, d]
+
+        lm_logits = self.lm_up(F.gelu(self.lm_down(hidden_s1)))  # [B, s1, vocab]
 
         result = {'logits': lm_logits}
 
         if labels is not None:
             B, S, V = lm_logits.shape
-
-            # Only compute loss on stride-1 (uncompressed) slots
-            # These are the first `stride1_slots` positions which have 1:1
-            # correspondence with original token positions
-            stride1_boundary = self.encoder.elastic.boundaries[0]
-            stride1_slots = min(stride1_boundary, S)
-
-            # Truncate logits and labels to stride-1 slots only
-            logits_s1 = lm_logits[:, :stride1_slots, :]  # [B, s1, V]
-
-            # Labels must match: only first stride1_slots original positions
-            labels_s1 = labels[:, :stride1_slots]  # [B, s1]
+            labels_s1 = labels[:, :S]  # [B, s1]
 
             loss = F.cross_entropy(
-                logits_s1.reshape(-1, V),
+                lm_logits.reshape(-1, V),
                 labels_s1.reshape(-1),
                 ignore_index=-100
             )

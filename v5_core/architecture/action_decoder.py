@@ -65,8 +65,8 @@ class PointerGeneratorHead(nn.Module):
         self.vocab_size = vocab_size
         self.max_arg_tokens = max_arg_tokens
 
-        # Factored vocabulary projection (bottleneck saves params)
-        self._bottleneck = 512
+        # Factored vocabulary projection (bottleneck scales with d_model)
+        self._bottleneck = max(512, d_model // 2)
         self.vocab_down = nn.Linear(d_model, self._bottleneck)
         self.vocab_up = nn.Linear(self._bottleneck, vocab_size, bias=False)
 
