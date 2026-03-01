@@ -147,10 +147,12 @@ class CodingAgent:
         verify_with_tests: bool = True,
         learn_from_interactions: bool = True,
         timeout_sec: float = 10.0,
+        phase: str = 'instruct',
     ):
         self.model = model
         self.config = config
         self.device = device
+        self.phase = phase
         self.max_attempts = max_attempts
         self.verify = verify_with_tests
         self.learn = learn_from_interactions
@@ -202,7 +204,7 @@ class CodingAgent:
                     temperature=0.4 + attempt * 0.15,  # Higher temp on retries
                     top_p=0.92, top_k=50,
                     device=self.device, config=self.config,
-                    phase='instruct',
+                    phase=self.phase,
                 )
                 code = extract_code_from_response(response)
             except Exception as e:
@@ -493,6 +495,7 @@ def main():
         verify_with_tests=not args.no_verify,
         learn_from_interactions=not args.no_learn,
         timeout_sec=args.timeout,
+        phase=phase,
     )
 
     # Run mode

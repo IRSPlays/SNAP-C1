@@ -213,7 +213,7 @@ def harvest_single_task(
     from v5_core.inference.v5_generate import generate
 
     prompt = task['prompt']
-    test_code = task.get('test', '')
+    test_code = task.get('test') or ''  # normalize None -> ''
     difficulty = task.get('difficulty', 2)
 
     attempts = []
@@ -280,8 +280,8 @@ def harvest_single_task(
             teacher_logprobs = _compute_teacher_logprobs(
                 model, config, device, prompt, best_attempt['code']
             )
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  [logprobs] Failed for task {_task_id(prompt)}: {e}")
 
     return HarvestEntry(
         task_id=_task_id(prompt),
@@ -325,9 +325,13 @@ def _compute_teacher_logprobs(
         log_probs = F.log_softmax(logits.float(), dim=-1)  # [1, S, V]
 
         # Gather target token log probs
+        # logits[i] predicts token[i+1], so shift labels by 1
         S = log_probs.shape[1]
-        target = token_ids[:, :S]
-        per_token_lp = log_probs.gather(2, target.unsqueeze(-1)).squeeze(-1)  # [1, S]
+        target = token_ids[:, 1:S + 1]  # shifted: label[i] = token[i+1]
+        actual_len = target.shape[1]
+        per_token_lp = log_probs[:, :actual_len, :].gather(
+            2, target.unsqueeze(-1)
+        ).squeeze(-1)  # [1, actual_len]
         return per_token_lp[0].cpu().tolist()
 
 
@@ -355,6 +359,11 @@ def run_harvest(args):
         mine_dir=args.mine_from,
         max_mined=200,
     )
+
+    # Guard against empty task list
+    if not tasks:
+        print("WARNING: No tasks available to harvest.")
+        return
 
     # Duplicate tasks to reach target count (with slight variations)
     if len(tasks) < args.tasks:

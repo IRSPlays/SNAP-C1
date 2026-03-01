@@ -218,22 +218,27 @@ def compute_logprobs(model: V5ResonanceModel, token_ids: torch.Tensor,
     """
     Compute per-token log probabilities for a sequence.
     Returns sum of log probs over non-masked positions.
+
+    Labels follow HuggingFace convention: labels[i] = tokens[i].
+    Shift is applied here: logits[i] predicts token[i+1], so we compare
+    logits[:-1] with labels[1:].
     """
     result = model.forward_pretrain(token_ids, type_ids, labels=None)
     logits = result['logits']  # [B, S, V]
 
-    # Log softmax
-    log_probs = F.log_softmax(logits.float(), dim=-1)  # [B, S, V]
-
-    # Gather log probs at target positions
-    # labels: [B, T], but logits may be [B, S, V] where S < T (stride-1 only)
+    # Standard causal LM shift: logits[i] predicts token[i+1]
     S = logits.shape[1]
-    labels_s = labels[:, :S]  # [B, S]
+    shift_logits = logits[:, :-1, :]  # [B, S-1, V]
+    shift_labels = labels[:, 1:S]     # [B, S-1] (align with logits length)
 
-    gathered = log_probs.gather(2, labels_s.unsqueeze(-1)).squeeze(-1)  # [B, S]
+    log_probs = F.log_softmax(shift_logits.float(), dim=-1)  # [B, S-1, V]
+
+    # Clamp indices to avoid gather at -100 (masked positions)
+    gather_ids = shift_labels.clamp(min=0)
+    gathered = log_probs.gather(2, gather_ids.unsqueeze(-1)).squeeze(-1)  # [B, S-1]
 
     # Mask: only count non-padding positions
-    mask = (labels_s != -100).float()
+    mask = (shift_labels != -100).float()
     return (gathered * mask).sum(dim=-1)  # [B]
 
 
@@ -278,7 +283,7 @@ def compute_kl_divergence(model: V5ResonanceModel,
                           token_ids: torch.Tensor,
                           type_ids: torch.Tensor) -> float:
     """
-    Compute KL(π || π_ref) on a sample to monitor divergence.
+    Compute KL(π_policy || π_ref) on a sample to monitor divergence.
     If KL > threshold, we should skip the gradient step.
     """
     with torch.no_grad():
@@ -287,11 +292,11 @@ def compute_kl_divergence(model: V5ResonanceModel,
 
         S = min(result_policy['logits'].shape[1], result_ref['logits'].shape[1])
 
-        p = F.log_softmax(result_policy['logits'][:, :S, :].float(), dim=-1)
-        q = F.softmax(result_ref['logits'][:, :S, :].float(), dim=-1)
+        p_logprobs = F.log_softmax(result_policy['logits'][:, :S, :].float(), dim=-1)
+        q_logprobs = F.log_softmax(result_ref['logits'][:, :S, :].float(), dim=-1)
 
-        # KL = sum q * (log q - log p)
-        kl = F.kl_div(p, q, reduction='batchmean', log_target=False)
+        # KL(policy || ref) = sum policy * (log_policy - log_ref)
+        kl = F.kl_div(q_logprobs, p_logprobs, reduction='batchmean', log_target=True)
         return kl.item()
 
 
@@ -314,7 +319,12 @@ class DPODataset:
             for line in f:
                 line = line.strip()
                 if line:
-                    self.pairs.append(json.loads(line))
+                    try:
+                        entry = json.loads(line)
+                        if entry.get('chosen', '').strip() and entry.get('rejected', '').strip():
+                            self.pairs.append(entry)
+                    except json.JSONDecodeError:
+                        print(f"[DPODataset] Skipping malformed line: {line[:80]}...")
 
         print(f"[DPODataset] Loaded {len(self.pairs)} pairs from {buffer_path}")
 
@@ -540,6 +550,8 @@ def train_dpo(args):
     total_pairs = len(dataset)
     step = 0
     skipped = 0
+    consecutive_skips = 0
+    max_consecutive_skips = args.steps * 3  # Safety: abort if stuck
     history = []
 
     import random
@@ -622,8 +634,8 @@ def train_dpo(args):
                     ref_result = ref.forward_pretrain(kl_ids, kl_type, labels=None)
                     S = min(pol_result['logits'].shape[1], ref_result['logits'].shape[1])
                     p = F.log_softmax(pol_result['logits'][:, :S, :].float().cpu(), dim=-1)
-                    q = F.softmax(ref_result['logits'][:, :S, :].float(), dim=-1)
-                    kl = F.kl_div(p, q, reduction='batchmean', log_target=False).item()
+                    q = F.log_softmax(ref_result['logits'][:, :S, :].float(), dim=-1)
+                    kl = F.kl_div(q, p, reduction='batchmean', log_target=True).item()
                 del kl_ids, kl_type
             else:
                 kl = compute_kl_divergence(
@@ -633,11 +645,17 @@ def train_dpo(args):
             if kl > args.kl_threshold:
                 print(f"  [Step {step}] KL={kl:.4f} > {args.kl_threshold} — SKIPPING gradient")
                 skipped += 1
+                consecutive_skips += 1
+                if consecutive_skips > max_consecutive_skips:
+                    print(f"  [ABORT] {consecutive_skips} consecutive KL violations. Stopping.")
+                    break
                 del loss
                 gc.collect()
                 if is_cuda:
                     torch.cuda.empty_cache()
                 continue
+            else:
+                consecutive_skips = 0  # Reset on successful step
 
         # ── Backward + update ───────────────────────────────────────────
         optimizer.zero_grad()
@@ -719,6 +737,8 @@ def daemon_mode(args):
                 args.steps = min(new_pairs // args.batch_size, 50)  # Cap at 50 steps
                 train_dpo(args)
                 last_count = count
+                # Carry forward LoRA state for next round
+                args.resume_lora = args.output or "v5_core/checkpoints/v5_lora_latest.pt"
             else:
                 time.sleep(args.daemon_interval)
 

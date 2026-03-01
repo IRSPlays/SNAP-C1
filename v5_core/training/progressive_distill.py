@@ -74,6 +74,7 @@ class TaskScore:
     # Comparison
     student_surpassed: bool = False  # Student reward > teacher reward
     last_attempt_time: float = 0.0
+    test_code: str = ""  # Test code for execution verification
 
     def gap(self) -> float:
         """How far behind the teacher the student is."""
@@ -162,7 +163,9 @@ class Scoreboard:
     def summary(self) -> dict:
         total = len(self.scores)
         if total == 0:
-            return {'total': 0}
+            return {'total_tasks': 0, 'teacher_passed': 0, 'student_passed': 0,
+                    'surpassed_teacher': 0, 'never_tried': 0, 'avg_gap': 0.0,
+                    'by_difficulty': {}}
 
         teacher_passed = sum(1 for s in self.scores.values() if s.teacher_passed)
         student_passed = sum(1 for s in self.scores.values() if s.student_ever_passed)
@@ -247,7 +250,8 @@ def distillation_round(
     priority_tasks = scoreboard.get_priority_tasks(tasks_per_round)
     if not priority_tasks:
         print("  [Distill] No priority tasks — scoreboard empty?")
-        return {'pairs_created': 0}
+        return {'pairs_created': 0, 'teacher_wins': 0, 'student_wins': 0,
+                'ties': 0, 'tasks_attempted': 0}
 
     pairs_created = 0
     student_wins = 0
@@ -405,9 +409,11 @@ def run_progressive_distill(args):
     scoreboard.print_report()
 
     # Distillation loop
-    for round_num in range(1, args.rounds + 1):
+    round_num = 0
+    while True:
+        round_num += 1
         print(f"\n{'=' * 60}")
-        print(f"  ROUND {round_num}/{args.rounds}")
+        print(f"  ROUND {round_num}")
         print(f"{'=' * 60}")
 
         metrics = distillation_round(
@@ -456,6 +462,16 @@ def run_progressive_distill(args):
                     grad_checkpoint=True,
                 )
                 train_dpo(dpo_args)
+                # Reload LoRA into active model so next round uses updated weights
+                lora_out = dpo_args.output
+                if os.path.exists(lora_out):
+                    try:
+                        if not hasattr(model, '_lora_injected'):
+                            lora_modules = inject_lora(model, rank=16, alpha=32.0)
+                            model._lora_injected = True
+                        load_lora(model, lora_out)  # reload updated weights
+                    except Exception as le:
+                        print(f"  [Auto-DPO] LoRA reload warning: {le}")
             except Exception as e:
                 print(f"  [Auto-DPO] Training error: {e}")
 

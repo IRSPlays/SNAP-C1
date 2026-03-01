@@ -99,6 +99,14 @@ def run_pipeline(args):
         print_vram_table()
         return
 
+    # Mode mutual exclusion
+    modes = [args.play_only, args.train_only, args.agent,
+             getattr(args, 'distill', False), getattr(args, 'harvest', False)]
+    if sum(bool(m) for m in modes) > 1:
+        print("ERROR: Only one mode flag allowed "
+              "(--play_only, --train_only, --agent, --distill, --harvest)")
+        return
+
     checkpoint = args.checkpoint
     if not os.path.exists(checkpoint):
         print(f"ERROR: Checkpoint not found: {checkpoint}")
@@ -118,8 +126,7 @@ def run_pipeline(args):
             'knowledge_harvester.py',
             '--checkpoint', checkpoint,
             '--output', args.knowledge_cache,
-            '--max_tasks', str(args.harvest_tasks),
-            '--max_hours', str(args.harvest_hours),
+            '--tasks', str(args.harvest_tasks),
         ]
         harvest_main()
         return
@@ -173,6 +180,7 @@ def run_pipeline(args):
             'auto_dpo_v5.py',
             '--base_checkpoint', checkpoint,
             '--dpo_buffer', dpo_buffer,
+            '--output', lora_path,
             '--ref_on_cpu',              # Critical: saves 50% VRAM
             '--grad_checkpoint',         # Save more VRAM
             '--batch_size', '1',         # Tiny batch for 8GB
@@ -352,8 +360,6 @@ Examples:
     # Harvest
     parser.add_argument('--harvest_tasks', type=int, default=5000,
                         help='Max tasks to harvest on H200')
-    parser.add_argument('--harvest_hours', type=float, default=5.0,
-                        help='Max hours for harvest run')
 
     args = parser.parse_args()
     run_pipeline(args)

@@ -112,7 +112,9 @@ def pick_improvement_goal(file_ctx: FileContext, func_name: str) -> str:
     docstring = func_info.get('docstring', '')
 
     # Heuristic: pick based on what's missing
-    if not any(':' in a for a in args):  # No type hints
+    # Check if function has type annotations (look at source, not arg names)
+    has_annotations = func_info.get('has_annotations', False)
+    if not has_annotations:
         return "add type hints to function parameters and return type"
     if not docstring:
         return "improve the docstring with parameter descriptions and examples"
@@ -430,6 +432,11 @@ def run_self_modify(args):
         print(f"\n[Auto] Found {len(targets)} modifiable targets")
         targets = targets[:args.max_patches]
     elif args.target and args.function:
+        # Check protection even for manual targets
+        norm_target = args.target.replace('\\', '/')
+        if norm_target in PROTECTED_FILES:
+            print(f"ERROR: {args.target} is a protected file. Cannot modify.")
+            return
         targets = [(args.target, args.function)]
     else:
         print("ERROR: Specify --target/--function or --auto")
@@ -441,9 +448,11 @@ def run_self_modify(args):
     print(f"{'=' * 60}\n")
 
     for i, (target_path, func_name) in enumerate(targets):
-        goal = args.goal or pick_improvement_goal(
-            introspector.get_file_context(target_path), func_name
-        )
+        file_ctx = introspector.get_file_context(target_path)
+        if file_ctx is None:
+            print(f"  [Skip] Could not load {target_path}")
+            continue
+        goal = args.goal or pick_improvement_goal(file_ctx, func_name)
 
         print(f"\n--- Round {i+1}/{len(targets)} ---")
         result = self_modify_round(
@@ -458,6 +467,8 @@ def run_self_modify(args):
         results.append(result)
 
         # Create DPO pair from the result
+        # When test passes: chosen = new code (committed), rejected = original
+        # When test fails: chosen = original (safe), rejected = broken patch
         if result.chosen_response and result.rejected_response:
             prompt = (f"Improve the function `{func_name}` in "
                       f"`{target_path}`. Goal: {goal}")
@@ -468,12 +479,12 @@ def run_self_modify(args):
                 chosen_result=ExecutionResult(
                     code=result.chosen_response, exit_code=0,
                     stdout='', stderr='', duration_ms=0,
-                    reward=3.0 if result.test_passed else -1.0,
+                    reward=3.0 if result.test_passed else 1.0,
                 ),
                 rejected_result=ExecutionResult(
                     code=result.rejected_response, exit_code=1,
                     stdout='', stderr='', duration_ms=0,
-                    reward=-1.0 if result.test_passed else 3.0,
+                    reward=-1.0 if result.test_passed else -3.0,
                 ),
                 min_margin=0.5,
             )

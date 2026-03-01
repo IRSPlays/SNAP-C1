@@ -34,10 +34,13 @@ class CallGraphVisitor(ast.NodeVisitor):
         name = node.name
         docstring = ast.get_docstring(node) or ""
         args = [a.arg for a in node.args.args]
+        has_annotations = any(a.annotation is not None for a in node.args.args)
+        has_return_annotation = node.returns is not None
         self.functions[name] = {
             "lineno": node.lineno,
             "args": args,
             "docstring": docstring,
+            "has_annotations": has_annotations or has_return_annotation,
         }
         prev = self._current_func
         self._current_func = name

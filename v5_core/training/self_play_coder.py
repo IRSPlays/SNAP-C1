@@ -217,11 +217,11 @@ def mine_tasks_from_code(code_dir: str, max_tasks: int = 50) -> list[dict]:
         try:
             source = pyf.read_text(encoding='utf-8', errors='ignore')
             tree = _ast.parse(source)
-        except (SyntaxError, UnicodeDecodeError):
+        except (SyntaxError, UnicodeDecodeError, ValueError):
             continue
 
         for node in _ast.walk(tree):
-            if isinstance(node, _ast.FunctionDef) and len(tasks) < max_tasks:
+            if isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef)) and len(tasks) < max_tasks:
                 # Skip private/test/short functions
                 if node.name.startswith('_') or node.name.startswith('test'):
                     continue
@@ -341,6 +341,12 @@ def self_play_round(
 
 def _strip_code_blocks(text: str) -> str:
     """Remove markdown ```python ... ``` wrapping if present."""
+    import re
+    # Try to extract the first fenced code block
+    m = re.search(r'```(?:python)?\s*\n(.*?)```', text, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    # Fallback: strip leading/trailing backtick lines
     lines = text.strip().split('\n')
     if lines and lines[0].strip().startswith('```'):
         lines = lines[1:]
@@ -416,7 +422,7 @@ def run_self_play(args):
 
         if pair is not None:
             # Write to buffer
-            writer.add_pair(
+            added = writer.add_pair(
                 prompt=pair['prompt'],
                 chosen_code=pair['chosen'],
                 rejected_code=pair['rejected'],
@@ -430,7 +436,8 @@ def run_self_play(args):
                 ),
                 min_margin=0.5,
             )
-            generated += 1
+            if added:
+                generated += 1
             curriculum.record(difficulty, success=True)
             status = "OK"
         else:
