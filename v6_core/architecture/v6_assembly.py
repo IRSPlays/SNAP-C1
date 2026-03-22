@@ -245,3 +245,32 @@ def build_v6_small(use_skip: bool = True, dropout: float = 0.0) -> V6ResonanceMo
         vocab_size=100279, K_hash=8, d_hash=64,
         dropout=dropout, use_skip=use_skip,
     )
+
+
+def build_v6_rtx6000(use_skip: bool = True, dropout: float = 0.0) -> V6ResonanceModel:
+    """
+    Build V6 optimized for RTX 6000 Ada (48GB VRAM).
+    
+    d_model=2048, n_blocks=16 → ~800M params
+    Fits with: fp16 + gradient checkpointing + batch 8-16
+    """
+    return V6ResonanceModel(
+        d_model=2048, n_blocks=16, n_heads=16,
+        window_size=256, max_seq_len=2048,
+        vocab_size=50257, K_hash=8, d_hash=256,
+        dropout=dropout, use_skip=use_skip,
+    )
+
+
+def build_v6_large(use_skip: bool = True, dropout: float = 0.0) -> V6ResonanceModel:
+    """
+    Build large V6 for high-end GPUs (RTX 6000 Ada 48GB, A100 80GB).
+    
+    d_model=2560, n_blocks=20 → ~1B params
+    """
+    return V6ResonanceModel(
+        d_model=2560, n_blocks=20, n_heads=20,
+        window_size=256, max_seq_len=2048,
+        vocab_size=50257, K_hash=8, d_hash=256,
+        dropout=dropout, use_skip=use_skip,
+    )

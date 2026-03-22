@@ -34,7 +34,20 @@ from v6_core.architecture.tool_melting import (
     ToolMeltingEngine, ToolSynthesizer, MeltedTool, PrimitiveRegistry,
     ToolMeltingWrapper, PRIMITIVES
 )
-from v6_core.architecture.v6_assembly import V6ResonanceModel, build_v6_local, build_v6_small
+from v6_core.architecture.v6_assembly import (
+    V6ResonanceModel, build_v6_local, build_v6_small,
+    build_v6_rtx6000, build_v6_large
+)
+from v6_core.architecture.nexus_v6 import (
+    NexusV6, NexusBlock,
+    build_nexus_small, build_nexus_medium, build_nexus_large,
+    # Novel components
+    EntanglementMixer, LatentConceptExpert, DepthAdaptiveGate,
+    SelfEvolvingHebbianLayer, AdaptiveMambaAttentionHybrid,
+    EvolutionaryPooling, MambaSSM,
+    # NEW: 2025-2026 research components
+    TreeGuidedEvolution, WSDFunction, WSDTrainer
+)
 
 __all__ = [
     # DML ops
@@ -67,4 +80,13 @@ __all__ = [
     'ToolMeltingWrapper', 'PRIMITIVES',
     # Assembly
     'V6ResonanceModel', 'build_v6_local', 'build_v6_small',
+    'build_v6_rtx6000', 'build_v6_large',
+    # NEXUS - Novel Architecture
+    'NexusV6', 'NexusBlock',
+    'build_nexus_small', 'build_nexus_medium', 'build_nexus_large',
+    'EntanglementMixer', 'LatentConceptExpert', 'DepthAdaptiveGate',
+    'SelfEvolvingHebbianLayer', 'AdaptiveMambaAttentionHybrid',
+    'EvolutionaryPooling', 'MambaSSM',
+    # NEW: 2025-2026 research components
+    'TreeGuidedEvolution', 'WSDFunction', 'WSDTrainer',
 ]

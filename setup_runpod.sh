@@ -1,21 +1,22 @@
 #!/bin/bash
-# V6 WHORMHOLE - RunPod Setup Script
-# ==================================
+# V6 WHORMHOLE - RunPod Setup Script (RTX 6000 Ada 48GB)
+# ======================================================
 
 set -e
 
 echo "==================================="
 echo "V6 WHORMHOLE - RunPod Setup"
 echo "==================================="
+echo "Target: RTX 6000 Ada 48GB"
 
 # Check GPU
 echo ""
 echo "GPU Info:"
 nvidia-smi
 
-# Install PyTorch with CUDA
+# Install PyTorch with CUDA 12.x
 echo ""
-echo "Installing PyTorch with CUDA..."
+echo "Installing PyTorch with CUDA 12.1..."
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # Upgrade pip
@@ -31,7 +32,7 @@ pip install transformers datasets accelerate peft bitsandbytes trl
 # Install V6 requirements
 echo ""
 echo "Installing V6 requirements..."
-pip install rich loguru pyyaml jsonlines rouge-score nltk tqdm
+pip install rich loguru pyyaml jsonlines rouge-score nltk tqdm sentence-transformers
 
 # Verify CUDA
 echo ""
@@ -41,7 +42,11 @@ python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA av
 # Test GPU
 echo ""
 echo "Testing GPU..."
-python -c "import torch; torch.cuda.get_device_name(0); print(f'GPU: {torch.cuda.get_device_name(0)}'); print(f'VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB')"
+python -c "
+import torch
+print(f'GPU: {torch.cuda.get_device_name(0)}')
+print(f'VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB')
+"
 
 # Clone or update repository
 echo ""
@@ -62,8 +67,18 @@ echo "Testing V6 imports..."
 python -c "
 import sys
 sys.path.insert(0, '.')
-from v6_core.architecture import V6ResonanceModel, build_v6_local
+from v6_core.architecture import (
+    V6ResonanceModel, build_v6_local, build_v6_small,
+    build_v6_rtx6000, build_v6_large
+)
+from v6_core.architecture.plastic_weights import PlasticLinear
+from v6_core.architecture.agentic_coding import CodingAgent, SelfImprovingWrapper
 print('V6 imports OK!')
+print('Available models:')
+print('  - build_v6_small: ~60M params')
+print('  - build_v6_local: ~138M params')
+print('  - build_v6_rtx6000: ~800M params (optimized for 48GB)')
+print('  - build_v6_large: ~1B params (for A100 80GB)')
 "
 
 # Run GPU test
@@ -76,9 +91,11 @@ echo "==================================="
 echo "Setup complete!"
 echo "==================================="
 echo ""
-echo "To start training:"
-echo "  python v6_core/training/v6_gpu_train.py"
+echo "Training options:"
+echo "  1. Quick test: python v6_core/training/test_gpu.py"
+echo "  2. Full training: python v6_core/training/v6_full_train.py"
+echo "  3. Self-learning: python v6_core/training/v6_self_learning.py"
 echo ""
-echo "To continue training from checkpoint:"
-echo "  python v6_core/training/v6_resume_train.py"
+echo "For continuous self-learning on coding tasks:"
+echo "  python v6_core/training/v6_self_learning.py --continuous"
 echo ""

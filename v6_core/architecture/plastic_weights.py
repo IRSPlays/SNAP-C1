@@ -23,13 +23,24 @@ class EligibilityTrace:
     This is what makes Hebbian learning work in biological brains.
     
     The trace decays over time (forgetting), but is reinforced by repeated co-activation.
+    
+    Enhanced with:
+    - Fast learning mode for rapid adaptation
+    - Normalized updates for stability
+    - Trace statistics for monitoring
     """
-    def __init__(self, shape: tuple, decay: float = 0.95, learning_rate: float = 0.01):
+    def __init__(self, shape: tuple, decay: float = 0.95, learning_rate: float = 0.01,
+                 fast_mode: bool = True):
         self.decay = decay
         self.lr = learning_rate
-        self.shape = shape  # Store shape for later use
-        # Trace: correlation between input and output activation
+        self.shape = shape
+        self.fast_mode = fast_mode
         self.trace = torch.zeros(shape)
+        self.update_count = 0
+        
+        # Running statistics for normalization
+        self.running_mean = torch.zeros(shape)
+        self.running_var = torch.ones(shape)
     
     def update(self, input_activation: torch.Tensor, output_activation: torch.Tensor):
         """
@@ -41,27 +52,43 @@ class EligibilityTrace:
         """
         # Flatten spatial dimensions if needed
         if len(input_activation.shape) > 2:
-            input_flat = input_activation.view(-1, self.shape[1])  # [N, in_features]
+            input_flat = input_activation.view(-1, self.shape[1])
         else:
             input_flat = input_activation
         
         if len(output_activation.shape) > 2:
-            output_flat = output_activation.view(-1, self.shape[0])  # [N, out_features]
+            output_flat = output_activation.view(-1, self.shape[0])
         else:
             output_flat = output_activation
         
-        # Compute correlation
-        batch_corr = torch.zeros(self.shape, device=input_activation.device)
+        # Fast mode: batched outer product without loop
+        if self.fast_mode and input_flat.shape[0] > 1:
+            # [B, out].unsqueeze(-1) * [B, in].unsqueeze(1) -> [B, out, in]
+            # Then mean over batch
+            input_expanded = input_flat.unsqueeze(1)  # [B, 1, in]
+            output_expanded = output_flat.unsqueeze(2)  # [B, out, 1]
+            batch_corr = (output_expanded * input_expanded).mean(dim=0)  # [out, in]
+        else:
+            # Single sample or slow mode: loop
+            batch_corr = torch.zeros(self.shape, device=input_activation.device)
+            for b in range(input_flat.shape[0]):
+                op = output_flat[b].unsqueeze(-1) * input_flat[b].unsqueeze(0)
+                batch_corr = batch_corr + op
+            batch_corr = batch_corr / max(1, input_flat.shape[0])
         
-        for b in range(input_flat.shape[0]):
-            # Outer product: [out, in]
-            op = output_flat[b].unsqueeze(-1) * input_flat[b].unsqueeze(0)
-            batch_corr = batch_corr + op
+        # Update running statistics for online normalization
+        self.update_count += 1
+        delta = batch_corr.detach() - self.running_mean
+        self.running_mean += delta / self.update_count
+        delta2 = batch_corr.detach() - self.running_mean
+        self.running_var += delta * delta2
         
-        batch_corr = batch_corr / max(1, input_flat.shape[0])
+        # Normalize correlation
+        std = torch.sqrt(self.running_var + 1e-8)
+        normalized_corr = (batch_corr - self.running_mean) / std
         
         # Decay old trace, add new correlation
-        self.trace = self.decay * self.trace + (1 - self.decay) * batch_corr.detach()
+        self.trace = self.decay * self.trace + (1 - self.decay) * normalized_corr.detach()
     
     def get_trace(self) -> torch.Tensor:
         return self.trace
