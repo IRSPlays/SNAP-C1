@@ -40,11 +40,11 @@ from v6_core.architecture.v6_assembly import (
 )
 from v6_core.architecture.nexus_v6 import (
     NexusV6, NexusBlock,
-    build_nexus_small, build_nexus_medium, build_nexus_large,
+    build_nexus_tiny, build_nexus_small, build_nexus_medium, build_nexus_large,
     # Novel components
-    EntanglementMixer, LatentConceptExpert, DepthAdaptiveGate,
-    SelfEvolvingHebbianLayer, AdaptiveMambaAttentionHybrid,
-    EvolutionaryPooling, MambaSSM,
+    EntanglementMixer, DepthAdaptiveGate, SelfEvolvingHebbianLayer,
+    EvolutionaryPooling, MambaSSM,     FlashAttention, TopKMoELayer,
+    AdaptiveHybridProcessor,
     # NEW: 2025-2026 research components
     TreeGuidedEvolution, WSDFunction, WSDTrainer
 )
@@ -84,9 +84,9 @@ __all__ = [
     # NEXUS - Novel Architecture
     'NexusV6', 'NexusBlock',
     'build_nexus_small', 'build_nexus_medium', 'build_nexus_large',
-    'EntanglementMixer', 'LatentConceptExpert', 'DepthAdaptiveGate',
-    'SelfEvolvingHebbianLayer', 'AdaptiveMambaAttentionHybrid',
-    'EvolutionaryPooling', 'MambaSSM',
+    'EntanglementMixer', 'DepthAdaptiveGate', 'SelfEvolvingHebbianLayer',
+    'EvolutionaryPooling', 'MambaSSM', 'FlashAttention', 'TopKMoELayer',
+    'AdaptiveHybridProcessor',
     # NEW: 2025-2026 research components
     'TreeGuidedEvolution', 'WSDFunction', 'WSDTrainer',
 ]
