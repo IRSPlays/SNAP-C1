@@ -1,0 +1,165 @@
+[2026-03-29 17:14:07] ============================================================
+[2026-03-29 17:14:07] DUAL-AGENT AUTONOMOUS RESEARCH SYSTEM STARTED
+[2026-03-29 17:14:07] Research Agent + Brutal Critic Agent
+[2026-03-29 17:14:07] ============================================================
+[2026-03-29 17:14:07] 
+============================================================
+[2026-03-29 17:14:07] CYCLE #1: RESEARCH AGENT PHASE
+[2026-03-29 17:14:07] ============================================================
+[2026-03-29 17:24:08] Research Agent timed out (10 min limit)
+[2026-03-29 17:24:08] 
+============================================================
+[2026-03-29 17:24:08] CYCLE #1: BRUTAL CRITIC PHASE
+[2026-03-29 17:24:12] ============================================================
+[2026-03-29 17:28:27] ============================================================
+[2026-03-29 17:28:27] DUAL-AGENT AUTONOMOUS RESEARCH SYSTEM STARTED
+[2026-03-29 17:28:27] Research Agent + Brutal Critic Agent
+[2026-03-29 17:28:27] ============================================================
+[2026-03-29 17:28:27] 
+============================================================
+[2026-03-29 17:28:27] CYCLE #1: RESEARCH AGENT PHASE
+[2026-03-29 17:28:27] ============================================================
+[2026-03-29 17:29:01] Critic Agent completed
+[2026-03-29 17:29:01] 
+CYCLE #1 COMPLETE
+[2026-03-29 17:29:01] 
+Error in cycle: 'charmap' codec can't encode character '\u2717' in position 32: character maps to <undefined>
+[2026-03-29 17:29:01] Retrying in 60 seconds...
+[2026-03-29 17:30:01] 
+============================================================
+[2026-03-29 17:30:01] CYCLE #1: RESEARCH AGENT PHASE
+[2026-03-29 17:30:01] ============================================================
+[2026-03-29 17:36:05] Research Agent stdout:
+## Cycle #1 Complete
+
+**Changes Made:**
+
+1. **Fixed validation batch sampling** (CRITICAL) - Validation was evaluating the same batch 5 times. Now properly iterates through different batches.
+
+2. **Fixed weight decay** (CRITICAL) - Was applying 0.1 decay to ALL parameters including biases and norms. Now separates into decay/no-decay groups per standard ML practice.
+
+3. **Added proper checkpointing** (CRITICAL) - Now saves optimizer state, scheduler state, step count, and history alongside model weights. Training can be resumed.
+
+4. **Attempted BOS/EOS fix** - Tiktoken's `cl100k_base` encoding genuinely doesn't have a separate BOS token. Latent bug but doesn't affect current training.
+
+**Files Changed:**
+- `nexus-r/nexus_v1/training/train_improved.py`
+- `nexus-r/nexus_v1/tokenizer.py`
+- `research_result_1.md` (new)
+
+**Tests Passed:**
+- Architecture test (8.0M params, forward/backward/generation all OK)
+- Tokenizer test (13 tokens, vocab=100277)
+- TextDataset test (31 sequences created correctly)
+
+**Commit:** `a9044d1`
+
+**Next cycle priorities** (from report):
+1. Fix TextDataset sliding window data loss
+2. Remove T5 init override
+3. Add logging integration
+
+[2026-03-29 17:36:05] Research Agent completed with code: 0
+[2026-03-29 17:36:05] 
+============================================================
+[2026-03-29 17:36:05] CYCLE #1: BRUTAL CRITIC PHASE
+[2026-03-29 17:36:05] ============================================================
+[2026-03-29 17:38:27] Research Agent timed out (10 min limit)
+[2026-03-29 17:38:27] 
+============================================================
+[2026-03-29 17:38:27] CYCLE #1: BRUTAL CRITIC PHASE
+[2026-03-29 17:38:27] ============================================================
+[2026-03-29 17:38:49] Critic Agent completed
+[2026-03-29 17:38:49] Critic Agent error: 'NoneType' object is not subscriptable
+[2026-03-29 17:38:49] 
+CYCLE #1 COMPLETE
+[2026-03-29 17:38:49] 
+Error in cycle: 'charmap' codec can't encode character '\u2713' in position 32: character maps to <undefined>
+[2026-03-29 17:38:49] Retrying in 60 seconds...
+[2026-03-29 17:39:50] 
+============================================================
+[2026-03-29 17:39:51] CYCLE #1: RESEARCH AGENT PHASE
+[2026-03-29 17:39:52] ============================================================
+[2026-03-29 17:40:39] Critic Agent completed
+[2026-03-29 17:40:39] 
+CYCLE #1 COMPLETE
+[2026-03-29 17:40:39] 
+Error in cycle: 'charmap' codec can't encode character '\u2717' in position 32: character maps to <undefined>
+[2026-03-29 17:40:39] Retrying in 60 seconds...
+[2026-03-29 17:41:39] 
+============================================================
+[2026-03-29 17:41:39] CYCLE #1: RESEARCH AGENT PHASE
+[2026-03-29 17:41:39] ============================================================
+[2026-03-29 17:50:04] Research Agent timed out (10 min limit)
+[2026-03-29 17:50:04] 
+============================================================
+[2026-03-29 17:50:04] CYCLE #1: BRUTAL CRITIC PHASE
+[2026-03-29 17:50:04] ============================================================
+[2026-03-29 17:51:58] Research Agent timed out (10 min limit)
+[2026-03-29 17:51:59] 
+============================================================
+[2026-03-29 17:51:59] CYCLE #1: BRUTAL CRITIC PHASE
+[2026-03-29 17:51:59] ============================================================
+[2026-03-29 17:56:26] ============================================================
+[2026-03-29 17:56:26] DUAL-AGENT AUTONOMOUS RESEARCH SYSTEM STARTED
+[2026-03-29 17:56:26] Research Agent + Brutal Critic Agent
+[2026-03-29 17:56:26] ============================================================
+[2026-03-29 17:56:26] 
+============================================================
+[2026-03-29 17:56:26] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 17:56:26] ============================================================
+[2026-03-29 17:56:26] 
+Error in cycle: name 'device' is not defined
+[2026-03-29 17:56:26] Retrying in 60 seconds...
+[2026-03-29 17:57:22] ============================================================
+[2026-03-29 17:57:22] DUAL-AGENT AUTONOMOUS RESEARCH SYSTEM STARTED
+[2026-03-29 17:57:22] Research Agent + Brutal Critic Agent
+[2026-03-29 17:57:22] ============================================================
+[2026-03-29 17:57:22] 
+============================================================
+[2026-03-29 17:57:22] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 17:57:22] ============================================================
+[2026-03-29 17:57:26] 
+============================================================
+[2026-03-29 17:57:26] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 17:57:26] ============================================================
+[2026-03-29 17:57:26] 
+Error in cycle: name 'device' is not defined
+[2026-03-29 17:57:26] Retrying in 60 seconds...
+[2026-03-29 17:58:04] ============================================================
+[2026-03-29 17:58:04] DUAL-AGENT AUTONOMOUS RESEARCH SYSTEM STARTED
+[2026-03-29 17:58:04] Research Agent + Brutal Critic Agent
+[2026-03-29 17:58:04] ============================================================
+[2026-03-29 17:58:04] 
+============================================================
+[2026-03-29 17:58:04] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 17:58:04] ============================================================
+[2026-03-29 17:58:26] 
+============================================================
+[2026-03-29 17:58:26] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 17:58:26] ============================================================
+[2026-03-29 17:58:26] 
+Error in cycle: name 'device' is not defined
+[2026-03-29 17:58:26] Retrying in 60 seconds...
+[2026-03-29 17:59:26] 
+============================================================
+[2026-03-29 17:59:26] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 17:59:26] ============================================================
+[2026-03-29 17:59:26] 
+Error in cycle: name 'device' is not defined
+[2026-03-29 17:59:26] Retrying in 60 seconds...
+[2026-03-29 18:00:28] 
+============================================================
+[2026-03-29 18:01:23] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 18:01:23] ============================================================
+[2026-03-29 18:01:23] 
+Error in cycle: name 'device' is not defined
+[2026-03-29 18:01:23] Retrying in 60 seconds...
+[2026-03-29 18:01:37] ============================================================
+[2026-03-29 18:01:37] DUAL-AGENT AUTONOMOUS RESEARCH SYSTEM STARTED
+[2026-03-29 18:01:37] Research Agent + Brutal Critic Agent
+[2026-03-29 18:01:37] ============================================================
+[2026-03-29 18:01:37] 
+============================================================
+[2026-03-29 18:01:37] CYCLE #2: RESEARCH AGENT PHASE
+[2026-03-29 18:01:37] ============================================================

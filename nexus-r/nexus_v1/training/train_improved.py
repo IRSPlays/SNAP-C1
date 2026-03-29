@@ -21,6 +21,19 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Setup DirectML for AMD RX 7600
+try:
+    import torch_directml
+    if torch_directml.is_available():
+        DEVICE = torch_directml.device()
+        print(f"Using AMD RX 7600 GPU: {DEVICE}")
+    else:
+        DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print(f"DirectML not available, using: {DEVICE}")
+except ImportError:
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"torch_directml not installed, using: {DEVICE}")
+
 from nexus_v1 import NexusV7, RMSNorm
 from tokenizer import TiktokenTokenizer, download_tiny_shakespeare
 from scheduler import create_scheduler
@@ -42,9 +55,12 @@ class TextDataset(Dataset):
         print(f"Got {len(self.tokens)} tokens")
 
         # Create overlapping sequences using sliding window
+        # FIX: Use full range(0, len(tokens)) instead of range(0, len(tokens) - stride)
+        # The old code lost up to (stride-1) tokens at the end of the corpus
         self.sequences = []
-        for i in range(0, len(self.tokens) - stride, stride):
-            seq = self.tokens[i:i + max_len]
+        for i in range(0, len(self.tokens), stride):
+            end_idx = min(i + max_len, len(self.tokens))
+            seq = self.tokens[i:end_idx]
             # Pad last sequence if needed
             if len(seq) < max_len:
                 seq = seq + [tokenizer.pad_token_id] * (max_len - len(seq))
@@ -101,7 +117,7 @@ def test_improved_architecture():
     print("Testing Improved NEXUS V7")
     print("="*60)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = DEVICE
     print(f"Device: {device}")
 
     # Create model
@@ -160,8 +176,11 @@ def train_improved(
     peak_lr: float = 3e-4,
     warmup_steps: int = 200,
     stable_steps: int = 1000,
-    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device=None
 ):
+    """Train improved model."""
+    if device is None:
+        device = DEVICE
     """Train improved model."""
     print("="*60)
     print("Training Improved NEXUS V7 with Tiktoken BPE")
@@ -251,10 +270,14 @@ def train_improved(
     best_val_loss = float('inf')
     history = {'train_loss': [], 'val_loss': [], 'lr': []}
 
+    # FIX: Use iterator to allow resetting when DataLoader exhausts
+    data_iter = iter(train_loader)
     while step < num_steps:
-        for batch in train_loader:
-            if step >= num_steps:
-                break
+        try:
+            batch = next(data_iter)
+        except StopIteration:
+            data_iter = iter(train_loader)
+            batch = next(data_iter)
 
             model.train()
             input_ids = batch['input_ids'].to(device)
@@ -276,20 +299,21 @@ def train_improved(
             history['lr'].append((step, optimizer.param_groups[0]['lr']))
 
             # Validation
-            if step % 100 == 0:
+            if step > 0 and step % 100 == 0:
                 model.eval()
-                val_losses = []
-                val_iter = iter(val_loader)
-                for _ in range(min(5, len(val_loader))):  # Quick validation with DIFFERENT batches
-                    try:
-                        val_batch = next(val_iter)
-                    except StopIteration:
-                        val_iter = iter(val_loader)  # Reset if we run out
-                        val_batch = next(val_iter)
-                    val_input = val_batch['input_ids'].to(device)
-                    val_result = model(val_input, labels=val_input)
-                    val_losses.append(val_result['loss'].item())
-                val_loss = sum(val_losses) / len(val_losses)
+                with torch.no_grad():  # FIX: Prevent gradient computation during validation
+                    val_losses = []
+                    val_iter = iter(val_loader)
+                    for _ in range(min(5, len(val_loader))):  # Quick validation with DIFFERENT batches
+                        try:
+                            val_batch = next(val_iter)
+                        except StopIteration:
+                            val_iter = iter(val_loader)  # Reset if we run out
+                            val_batch = next(val_iter)
+                        val_input = val_batch['input_ids'].to(device)
+                        val_result = model(val_input, labels=val_input)
+                        val_losses.append(val_result['loss'].item())
+                    val_loss = sum(val_losses) / len(val_losses)
 
                 history['val_loss'].append((step, val_loss))
 
@@ -332,6 +356,26 @@ def train_improved(
     print("Saved final checkpoint to outputs/final_model.pt")
 
     return model, tokenizer, history
+
+
+def load_checkpoint(checkpoint_path: str, model, optimizer, scheduler):
+    """
+    Load a checkpoint to resume training.
+
+    Args:
+        checkpoint_path: Path to the checkpoint file
+        model: The model to load state into
+        optimizer: The optimizer to load state into
+        scheduler: The scheduler to load state into
+
+    Returns:
+        tuple: (step, best_val_loss, history)
+    """
+    checkpoint = torch.load(checkpoint_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    return checkpoint['step'], checkpoint['best_val_loss'], checkpoint['history']
 
 
 def generate_text(model, tokenizer, prompt: str, max_new_tokens: int = 100):

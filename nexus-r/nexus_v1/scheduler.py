@@ -41,6 +41,7 @@ class WSDScheduler(_LRScheduler):
         peak_lr: float = 1e-3,
         min_lr: float = 1e-5,
         warmup_start_lr: float = 0.0,
+        power: float = 1.0,
         last_epoch: int = -1
     ):
         self.warmup_steps = warmup_steps
@@ -49,6 +50,7 @@ class WSDScheduler(_LRScheduler):
         self.peak_lr = peak_lr
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
+        self.power = power  # Paper suggests 0.5-2.0 range
 
         # Total training steps
         self.total_steps = warmup_steps + stable_steps + decay_steps
@@ -57,24 +59,26 @@ class WSDScheduler(_LRScheduler):
 
     def get_lr(self):
         step = self.last_epoch
+        num_groups = len(self.optimizer.param_groups)
 
         if step < self.warmup_steps:
             # Linear warmup
             alpha = step / self.warmup_steps
-            return [self.warmup_start_lr + (self.peak_lr - self.warmup_start_lr) * alpha]
+            lr = self.warmup_start_lr + (self.peak_lr - self.warmup_start_lr) * alpha
         elif step < self.warmup_steps + self.stable_steps:
             # Stable phase - constant LR
-            return [self.peak_lr]
+            lr = self.peak_lr
         else:
             # Power-law decay
             decay_step = step - self.warmup_steps - self.stable_steps
             decay_ratio = decay_step / self.decay_steps
             # Power-law decay: lr = peak_lr * (1 - decay_ratio)^power
-            # Standard power = 1.0 (linear decay), but paper suggests 0.5-2.0
-            power = 1.0
-            decay_factor = (1 - min(decay_ratio, 1.0)) ** power
-            new_lr = self.min_lr + (self.peak_lr - self.min_lr) * decay_factor
-            return [new_lr]
+            # Paper suggests power in 0.5-2.0 range (default 1.0 = linear decay)
+            decay_factor = (1 - min(decay_ratio, 1.0)) ** self.power
+            lr = self.min_lr + (self.peak_lr - self.min_lr) * decay_factor
+
+        # Return one LR per param group
+        return [lr] * num_groups
 
     def state_dict(self):
         """Return state with current step for checkpointing."""
@@ -142,6 +146,8 @@ class InverseSquareRootScheduler(_LRScheduler):
 
     def get_lr(self):
         step = max(self.last_epoch, 1)
+        num_groups = len(self.optimizer.param_groups)
+
         if step < self.warmup_steps:
             # Linear warmup
             alpha = step / self.warmup_steps
@@ -152,7 +158,8 @@ class InverseSquareRootScheduler(_LRScheduler):
             decayed = self.initial_lr / math.sqrt(max(self.warmup_steps, step))
             base_lrs = [group['initial_lr'] for group in self.optimizer.param_groups]
             peak_lr = base_lrs[0]  # Assume same peak for all
-            return [peak_lr / math.sqrt(max(self.warmup_steps, step))]
+            lr = peak_lr / math.sqrt(max(self.warmup_steps, step))
+            return [lr] * num_groups
 
 
 class PolynomialDecayScheduler(_LRScheduler):
