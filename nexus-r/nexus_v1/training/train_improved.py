@@ -206,11 +206,24 @@ def train_improved(
     params = sum(p.numel() for p in model.parameters())
     print(f"Model params: {params:,} ({params/1e6:.1f}M)")
 
-    # Create optimizer with weight decay
+    # Create optimizer with weight decay - separate decay groups
+    # Standard practice: DON'T apply weight decay to biases and RMSNorm weights
+    decay_params = []
+    no_decay_params = []
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            # Apply weight decay to weights only (Linear, Embedding)
+            if 'bias' in name or 'norm' in name or 'rmsnorm' in name.lower():
+                no_decay_params.append(param)
+            else:
+                decay_params.append(param)
+
     optimizer = torch.optim.AdamW(
-        model.parameters(),
+        [
+            {'params': decay_params, 'weight_decay': 0.1},
+            {'params': no_decay_params, 'weight_decay': 0.0}
+        ],
         lr=peak_lr,
-        weight_decay=0.1,  # Strong weight decay for regularization
         betas=(0.9, 0.95)
     )
 
@@ -266,8 +279,13 @@ def train_improved(
             if step % 100 == 0:
                 model.eval()
                 val_losses = []
-                for _ in range(5):  # Quick validation
-                    val_batch = next(iter(val_loader))
+                val_iter = iter(val_loader)
+                for _ in range(min(5, len(val_loader))):  # Quick validation with DIFFERENT batches
+                    try:
+                        val_batch = next(val_iter)
+                    except StopIteration:
+                        val_iter = iter(val_loader)  # Reset if we run out
+                        val_batch = next(val_iter)
                     val_input = val_batch['input_ids'].to(device)
                     val_result = model(val_input, labels=val_input)
                     val_losses.append(val_result['loss'].item())
@@ -282,16 +300,36 @@ def train_improved(
                 print(f"Step {step:5d}: train={train_loss:.4f} ({train_ppl:.1f}), "
                       f"val={val_loss:.4f} ({val_ppl:.1f}), lr={lr:.2e}")
 
-                # Save best
+                # Save best checkpoint with optimizer/scheduler state for resumability
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
-                    torch.save(model.state_dict(), 'outputs/best_model.pt')
+                    checkpoint = {
+                        'step': step,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'scheduler_state_dict': scheduler.state_dict(),
+                        'best_val_loss': best_val_loss,
+                        'history': history
+                    }
+                    torch.save(checkpoint, 'outputs/best_model.pt')
                     print(f"  -> Saved best model (val_loss={val_loss:.4f})")
 
             step += 1
 
     print(f"\nTraining complete! Best val_loss: {best_val_loss:.4f}")
     print(f"Final perplexity: {math.exp(best_val_loss):.1f}")
+
+    # Save final checkpoint with full state
+    final_checkpoint = {
+        'step': step,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'scheduler_state_dict': scheduler.state_dict(),
+        'best_val_loss': best_val_loss,
+        'history': history
+    }
+    torch.save(final_checkpoint, 'outputs/final_model.pt')
+    print("Saved final checkpoint to outputs/final_model.pt")
 
     return model, tokenizer, history
 

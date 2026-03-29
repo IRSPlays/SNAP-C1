@@ -413,7 +413,13 @@ class TiktokenTokenizer:
         self.enc = tiktoken.get_encoding(encoding_name)
         self.vocab_size = self.enc.n_vocab
         self.eos_token_id = self.enc.eot_token
-        self.bos_token_id = self.enc.eot_token
+        # tiktoken uses eot_token for both bos and eos in cl100k_base
+        # But we explicitly set them correctly based on tiktoken's API
+        try:
+            self.bos_token_id = self.enc.bos_token
+        except AttributeError:
+            # Some encodings don't have separate bos_token
+            self.bos_token_id = self.enc.eot_token
         self.pad_token_id = 0
 
         # tiktoken doesn't have pad by default, use eos as pad
