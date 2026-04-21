@@ -3,6 +3,7 @@ Evaluate Nexus-R V1 checkpoint against the held-out eval suite.
 Runs greedy (temp=0.01) and sampled (temp=0.7) generation on all examples.
 Reports accuracy per category and overall.
 """
+import argparse
 import json
 import os
 import sys
@@ -10,15 +11,18 @@ import torch
 import tiktoken
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-from nexus_v1.architecture import NexusR, NexusConfig
+from nexus_v1.architecture import NexusR
 
 
-def load_model(checkpoint_path, device):
+def load_model(checkpoint_path, device, strict=True):
     """Load model from checkpoint."""
+    if not os.path.exists(checkpoint_path):
+        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
+
     ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
     cfg = ckpt['config']
     model = NexusR(cfg).to(device)
-    model.load_state_dict(ckpt['model_state_dict'], strict=False)
+    model.load_state_dict(ckpt['model_state_dict'], strict=strict)
     model.eval()
     bpe_to_local = ckpt['bpe_to_local']
     local_to_bpe = ckpt['local_to_bpe']
@@ -36,7 +40,8 @@ def generate_answer(model, enc, device, prompt_text, max_tokens=100, temperature
     prompt_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
     generated = model.generate(prompt_tensor, max_new_tokens=max_tokens,
-                               temperature=temperature, top_k=top_k)
+                               temperature=temperature, top_k=top_k,
+                               eos_token_id=eot_local)
     gen_local_ids = generated[0].tolist()[len(prompt_ids):]
 
     if eot_local in gen_local_ids:
@@ -81,12 +86,15 @@ def score_answer(generated, expected):
     return 0.0
 
 
-def evaluate_suite(checkpoint_path, eval_path, temperature=0.01, top_k=1):
+def evaluate_suite(checkpoint_path, eval_path, temperature=0.01, top_k=1, strict=True):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Device: {device}")
 
     enc = tiktoken.get_encoding('gpt2')
-    model, cfg, bpe_to_local, local_to_bpe = load_model(checkpoint_path, device)
+    if not os.path.exists(eval_path):
+        raise FileNotFoundError(f"Evaluation suite not found: {eval_path}")
+
+    model, cfg, bpe_to_local, local_to_bpe = load_model(checkpoint_path, device, strict=strict)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Model: {total_params:,} params, vocab={cfg.vocab_size}")
 
@@ -161,12 +169,49 @@ def evaluate_suite(checkpoint_path, eval_path, temperature=0.01, top_k=1):
     return results
 
 
+def parse_args():
+    default_checkpoint = os.path.join(os.path.dirname(__file__), '..', 'checkpoints', 'nexus_r_v1_best.pt')
+    default_eval_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'diverse_qa', 'eval_suite.jsonl')
+
+    parser = argparse.ArgumentParser(description="Evaluate Nexus-R V1 on the held-out suite")
+    parser.add_argument('--checkpoint', default=default_checkpoint,
+                        help='Path to the checkpoint to evaluate')
+    parser.add_argument('--eval-path', default=default_eval_path,
+                        help='Path to the JSONL evaluation suite')
+    parser.add_argument('--greedy-temperature', type=float, default=0.01,
+                        help='Temperature for the greedy-style pass')
+    parser.add_argument('--greedy-top-k', type=int, default=1,
+                        help='Top-k for the greedy-style pass')
+    parser.add_argument('--sampled-temperature', type=float, default=0.7,
+                        help='Temperature for the sampled pass')
+    parser.add_argument('--sampled-top-k', type=int, default=40,
+                        help='Top-k for the sampled pass')
+    parser.add_argument('--skip-sampled', action='store_true',
+                        help='Skip the sampled evaluation pass')
+    parser.add_argument('--relaxed-load', action='store_true',
+                        help='Allow non-strict checkpoint loading')
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    ckpt_path = os.path.join(os.path.dirname(__file__), '..', 'checkpoints', 'nexus_r_v1_best.pt')
-    eval_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'diverse_qa', 'eval_suite.jsonl')
+    args = parse_args()
+    strict = not args.relaxed_load
 
-    print("\n=== GREEDY EVALUATION (temp=0.01) ===\n")
-    greedy_results = evaluate_suite(ckpt_path, eval_path, temperature=0.01, top_k=1)
+    print(f"\n=== GREEDY EVALUATION (temp={args.greedy_temperature}) ===\n")
+    greedy_results = evaluate_suite(
+        args.checkpoint,
+        args.eval_path,
+        temperature=args.greedy_temperature,
+        top_k=args.greedy_top_k,
+        strict=strict,
+    )
 
-    print("\n=== SAMPLED EVALUATION (temp=0.7) ===\n")
-    sampled_results = evaluate_suite(ckpt_path, eval_path, temperature=0.7, top_k=40)
+    if not args.skip_sampled:
+        print(f"\n=== SAMPLED EVALUATION (temp={args.sampled_temperature}) ===\n")
+        sampled_results = evaluate_suite(
+            args.checkpoint,
+            args.eval_path,
+            temperature=args.sampled_temperature,
+            top_k=args.sampled_top_k,
+            strict=strict,
+        )

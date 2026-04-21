@@ -20,6 +20,7 @@ import os
 import sys
 import time
 import math
+import random
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
@@ -103,6 +104,23 @@ class TextDataset(Dataset):
         return chunk[:-1], chunk[1:]  # input, target
 
 
+@torch.no_grad()
+def evaluate(model, loader, device):
+    model.eval()
+    total_loss = 0.0
+    n_batches = 0
+    for input_ids, labels in loader:
+        input_ids = input_ids.to(device)
+        labels = labels.to(device)
+        out = model(input_ids, labels=labels)
+        total_loss += out['loss'].item()
+        n_batches += 1
+    model.train()
+    if n_batches == 0:
+        return float('inf')
+    return total_loss / n_batches
+
+
 # ============================================================
 # Training loop
 # ============================================================
@@ -119,6 +137,9 @@ def train():
     data_path = os.path.normpath(data_path)
     print(f"\nLoading data from: {data_path}")
 
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"Training data not found: {data_path}")
+
     texts = []
     with open(data_path, 'r', encoding='utf-8') as f:
         for line in f:
@@ -128,15 +149,30 @@ def train():
 
     print(f"  Loaded {len(texts)} examples")
 
+    rng = random.Random(42)
+    rng.shuffle(texts)
+    n_eval = max(1, len(texts) // 10) if len(texts) > 1 else 0
+    eval_texts = texts[:n_eval]
+    train_texts = texts[n_eval:] if n_eval else texts
+    if not train_texts:
+        train_texts = texts
+        eval_texts = texts[:1]
+    print(f"  Split: {len(train_texts)} train, {len(eval_texts)} eval")
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"\nDevice: {device}")
+
     # ---- Tokenizer ----
     print("\nBuilding tokenizer...")
     tokenizer = CharTokenizer()
-    tokenizer.fit(texts)
+    tokenizer.fit(train_texts + eval_texts)
 
     # ---- Dataset ----
     seq_len = 256
-    dataset = TextDataset(texts, tokenizer, seq_len=seq_len)
-    loader = DataLoader(dataset, batch_size=8, shuffle=True, drop_last=True)
+    train_dataset = TextDataset(train_texts, tokenizer, seq_len=seq_len)
+    eval_dataset = TextDataset(eval_texts, tokenizer, seq_len=seq_len)
+    loader = DataLoader(train_dataset, batch_size=8, shuffle=True, drop_last=True)
+    eval_loader = DataLoader(eval_dataset, batch_size=8, shuffle=False, drop_last=False)
 
     # ---- Model ----
     print("\nBuilding model...")
@@ -152,28 +188,62 @@ def train():
         max_seq_len=seq_len,
         halt_threshold=0.001,
     )
-    model = NexusR(cfg)
+    model = NexusR(cfg).to(device)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"  Model: {total_params:,} params")
     print(f"  Config: d={cfg.d_model}, heads={cfg.n_heads}, "
           f"L_layers={cfg.L_layers}, L_cycles={cfg.L_cycles}, H={cfg.H_cycles}")
 
     # ---- Optimizer ----
-    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.01)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=10 * len(loader), eta_min=1e-5
+    decay_params = []
+    no_decay_params = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if param.dim() < 2 or name.endswith('bias') or 'norm' in name or 'embed' in name:
+            no_decay_params.append(param)
+        else:
+            decay_params.append(param)
+
+    optimizer = torch.optim.AdamW(
+        [
+            {'params': decay_params, 'weight_decay': 0.01},
+            {'params': no_decay_params, 'weight_decay': 0.0},
+        ],
+        lr=3e-4,
+        betas=(0.9, 0.95),
     )
 
-    # ---- Training ----
     n_epochs = 10
+    total_steps = max(1, n_epochs * len(loader))
+    warmup_steps = min(100, max(1, total_steps // 10))
+
+    def lr_schedule(step: int) -> float:
+        if step < warmup_steps:
+            return (step + 1) / warmup_steps
+        progress = (step - warmup_steps) / max(total_steps - warmup_steps, 1)
+        return 0.5 * (1 + math.cos(math.pi * progress))
+
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_schedule)
+
+    # ---- Training ----
     print(f"\nTraining for {n_epochs} epochs, {len(loader)} batches/epoch")
+    print(f"Validation batches: {len(eval_loader)}")
     print("-" * 60)
 
-    best_loss = float('inf')
-    epoch_losses = []
+    save_dir = os.path.join(os.path.dirname(__file__), '..', 'checkpoints')
+    os.makedirs(save_dir, exist_ok=True)
+    best_path = os.path.join(save_dir, 'nexus_r_v1_best.pt')
+    latest_path = os.path.join(save_dir, 'nexus_r_v1_latest.pt')
+
+    best_eval_loss = float('inf')
+    train_losses = []
+    eval_losses = []
 
     for epoch in range(n_epochs):
         model.train()
+        model._current_noise_scale = 0.0
+        model._current_label_smoothing = 0.0
         total_loss = 0.0
         n_batches = 0
         total_steps = 0
@@ -181,6 +251,8 @@ def train():
 
         t0 = time.time()
         for input_ids, labels in loader:
+            input_ids = input_ids.to(device)
+            labels = labels.to(device)
             out = model(input_ids, labels=labels)
             loss = out['loss']
 
@@ -197,17 +269,44 @@ def train():
                 halt_sims.extend(out['recursion_info']['halt_similarities'])
 
         avg_loss = total_loss / max(n_batches, 1)
-        epoch_losses.append(avg_loss)
+        avg_eval = evaluate(model, eval_loader, device)
+        train_losses.append(avg_loss)
+        eval_losses.append(avg_eval)
         elapsed = time.time() - t0
         avg_halt = sum(halt_sims) / max(len(halt_sims), 1)
 
-        if avg_loss < best_loss:
-            best_loss = avg_loss
+        if avg_eval < best_eval_loss:
+            best_eval_loss = avg_eval
             marker = " *"
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict(),
+                'config': cfg,
+                'tokenizer_vocab': tokenizer.char_to_id,
+                'epoch': epoch + 1,
+                'train_loss': avg_loss,
+                'eval_loss': avg_eval,
+                'train_losses': train_losses,
+                'eval_losses': eval_losses,
+            }, best_path)
         else:
             marker = ""
 
-        print(f"  Epoch {epoch+1:3d}/{n_epochs}  loss={avg_loss:.4f}  "
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'scheduler_state_dict': scheduler.state_dict(),
+            'config': cfg,
+            'tokenizer_vocab': tokenizer.char_to_id,
+            'epoch': epoch + 1,
+            'train_loss': avg_loss,
+            'eval_loss': avg_eval,
+            'train_losses': train_losses,
+            'eval_losses': eval_losses,
+        }, latest_path)
+
+        print(f"  Epoch {epoch+1:3d}/{n_epochs}  train={avg_loss:.4f}  eval={avg_eval:.4f}  "
               f"halt_sim={avg_halt:.4f}  steps={total_steps}  "
               f"lr={scheduler.get_last_lr()[0]:.2e}  "
               f"time={elapsed:.1f}s{marker}")
@@ -216,47 +315,42 @@ def train():
 
     # ---- Validation ----
     print("\n=== Validation ===")
-    print(f"  Initial loss:    {epoch_losses[0]:.4f}")
-    print(f"  Final loss:      {epoch_losses[-1]:.4f}")
-    print(f"  Best loss:       {best_loss:.4f}")
-    print(f"  Loss decreased:  {epoch_losses[-1] < epoch_losses[0]}")
+    print(f"  Initial train:   {train_losses[0]:.4f}")
+    print(f"  Final train:     {train_losses[-1]:.4f}")
+    print(f"  Initial eval:    {eval_losses[0]:.4f}")
+    print(f"  Final eval:      {eval_losses[-1]:.4f}")
+    print(f"  Best eval:       {best_eval_loss:.4f}")
+    print(f"  Train improved:  {train_losses[-1] < train_losses[0]}")
 
     # Perplexity
-    ppl = math.exp(min(epoch_losses[-1], 20.0))  # Cap to avoid overflow
-    print(f"  Final perplexity: {ppl:.1f}")
+    ppl = math.exp(min(eval_losses[-1], 20.0))  # Cap to avoid overflow
+    print(f"  Final eval perplexity: {ppl:.1f}")
 
     # Verify loss meaningfully decreased
-    if epoch_losses[-1] < epoch_losses[0] * 0.8:
-        print("  PASS: Loss decreased by >20%")
+    if eval_losses[-1] < eval_losses[0] * 0.8:
+        print("  PASS: Eval loss decreased by >20%")
     else:
-        print("  WARN: Loss didn't decrease much — may need more epochs or tuning")
+        print("  WARN: Eval loss didn't decrease much — may need more epochs or tuning")
 
     # ---- Generate sample ----
     print("\n=== Sample Generation ===")
+    if os.path.exists(best_path):
+        checkpoint = torch.load(best_path, map_location=device, weights_only=False)
+        model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
     prompt_text = "Q: What is 2 + 3?\nA:"
     prompt_ids = tokenizer.encode(prompt_text)
-    prompt_tensor = torch.tensor([prompt_ids], dtype=torch.long)
+    prompt_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
     with torch.no_grad():
-        generated = model.generate(prompt_tensor, max_new_tokens=100, temperature=0.8)
+        generated = model.generate(prompt_tensor, max_new_tokens=100, temperature=0.8, eos_token_id=2)
 
     gen_text = tokenizer.decode(generated[0].tolist())
     print(f"  Prompt: {prompt_text}")
     print(f"  Generated: {gen_text[:200]}")
 
-    # ---- Save ----
-    save_dir = os.path.join(os.path.dirname(__file__), '..', 'checkpoints')
-    os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, 'nexus_r_v1_trained.pt')
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'config': cfg,
-        'tokenizer_vocab': tokenizer.char_to_id,
-        'epoch_losses': epoch_losses,
-        'final_loss': epoch_losses[-1],
-    }, save_path)
-    print(f"\n  Checkpoint saved: {os.path.normpath(save_path)}")
+    print(f"\n  Best checkpoint:   {os.path.normpath(best_path)}")
+    print(f"  Latest checkpoint: {os.path.normpath(latest_path)}")
 
     print("\n" + "=" * 60)
     print("Training complete.")
