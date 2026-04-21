@@ -1,0 +1,62 @@
+{
+  "model": "SNAP-C1-V4",
+  "device": "cpu",
+  "max_loops": 50,
+  "num_instances": 4,
+  "total_time_s": 12.4,
+  "non_empty_rate_pct": 100.0,
+  "syntax_valid_rate_pct": 75.0,
+  "solve_rate_pct": 0.0,
+  "total_non_empty": 4,
+  "total_syntax_valid": 3,
+  "total_solved": 0,
+  "per_repo": {
+    "astropy/astropy": {
+      "non_empty": 4,
+      "syntax_valid": 3,
+      "total": 4
+    }
+  },
+  "results": [
+    {
+      "instance_id": "astropy__astropy-14365",
+      "repo": "astropy/astropy",
+      "generated_patch": "diff --git a/ast a/ast a/ast a/ast a/ast a/ast a/ast a/ast a a/ast a/ast a/ast a/ast a/ast a a/ast a/ast a a/ast a a/ast a a/ast a a/ast a a/ast a a/ast a a/ast a a/ast a a a/ast a a a/ast a a a/ast a a a",
+      "is_non_empty": true,
+      "is_syntax_valid": false,
+      "is_solved": false,
+      "_internal_logit": 84.9022,
+      "_internal_ode_steps": 50
+    },
+    {
+      "instance_id": "astropy__astropy-14369",
+      "repo": "astropy/astropy",
+      "generated_patch": "diff --git a/astropy/ioropy/modelropy/io/ascii/html.py\n--- a/astropy/ioropy/io/fits/connect.py\n@@ -349 a/astropy/io/ascii/html.py\n@@ -349 a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a",
+      "is_non_empty": true,
+      "is_syntax_valid": true,
+      "is_solved": false,
+      "_internal_logit": 76.618,
+      "_internal_ode_steps": 50
+    },
+    {
+      "instance_id": "astropy__astropy-14508",
+      "repo": "astropy/astropy",
+      "generated_patch": "diff --git a/astropy/io/ascii/html.py b/astropy/io/ascii/html.py\n--- a/astropy/io/ascii/html.py\n+++ b/astropy/io/ascii/html.py\n@@ -349,11 +349,13 @@ def write(self, table):\n         cols = list(table.columns.values())\n \n         self.data.header.cols = cols\n+        self.data.cols = cols\n \n         if isinstance(self.data.fill_values = [self.data.fill_values]\n \n",
+      "is_non_empty": true,
+      "is_syntax_valid": true,
+      "is_solved": false,
+      "_internal_logit": 86.698,
+      "_internal_ode_steps": 50
+    },
+    {
+      "instance_id": "astropy__astropy-14539",
+      "repo": "astropy/astropy",
+      "generated_patch": "diff --git a/astropy/io a/ascii/html.py b/astropy/io a/astropy/io a/astropy/io a/astropy/io a/astropy/io a/astropy/io a/astropy/io a/astropy/io a/astropy/io a/ascii/html.py\n@@ -349,11 +349,13 @@ def write(self, table):\n         cols = list(table.columns.values())\n \n         self.data.header.cols = cols\n \n         if isinstance",
+      "is_non_empty": true,
+      "is_syntax_valid": true,
+      "is_solved": false,
+      "_internal_logit": 79.2233,
+      "_internal_ode_steps": 50
+    }
+  ]
+}

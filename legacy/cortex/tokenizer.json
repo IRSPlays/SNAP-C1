@@ -1,0 +1,10465 @@
+{
+  "version": "1.0",
+  "truncation": null,
+  "padding": {
+    "strategy": "BatchLongest",
+    "direction": "Right",
+    "pad_to_multiple_of": null,
+    "pad_id": 0,
+    "pad_type_id": 0,
+    "pad_token": "[PAD]"
+  },
+  "added_tokens": [
+    {
+      "id": 0,
+      "content": "[PAD]",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 1,
+      "content": "[UNK]",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 2,
+      "content": "[BOS]",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    },
+    {
+      "id": 3,
+      "content": "[EOS]",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": false,
+      "special": true
+    }
+  ],
+  "normalizer": null,
+  "pre_tokenizer": {
+    "type": "ByteLevel",
+    "add_prefix_space": false,
+    "trim_offsets": true,
+    "use_regex": true
+  },
+  "post_processor": {
+    "type": "TemplateProcessing",
+    "single": [
+      {
+        "SpecialToken": {
+          "id": "[BOS]",
+          "type_id": 0
+        }
+      },
+      {
+        "Sequence": {
+          "id": "A",
+          "type_id": 0
+        }
+      },
+      {
+        "SpecialToken": {
+          "id": "[EOS]",
+          "type_id": 0
+        }
+      }
+    ],
+    "pair": [
+      {
+        "SpecialToken": {
+          "id": "[BOS]",
+          "type_id": 0
+        }
+      },
+      {
+        "Sequence": {
+          "id": "A",
+          "type_id": 0
+        }
+      },
+      {
+        "SpecialToken": {
+          "id": "[EOS]",
+          "type_id": 0
+        }
+      },
+      {
+        "Sequence": {
+          "id": "B",
+          "type_id": 1
+        }
+      },
+      {
+        "SpecialToken": {
+          "id": "[EOS]",
+          "type_id": 1
+        }
+      }
+    ],
+    "special_tokens": {
+      "[BOS]": {
+        "id": "[BOS]",
+        "ids": [
+          2
+        ],
+        "tokens": [
+          "[BOS]"
+        ]
+      },
+      "[EOS]": {
+        "id": "[EOS]",
+        "ids": [
+          3
+        ],
+        "tokens": [
+          "[EOS]"
+        ]
+      }
+    }
+  },
+  "decoder": {
+    "type": "ByteLevel",
+    "add_prefix_space": true,
+    "trim_offsets": true,
+    "use_regex": true
+  },
+  "model": {
+    "type": "BPE",
+    "dropout": null,
+    "unk_token": "[UNK]",
+    "continuing_subword_prefix": null,
+    "end_of_word_suffix": null,
+    "fuse_unk": false,
+    "byte_fallback": false,
+    "ignore_merges": false,
+    "vocab": {
+      "[PAD]": 0,
+      "[UNK]": 1,
+      "[BOS]": 2,
+      "[EOS]": 3,
+      "!": 4,
+      "'": 5,
+      "(": 6,
+      ")": 7,
+      "*": 8,
+      "+": 9,
+      ",": 10,
+      "-": 11,
+      ".": 12,
+      "/": 13,
+      "0": 14,
+      "1": 15,
+      "2": 16,
+      "3": 17,
+      "4": 18,
+      "5": 19,
+      "6": 20,
+      "7": 21,
+      "8": 22,
+      "9": 23,
+      ":": 24,
+      "<": 25,
+      "=": 26,
+      ">": 27,
+      "?": 28,
+      "A": 29,
+      "B": 30,
+      "C": 31,
+      "D": 32,
+      "E": 33,
+      "F": 34,
+      "G": 35,
+      "H": 36,
+      "I": 37,
+      "J": 38,
+      "K": 39,
+      "L": 40,
+      "M": 41,
+      "N": 42,
+      "O": 43,
+      "P": 44,
+      "Q": 45,
+      "R": 46,
+      "S": 47,
+      "T": 48,
+      "U": 49,
+      "V": 50,
+      "W": 51,
+      "X": 52,
+      "Y": 53,
+      "Z": 54,
+      "[": 55,
+      "]": 56,
+      "^": 57,
+      "_": 58,
+      "a": 59,
+      "b": 60,
+      "c": 61,
+      "d": 62,
+      "e": 63,
+      "f": 64,
+      "g": 65,
+      "h": 66,
+      "i": 67,
+      "j": 68,
+      "k": 69,
+      "l": 70,
+      "m": 71,
+      "n": 72,
+      "o": 73,
+      "p": 74,
+      "q": 75,
+      "r": 76,
+      "s": 77,
+      "t": 78,
+      "u": 79,
+      "v": 80,
+      "w": 81,
+      "x": 82,
+      "y": 83,
+      "z": 84,
+      "{": 85,
+      "}": 86,
+      "Ġ": 87,
+      "Ġi": 88,
+      "Ġ1": 89,
+      "Ġis": 90,
+      "Ġ=": 91,
+      "ha": 92,
+      "er": 93,
+      "Ġ2": 94,
+      "hat": 95,
+      "Ġt": 96,
+      "Ġa": 97,
+      "Ġ+": 98,
+      "What": 99,
+      "Ġ3": 100,
+      "Ġo": 101,
+      "Ġ4": 102,
+      "Ġ5": 103,
+      "he": 104,
+      "es": 105,
+      "Ġ*": 106,
+      "Ġb": 107,
+      "ĠA": 108,
+      "Ġc": 109,
+      "nd": 110,
+      "Ġ6": 111,
+      "Ġof": 112,
+      "Ġ8": 113,
+      "Ġd": 114,
+      "Ġ7": 115,
+      "Ġm": 116,
+      "ns": 117,
+      "al": 118,
+      "ĠI": 119,
+      "Ġ9": 120,
+      "Ġthe": 121,
+      "it": 122,
+      "ro": 123,
+      "wer": 124,
+      "nswer": 125,
+      "ĠAnswer": 126,
+      "et": 127,
+      "ed": 128,
+      "Ġby": 129,
+      "pl": 130,
+      "in": 131,
+      "an": 132,
+      "Ġ-": 133,
+      "Ġin": 134,
+      "re": 135,
+      "ou": 136,
+      "Ġand": 137,
+      "us": 138,
+      "Ġ10": 139,
+      "ap": 140,
+      "ul": 141,
+      "Ġf": 142,
+      "ti": 143,
+      "Ġ12": 144,
+      "Ġw": 145,
+      "iv": 146,
+      "ital": 147,
+      "apital": 148,
+      "im": 149,
+      "te": 150,
+      "ar": 151,
+      "id": 152,
+      "Ġ?": 153,
+      "Ġs": 154,
+      "Ġcapital": 155,
+      "el": 156,
+      "Ġtim": 157,
+      "ter": 158,
+      "ivid": 159,
+      "Ġtimes": 160,
+      "Ġdo": 161,
+      "Ġha": 162,
+      "on": 163,
+      "ct": 164,
+      "am": 165,
+      "ve": 166,
+      "Ġ11": 167,
+      "ic": 168,
+      "Ġl": 169,
+      "Ġg": 170,
+      "Ġp": 171,
+      "Ġdivid": 172,
+      "Ġdivided": 173,
+      "Ġhave": 174,
+      "ow": 175,
+      "rom": 176,
+      "Ġfrom": 177,
+      "out": 178,
+      "tr": 179,
+      "Ġget": 180,
+      "ulti": 181,
+      "ultipl": 182,
+      "or": 183,
+      "Ġe": 184,
+      "Su": 185,
+      "en": 186,
+      "etter": 187,
+      "ing": 188,
+      "10": 189,
+      "le": 190,
+      "ĠE": 191,
+      "Ġab": 192,
+      "Ġabout": 193,
+      "12": 194,
+      "ell": 195,
+      "om": 196,
+      "Ġ'": 197,
+      "Ġ15": 198,
+      "How": 199,
+      "Ġpl": 200,
+      "any": 201,
+      "Ġ14": 202,
+      "ia": 203,
+      "dd": 204,
+      "Ġmany": 205,
+      "Ġmo": 206,
+      "Ġme": 207,
+      "th": 208,
+      "Wh": 209,
+      "ĠC": 210,
+      "Ġn": 211,
+      "Ġx": 212,
+      "ate": 213,
+      "Ġ18": 214,
+      "tem": 215,
+      "If": 216,
+      "ce": 217,
+      "uct": 218,
+      "Ġwhat": 219,
+      "Ġplus": 220,
+      "Ġadd": 221,
+      "ĠHow": 222,
+      "Ġend": 223,
+      "Ġpro": 224,
+      "Ġ/": 225,
+      "Ġ20": 226,
+      "act": 227,
+      "Cal": 228,
+      "cul": 229,
+      "tion": 230,
+      "Sum": 231,
+      "Calcul": 232,
+      "Calculate": 233,
+      "oun": 234,
+      "11": 235,
+      "as": 236,
+      "Pro": 237,
+      "Ġitem": 238,
+      "Ġmore": 239,
+      "Ġitems": 240,
+      "The": 241,
+      "duct": 242,
+      "ied": 243,
+      "Ġmultipl": 244,
+      "Product": 245,
+      "Ġmultiplied": 246,
+      "Multipl": 247,
+      "ol": 248,
+      "Multiply": 249,
+      "pe": 250,
+      "Ġus": 251,
+      "Ġuse": 252,
+      "Letter": 253,
+      "is": 254,
+      "ĠS": 255,
+      "ig": 256,
+      "Ġ16": 257,
+      "ich": 258,
+      "Ġ13": 259,
+      "ĠP": 260,
+      "ĠB": 261,
+      "est": 262,
+      "at": 263,
+      "Ġletter": 264,
+      "gr": 265,
+      "gram": 266,
+      "and": 267,
+      "Ġprogram": 268,
+      "ay": 269,
+      "Ġor": 270,
+      "ple": 271,
+      "ers": 272,
+      "il": 273,
+      "Ġ21": 274,
+      "ĠW": 275,
+      "Ġ24": 276,
+      "ke": 277,
+      "pu": 278,
+      "Ġto": 279,
+      "um": 280,
+      "Ġ27": 281,
+      "xam": 282,
+      "tract": 283,
+      "Ġ30": 284,
+      "ĠExam": 285,
+      "ts": 286,
+      "ĠN": 287,
+      "ĠLetter": 288,
+      "14": 289,
+      "Ġy": 290,
+      "btract": 291,
+      "ming": 292,
+      "ra": 293,
+      "Ġcoun": 294,
+      "Subtract": 295,
+      "Ġprogramming": 296,
+      "Ġcountr": 297,
+      "un": 298,
+      "Ġcountry": 299,
+      "Ġre": 300,
+      "ity": 301,
+      "ompu": 302,
+      "ere": 303,
+      "Ġletters": 304,
+      "ur": 305,
+      "Ġde": 306,
+      "Ġk": 307,
+      "Which": 308,
+      "ac": 309,
+      "way": 310,
+      "ĠR": 311,
+      "Ġ19": 312,
+      "ĠExample": 313,
+      "ĠM": 314,
+      "Ġ17": 315,
+      "ame": 316,
+      "Ġyou": 317,
+      "od": 318,
+      "qu": 319,
+      "Divid": 320,
+      "Tell": 321,
+      "Ġmin": 322,
+      "Divide": 323,
+      "ble": 324,
+      "16": 325,
+      "ain": 326,
+      "ld": 327,
+      "Ġwh": 328,
+      "Ġminus": 329,
+      "Ġ36": 330,
+      "ag": 331,
+      "Ġ25": 332,
+      "15": 333,
+      "nt": 334,
+      "ĠF": 335,
+      "Ġaway": 336,
+      "Compu": 337,
+      "Compute": 338,
+      "Where": 339,
+      "ex": 340,
+      "vers": 341,
+      "Ta": 342,
+      "os": 343,
+      "Take": 344,
+      "An": 345,
+      "ater": 346,
+      "ri": 347,
+      "Ġhas": 348,
+      "18": 349,
+      "lo": 350,
+      "Ġr": 351,
+      "Ġat": 352,
+      "Ġ32": 353,
+      "orld": 354,
+      "ith": 355,
+      "int": 356,
+      "ue": 357,
+      "ĠT": 358,
+      "Ġare": 359,
+      "ele": 360,
+      "gest": 361,
+      "20": 362,
+      "ber": 363,
+      "Ġ40": 364,
+      "'.": 365,
+      "13": 366,
+      "24": 367,
+      "Ġ42": 368,
+      "ica": 369,
+      "igh": 370,
+      "si": 371,
+      "Ġ54": 372,
+      "ang": 373,
+      "outh": 374,
+      "ight": 375,
+      "ction": 376,
+      "now": 377,
+      "Ġ23": 378,
+      "ok": 379,
+      "ĠD": 380,
+      "Ġ22": 381,
+      "Ġ56": 382,
+      "Ġknow": 383,
+      "ĠPy": 384,
+      "Ġ28": 385,
+      "ger": 386,
+      "ug": 387,
+      "Yes": 388,
+      "ond": 389,
+      "Ġ48": 390,
+      "Ġ>": 391,
+      "han": 392,
+      "Ġ45": 393,
+      "thon": 394,
+      "Ġnum": 395,
+      "Is": 396,
+      "Ġbo": 397,
+      "Ġcan": 398,
+      "Ġspe": 399,
+      "Ġsqu": 400,
+      "Ġnumber": 401,
+      ").": 402,
+      "sia": 403,
+      "Ġ35": 404,
+      "gre": 405,
+      "las": 406,
+      "rint": 407,
+      "ĠJ": 408,
+      "all": 409,
+      "ets": 410,
+      "Ġwater": 411,
+      "ard": 412,
+      "Ġdegre": 413,
+      "lass": 414,
+      "Ġdegrees": 415,
+      "uro": 416,
+      "Ġv": 417,
+      "Ġon": 418,
+      "ĠIt": 419,
+      "Ġwith": 420,
+      "Ġdoes": 421,
+      "ĠEuro": 422,
+      "ode": 423,
+      "ĠEurope": 424,
+      "ot": 425,
+      "Ġ0": 426,
+      "Ġh": 427,
+      "Ġst": 428,
+      "rib": 429,
+      "'?": 430,
+      "Ex": 431,
+      "Re": 432,
+      "are": 433,
+      "land": 434,
+      "op": 435,
+      "Ġclass": 436,
+      "ount": 437,
+      "ĠPython": 438,
+      "Ġbig": 439,
+      "plain": 440,
+      "Explain": 441,
+      "Des": 442,
+      "crib": 443,
+      "ir": 444,
+      "Ġits": 445,
+      "Ġlar": 446,
+      "Describ": 447,
+      "Describe": 448,
+      "Ġcity": 449,
+      "mp": 450,
+      "Ġ63": 451,
+      "Ġ72": 452,
+      "Ġlargest": 453,
+      "21": 454,
+      "36": 455,
+      "Ġthan": 456,
+      "Ġcode": 457,
+      "ree": 458,
+      "arth": 459,
+      "ĠEarth": 460,
+      "30": 461,
+      "De": 462,
+      "Name": 463,
+      "her": 464,
+      "ĠO": 465,
+      "ĠSouth": 466,
+      "ci": 467,
+      "ure": 468,
+      "ance": 469,
+      "cean": 470,
+      "ist": 471,
+      "Ġwhich": 472,
+      "'s": 473,
+      "kar": 474,
+      "st": 475,
+      "Ġas": 476,
+      "ĠWorld": 477,
+      "Ġspeed": 478,
+      "Sp": 479,
+      "Ġ34": 480,
+      "Ġ50": 481,
+      "ĠAm": 482,
+      "It": 483,
+      "ward": 484,
+      "ĠG": 485,
+      "ĠZ": 486,
+      "Ġele": 487,
+      "Capital": 488,
+      "yo": 489,
+      "Ġ49": 490,
+      "Ġbac": 491,
+      "Ġinve": 492,
+      "Ġfor": 493,
+      "ort": 494,
+      "Ġmean": 495,
+      "nted": 496,
+      "Ġsquar": 497,
+      "Spell": 498,
+      "Ġback": 499,
+      "Ġinvented": 500,
+      "uc": 501,
+      "ine": 502,
+      "ence": 503,
+      "Ġrevers": 504,
+      "verse": 505,
+      "Reverse": 506,
+      "wards": 507,
+      "Ġbackwards": 508,
+      "Ġreversed": 509,
+      "ile": 510,
+      "se": 511,
+      "ta": 512,
+      "Ġ29": 513,
+      "hel": 514,
+      "gen": 515,
+      "ustr": 516,
+      "ive": 517,
+      "ach": 518,
+      "Ġbigger": 519,
+      "40": 520,
+      "pt": 521,
+      "ĠK": 522,
+      "ĠU": 523,
+      "ern": 524,
+      "erica": 525,
+      "ome": 526,
+      "Ġplan": 527,
+      "ĠAmerica": 528,
+      "Ġsquared": 529,
+      "):": 530,
+      "17": 531,
+      "fine": 532,
+      "og": 533,
+      "tin": 534,
+      "Ġan": 535,
+      "Ġprint": 536,
+      "Ġhum": 537,
+      "fo": 538,
+      "iet": 539,
+      "ons": 540,
+      "ys": 541,
+      "ĠL": 542,
+      "ult": 543,
+      "ents": 544,
+      "ĠCh": 545,
+      "unction": 546,
+      "allest": 547,
+      "Define": 548,
+      "ah": 549,
+      "ĠAustr": 550,
+      "Ġcon": 551,
+      "Ġfunction": 552,
+      "elsi": 553,
+      "ĠCelsi": 554,
+      "age": 555,
+      "ext": 556,
+      "ĠCelsius": 557,
+      "ad": 558,
+      "cur": 559,
+      "ore": 560,
+      "rue": 561,
+      "Ġth": 562,
+      "Ġbod": 563,
+      "ren": 564,
+      "tic": 565,
+      "ones": 566,
+      "orth": 567,
+      "Ġhuman": 568,
+      "Ġbody": 569,
+      "48": 570,
+      "ec": 571,
+      "fr": 572,
+      "ver": 573,
+      "Ġit": 574,
+      "Ġ26": 575,
+      "heit": 576,
+      "ĠAfr": 577,
+      "eters": 578,
+      "ars": 579,
+      "elf": 580,
+      "Ġpo": 581,
+      "ĠFah": 582,
+      "renheit": 583,
+      "ĠAfrica": 584,
+      "ĠFahrenheit": 585,
+      "19": 586,
+      "27": 587,
+      "45": 588,
+      "ation": 589,
+      "hen": 590,
+      "Ġcond": 591,
+      "Ġwhen": 592,
+      "aria": 593,
+      "Ġstr": 594,
+      "Ġsol": 595,
+      "cts": 596,
+      "Ġelect": 597,
+      "ariable": 598,
+      "Give": 599,
+      "Qu": 600,
+      "ging": 601,
+      "ole": 602,
+      "Ġtell": 603,
+      "Ġ37": 604,
+      "Ġ44": 605,
+      "ĠAsia": 606,
+      "Ġ81": 607,
+      "rons": 608,
+      "ant": 609,
+      "Ġinfo": 610,
+      "Ġfact": 611,
+      "Ġwant": 612,
+      "ick": 613,
+      "Ġlist": 614,
+      "Ġpol": 615,
+      "Ġvariable": 616,
+      "herit": 617,
+      "Quick": 618,
+      "Ġpoles": 619,
+      "50": 620,
+      "lic": 621,
+      "ĠV": 622,
+      "ĠRome": 623,
+      "angu": 624,
+      "lin": 625,
+      "light": 626,
+      "alse": 627,
+      "one": 628,
+      "Ġlangu": 629,
+      "ĠNe": 630,
+      "St": 631,
+      "ĠSubtract": 632,
+      "Ġte": 633,
+      "ĠAdd": 634,
+      "Ġ100": 635,
+      "hello": 636,
+      "72": 637,
+      "ĠH": 638,
+      "erm": 639,
+      "Ġcom": 640,
+      "Ġlight": 641,
+      "28": 642,
+      "60": 643,
+      "ai": 644,
+      "bug": 645,
+      "ck": 646,
+      "if": 647,
+      "erat": 648,
+      "Ġtallest": 649,
+      "alia": 650,
+      "ples": 651,
+      "ussia": 652,
+      "aris": 653,
+      "tern": 654,
+      "ico": 655,
+      "Sun": 656,
+      "exico": 657,
+      "Ġboil": 658,
+      "Ġtemp": 659,
+      "('": 660,
+      "00": 661,
+      "22": 662,
+      "49": 663,
+      "ix": 664,
+      "oop": 665,
+      "pp": 666,
+      "rance": 667,
+      "ĠY": 668,
+      "ĠSun": 669,
+      "Ġal": 670,
+      "Ġoth": 671,
+      "Ġ43": 672,
+      "esult": 673,
+      "Ġcol": 674,
+      "ound": 675,
+      "els": 676,
+      "Ġeach": 677,
+      "Ġne": 678,
+      "Ġdef": 679,
+      "ĠMo": 680,
+      "Ġstor": 681,
+      "ĠChin": 682,
+      "airo": 683,
+      "erature": 684,
+      "Ġtemperature": 685,
+      "Ġother": 686,
+      "':": 687,
+      "32": 688,
+      "hot": 689,
+      "sis": 690,
+      "ynt": 691,
+      "Ġimp": 692,
+      "hesis": 693,
+      "Ġ64": 694,
+      "ĠInd": 695,
+      "ror": 696,
+      "iver": 697,
+      "art": 698,
+      "ary": 699,
+      "Ġsound": 700,
+      "Ġloop": 701,
+      "ase": 702,
+      "atur": 703,
+      "rav": 704,
+      "osynt": 705,
+      "ĠAustralia": 706,
+      "ĠMoon": 707,
+      "hotosynt": 708,
+      "Ġimport": 709,
+      "hotosynthesis": 710,
+      "').": 711,
+      "25": 712,
+      "70": 713,
+      "__": 714,
+      "bit": 715,
+      "hone": 716,
+      "iam": 717,
+      "name": 718,
+      "pit": 719,
+      "phone": 720,
+      "Ġ(": 721,
+      "Ġer": 722,
+      "Ġtele": 723,
+      "Ġocean": 724,
+      "Ġ51": 725,
+      "Ġmeters": 726,
+      "uliet": 727,
+      "Ġwro": 728,
+      "ide": 729,
+      "Ġsys": 730,
+      "iction": 731,
+      "ĠSw": 732,
+      "Ġorbit": 733,
+      "ĠResult": 734,
+      "ĠJuliet": 735,
+      "Ġval": 736,
+      "Ġplanets": 737,
+      "tinents": 738,
+      "Ġcontinents": 739,
+      "ĠRomeo": 740,
+      "Ġerror": 741,
+      "Ġtelephone": 742,
+      "Ġsystem": 743,
+      "ictionary": 744,
+      "Water": 745,
+      "bj": 746,
+      "co": 747,
+      "der": 748,
+      "eb": 749,
+      "ects": 750,
+      "Ġobj": 751,
+      "Ġcompu": 752,
+      "Ġdictionary": 753,
+      "Ġmount": 754,
+      "ĠIs": 755,
+      "ule": 756,
+      "Ġfree": 757,
+      "Ġsun": 758,
+      "Ġex": 759,
+      "lection": 760,
+      "Ġname": 761,
+      "Ġended": 762,
+      "ĠWar": 763,
+      "okyo": 764,
+      "Ġsolar": 765,
+      "Start": 766,
+      "Ġcollection": 767,
+      "Ġstores": 768,
+      "ravity": 769,
+      "Ġwrote": 770,
+      "Ġobjects": 771,
+      "Ġcomputer": 772,
+      "Ġmountain": 773,
+      "Ġfreez": 774,
+      "Ġsunlight": 775,
+      "42": 776,
+      "80": 777,
+      "Count": 778,
+      "NA": 779,
+      "cle": 780,
+      "dule": 781,
+      "gor": 782,
+      "ption": 783,
+      "pok": 784,
+      "rr": 785,
+      "ric": 786,
+      "ution": 787,
+      "uple": 788,
+      "vol": 789,
+      "ycle": 790,
+      "Ġ33": 791,
+      "Ġ41": 792,
+      "Ġ57": 793,
+      "Ġbones": 794,
+      "Ġcen": 795,
+      "Ġcell": 796,
+      "Ġcycle": 797,
+      "Ġ60": 798,
+      "roug": 799,
+      "apan": 800,
+      "tep": 801,
+      "teger": 802,
+      "Ġsci": 803,
+      "Ġspok": 804,
+      "Ġlon": 805,
+      "Ġlets": 806,
+      "Ġmost": 807,
+      "Ġmodule": 808,
+      "ception": 809,
+      "ism": 810,
+      "ĠWide": 811,
+      "ĠWeb": 812,
+      "key": 813,
+      "ĠExamples": 814,
+      "Ġwho": 815,
+      "agn": 816,
+      "ĠFalse": 817,
+      "ĠFrance": 818,
+      "loat": 819,
+      "Ġatom": 820,
+      "ithm": 821,
+      "ĠThat": 822,
+      "Ġarea": 823,
+      "sion": 824,
+      "karyo": 825,
+      "cursion": 826,
+      "Ġthroug": 827,
+      "Ġpoint": 828,
+      "Ġelectrons": 829,
+      "olean": 830,
+      "heritance": 831,
+      "bugging": 832,
+      "cope": 833,
+      "gorithm": 834,
+      "rray": 835,
+      "ricity": 836,
+      "volution": 837,
+      "Ġscience": 838,
+      "Ġspoken": 839,
+      "karyotic": 840,
+      "Ġthrough": 841,
+      "56": 842,
+      "In": 843,
+      "PI": 844,
+      "und": 845,
+      "Ġtuple": 846,
+      "Ġarray": 847,
+      "ĠAPI": 848,
+      "Ġinteger": 849,
+      "Ġfloat": 850,
+      "ello": 851,
+      "ĠCan": 852,
+      "ast": 853,
+      "Ġboolean": 854,
+      "Ġstring": 855,
+      "Ġalgorithm": 856,
+      "Ġexception": 857,
+      "35": 858,
+      "54": 859,
+      "63": 860,
+      "Hello": 861,
+      "mal": 862,
+      "print": 863,
+      "to": 864,
+      "ut": 865,
+      "Ġ31": 866,
+      "Ġ39": 867,
+      "Ġ80": 868,
+      "Ġsouth": 869,
+      "Ġnorth": 870,
+      "Ġlanguage": 871,
+      "ub": 872,
+      "Ġ47": 873,
+      "estern": 874,
+      "Ġ70": 875,
+      "round": 876,
+      "ouble": 877,
+      "Ġper": 878,
+      "100": 879,
+      "Ġkm": 880,
+      "ĠMexico": 881,
+      "ĠTur": 882,
+      "ĠDog": 883,
+      "ĠOcean": 884,
+      "ĠNew": 885,
+      "les": 886,
+      "lue": 887,
+      "na": 888,
+      "nit": 889,
+      "ry": 890,
+      "erlin": 891,
+      "Ġ38": 892,
+      "Ġbe": 893,
+      "Ġ62": 894,
+      "imal": 895,
+      "ĠBern": 896,
+      "ats": 897,
+      "Ġsquare": 898,
+      "lice": 899,
+      "ermany": 900,
+      "23": 901,
+      "76": 902,
+      "Alice": 903,
+      "Fact": 904,
+      "True": 905,
+      "ly": 906,
+      "zil": 907,
+      "Ġra": 908,
+      "Ġ53": 909,
+      "Ġ55": 910,
+      "ite": 911,
+      "ĠNorth": 912,
+      "razil": 913,
+      "nited": 914,
+      "Facts": 915,
+      "81": 916,
+      "90": 917,
+      "Br": 918,
+      "bon": 919,
+      "cow": 920,
+      "ei": 921,
+      "hi": 922,
+      "jing": 923,
+      "ll": 924,
+      "ret": 925,
+      "rgen": 926,
+      "zer": 927,
+      "ĠYes": 928,
+      "eru": 929,
+      "Ġworld": 930,
+      "ark": 931,
+      "asil": 932,
+      "ish": 933,
+      "ose": 934,
+      "oscow": 935,
+      "ĠJapan": 936,
+      "ĠGermany": 937,
+      "tina": 938,
+      "ada": 939,
+      "ĠChina": 940,
+      "eijing": 941,
+      "rgentina": 942,
+      "asilia": 943,
+      "64": 944,
+      "Nor": 945,
+      "Russia": 946,
+      "ath": 947,
+      "bia": 948,
+      "blic": 949,
+      "ces": 950,
+      "dom": 951,
+      "eal": 952,
+      "epu": 953,
+      "gi": 954,
+      "gy": 955,
+      "ind": 956,
+      "ja": 957,
+      "ls": 958,
+      "mark": 959,
+      "nam": 960,
+      "oi": 961,
+      "rid": 962,
+      "tta": 963,
+      "uen": 964,
+      "wa": 965,
+      "wo": 966,
+      "ya": 967,
+      "zec": 968,
+      "hail": 969,
+      "eria": 970,
+      "ercur": 971,
+      "ĠAir": 972,
+      "Ġdat": 973,
+      "aly": 974,
+      "itzer": 975,
+      "ether": 976,
+      "eden": 977,
+      "inland": 978,
+      "reland": 979,
+      "Ġfind": 980,
+      "Ġwestern": 981,
+      "ima": 982,
+      "Ġse": 983,
+      "Ġsec": 984,
+      "elhi": 985,
+      "elgi": 986,
+      "terd": 987,
+      "enmark": 988,
+      "enya": 989,
+      "ingdom": 990,
+      "ombia": 991,
+      "ĠCity": 992,
+      "oland": 993,
+      "olombia": 994,
+      "igeria": 995,
+      "ĠPac": 996,
+      "ĠParis": 997,
+      "Ġkil": 998,
+      "ĠRepu": 999,
+      "ages": 1000,
+      "Ġrang": 1001,
+      "berra": 1002,
+      "angles": 1003,
+      "ĠDelhi": 1004,
+      "ugal": 1005,
+      "ondon": 1006,
+      "lands": 1007,
+      "Ġbiggest": 1008,
+      "reece": 1009,
+      "ĠZeal": 1010,
+      "ortugal": 1011,
+      "ĠKore": 1012,
+      "ĠKingdom": 1013,
+      "ĠUnited": 1014,
+      "ietnam": 1015,
+      "adrid": 1016,
+      "onesia": 1017,
+      "Ġcomes": 1018,
+      "ific": 1019,
+      "Ġneed": 1020,
+      "gypt": 1021,
+      "ttawa": 1022,
+      "uenos": 1023,
+      "zech": 1024,
+      "hailand": 1025,
+      "ercury": 1026,
+      "ĠAires": 1027,
+      "Ġdata": 1028,
+      "itzerland": 1029,
+      "etherlands": 1030,
+      "Ġsecond": 1031,
+      "elgium": 1032,
+      "ĠPacific": 1033,
+      "ĠRepublic": 1034,
+      "Ġrange": 1035,
+      "ĠZealand": 1036,
+      "ĠKorea": 1037,
+      "55": 1038,
+      "66": 1039,
+      "Each": 1040,
+      "Paris": 1041,
+      "Squ": 1042,
+      "World": 1043,
+      "aw": 1044,
+      "able": 1045,
+      "akar": 1046,
+      "bi": 1047,
+      "bu": 1048,
+      "eou": 1049,
+      "gan": 1050,
+      "gue": 1051,
+      "hol": 1052,
+      "ien": 1053,
+      "ki": 1054,
+      "kok": 1055,
+      "low": 1056,
+      "ng": 1057,
+      "ob": 1058,
+      "slo": 1059,
+      "sels": 1060,
+      "sterd": 1061,
+      "the": 1062,
+      "ton": 1063,
+      "ues": 1064,
+      "upit": 1065,
+      "xy": 1066,
+      "{'": 1067,
+      "}.": 1068,
+      "ĠWhat": 1069,
+      "Ġhel": 1070,
+      "Ġ{'": 1071,
+      "Ġim": 1072,
+      "hagen": 1073,
+      "Ġtext": 1074,
+      "Ġtry": 1075,
+      "Ġblo": 1076,
+      "Ġch": 1077,
+      "Ġcall": 1078,
+      "Ġmath": 1079,
+      "etur": 1080,
+      "inki": 1081,
+      "anti": 1082,
+      "anoi": 1083,
+      "Ġinto": 1084,
+      "usable": 1085,
+      "ussels": 1086,
+      "ides": 1087,
+      "Ġsm": 1088,
+      "Ġpre": 1089,
+      "Ġphotosynthesis": 1090,
+      "oria": 1091,
+      "enhagen": 1092,
+      "ington": 1093,
+      "ellington": 1094,
+      "ĠCO": 1095,
+      "Ġnatur": 1096,
+      "cept": 1097,
+      "isbon": 1098,
+      "ĠBr": 1099,
+      "ĠBrazil": 1100,
+      "Ġprograms": 1101,
+      "Ġorder": 1102,
+      "Ġorgan": 1103,
+      "Ġ300": 1104,
+      "rague": 1105,
+      "une": 1106,
+      "Ġreusable": 1107,
+      "ĠRussia": 1108,
+      "ĠMars": 1109,
+      "ago": 1110,
+      "Ġretur": 1111,
+      "ĠTokyo": 1112,
+      "angkok": 1113,
+      "ota": 1114,
+      "openhagen": 1115,
+      "kara": 1116,
+      "Ġ343": 1117,
+      "ogota": 1118,
+      "arsaw": 1119,
+      "Ġpower": 1120,
+      "Ġstruct": 1121,
+      "ckhol": 1122,
+      "Ġboils": 1123,
+      "000": 1124,
+      "elsinki": 1125,
+      "airobi": 1126,
+      "Ġorbits": 1127,
+      "ĠCanada": 1128,
+      "ublin": 1129,
+      "retoria": 1130,
+      "Square": 1131,
+      "akarta": 1132,
+      "buja": 1133,
+      "eoul": 1134,
+      "ienna": 1135,
+      "sterdam": 1136,
+      "thens": 1137,
+      "upiter": 1138,
+      "xygen": 1139,
+      "Ġblock": 1140,
+      "antiago": 1141,
+      "Ġnatural": 1142,
+      "Ġreturn": 1143,
+      "ckholm": 1144,
+      "',": 1145,
+      "849": 1146,
+      "99": 1147,
+      "Ale": 1148,
+      "Eng": 1149,
+      "Gravity": 1150,
+      "Le": 1151,
+      "Mount": 1152,
+      "Photosynthesis": 1153,
+      "Scope": 1154,
+      "Th": 1155,
+      "Wil": 1156,
+      "].": 1157,
+      "ctic": 1158,
+      "cces": 1159,
+      "dult": 1160,
+      "kes": 1161,
+      "list": 1162,
+      "luc": 1163,
+      "liam": 1164,
+      "lish": 1165,
+      "pain": 1166,
+      "rd": 1167,
+      "ran": 1168,
+      "self": 1169,
+      "xand": 1170,
+      "Ġ[": 1171,
+      "Ġke": 1172,
+      "Ġ__": 1173,
+      "Ġif": 1174,
+      "ham": 1175,
+      "hakes": 1176,
+      "Ġ212": 1177,
+      "Ġtow": 1178,
+      "Ġtri": 1179,
+      "Ġair": 1180,
+      "Ġadult": 1181,
+      "Ġour": 1182,
+      "Ġoxygen": 1183,
+      "ĠAnt": 1184,
+      "ĠArgentina": 1185,
+      "Ġcar": 1186,
+      "Ġmy": 1187,
+      "Ġmap": 1188,
+      "ĠIreland": 1189,
+      "Ġ98": 1190,
+      "iti": 1191,
+      "ines": 1192,
+      "init": 1193,
+      "ulls": 1194,
+      "Ġfile": 1195,
+      "Ġwas": 1196,
+      "arctic": 1197,
+      "Ġself": 1198,
+      "Ġgluc": 1199,
+      "Ġpulls": 1200,
+      "tral": 1201,
+      "orway": 1202,
+      "Ġequ": 1203,
+      "enus": 1204,
+      "ĠEver": 1205,
+      "ĠEgypt": 1206,
+      "ĠColombia": 1207,
+      "ĠCzech": 1208,
+      "Ġnext": 1209,
+      "Ġ1876": 1210,
+      "peare": 1211,
+      "peats": 1212,
+      "ĠSatur": 1213,
+      "ĠSpain": 1214,
+      "ĠShakes": 1215,
+      "ĠPeru": 1216,
+      "ĠPoland": 1217,
+      "ĠPortugal": 1218,
+      "ĠBell": 1219,
+      "ĠBelgium": 1220,
+      "ĠNigeria": 1221,
+      "ĠNetherlands": 1222,
+      "ĠNorway": 1223,
+      "144": 1224,
+      "raham": 1225,
+      "Ġrepeats": 1226,
+      "Ġdec": 1227,
+      "Ġ1945": 1228,
+      "ĠMercury": 1229,
+      "ĠFinland": 1230,
+      "except": 1231,
+      "Ġrun": 1232,
+      "ĠThailand": 1233,
+      "ĠDenmark": 1234,
+      "ĠJupiter": 1235,
+      "ĠItaly": 1236,
+      "Ġstar": 1237,
+      "Recursion": 1238,
+      "Debugging": 1239,
+      "ĠOn": 1240,
+      "ĠGreece": 1241,
+      "ĠGraham": 1242,
+      "ptune": 1243,
+      "ĠKenya": 1244,
+      "ĠUran": 1245,
+      "Ġplants": 1246,
+      "ĠChile": 1247,
+      "ĠAustria": 1248,
+      "Ġconver": 1249,
+      "Ġconditi": 1250,
+      "ĠVietnam": 1251,
+      "ĠVenus": 1252,
+      "ĠNeptune": 1253,
+      "ĠIndia": 1254,
+      "ĠIndonesia": 1255,
+      "__(": 1256,
+      "ĠSweden": 1257,
+      "ĠSwitzerland": 1258,
+      "Ġvalue": 1259,
+      "Ġvalues": 1260,
+      "Ġerrors": 1261,
+      "Ġfreezes": 1262,
+      "Inheritance": 1263,
+      "ĠTurkey": 1264,
+      "Normal": 1265,
+      "Ġneeds": 1266,
+      "Ġstructure": 1267,
+      "Alexand": 1268,
+      "English": 1269,
+      "There": 1270,
+      "William": 1271,
+      "Ġkeys": 1272,
+      "Ġtoward": 1273,
+      "ĠAntarctic": 1274,
+      "Ġmaps": 1275,
+      "Ġglucose": 1276,
+      "ĠEverest": 1277,
+      "ĠSaturn": 1278,
+      "ĠShakespeare": 1279,
+      "ĠUranus": 1280,
+      "Ġconverts": 1281,
+      "Alexander": 1282,
+      "ĠAntarctica": 1283,
+      "650": 1284,
+      "89": 1285,
+      "DNA": 1286,
+      "Ele": 1287,
+      "Evolution": 1288,
+      "Magn": 1289,
+      "Pi": 1290,
+      "Tim": 1291,
+      "aus": 1292,
+      "by": 1293,
+      "big": 1294,
+      "ced": 1295,
+      "cum": 1296,
+      "ens": 1297,
+      "fer": 1298,
+      "fle": 1299,
+      "gore": 1300,
+      "ike": 1301,
+      "me": 1302,
+      "mu": 1303,
+      "mun": 1304,
+      "ments": 1305,
+      "pel": 1306,
+      "sed": 1307,
+      "step": 1308,
+      "tha": 1309,
+      "tons": 1310,
+      "ukaryotic": 1311,
+      "vap": 1312,
+      "xim": 1313,
+      "Ġun": 1314,
+      "Ġind": 1315,
+      "Ġins": 1316,
+      "Ġtides": 1317,
+      "Ġapp": 1318,
+      "Ġaround": 1319,
+      "Ġacces": 1320,
+      "Ġover": 1321,
+      "Ġopp": 1322,
+      "Ġ52": 1323,
+      "ese": 1324,
+      "Ġbas": 1325,
+      "Ġbase": 1326,
+      "Ġblue": 1327,
+      "Ġchan": 1328,
+      "Ġcir": 1329,
+      "Ġcase": 1330,
+      "Ġcaus": 1331,
+      "Ġ65": 1332,
+      "Ġ68": 1333,
+      "Ġdet": 1334,
+      "Ġdiam": 1335,
+      "Ġdouble": 1336,
+      "Ġmagn": 1337,
+      "Ġtheore": 1338,
+      "roxim": 1339,
+      "eter": 1340,
+      "etic": 1341,
+      "etism": 1342,
+      "Ġinherit": 1343,
+      "Ġfix": 1344,
+      "Ġflow": 1345,
+      "tio": 1346,
+      "tions": 1347,
+      "time": 1348,
+      "Ġwid": 1349,
+      "iving": 1350,
+      "imil": 1351,
+      "arin": 1352,
+      "Ġsele": 1353,
+      "Ġstep": 1354,
+      "ely": 1355,
+      "Ġtime": 1356,
+      "ctricity": 1357,
+      "icate": 1358,
+      "Ġlif": 1359,
+      "Ġliving": 1360,
+      "Ġgen": 1361,
+      "Ġgravity": 1362,
+      "Ġpi": 1363,
+      "Ġpare": 1364,
+      "truc": 1365,
+      "oration": 1366,
+      "Ġevolution": 1367,
+      "Ġeukaryotic": 1368,
+      "Ġevap": 1369,
+      "ent": 1370,
+      "leus": 1371,
+      "ĠEast": 1372,
+      "ells": 1373,
+      "ometers": 1374,
+      "ĠCells": 1375,
+      "Ġnuc": 1376,
+      "ately": 1377,
+      "uctor": 1378,
+      "Ġproble": 1379,
+      "Ġprokaryotic": 1380,
+      "Ġproced": 1381,
+      "Ġprotons": 1382,
+      "Ġ206": 1383,
+      "ĠSimil": 1384,
+      "andle": 1385,
+      "andarin": 1386,
+      "ild": 1387,
+      "ĠNile": 1388,
+      "ĠNext": 1389,
+      "1415": 1390,
+      "Ġrefle": 1391,
+      "Ġrepel": 1392,
+      "ĠRiver": 1393,
+      "Ġ1989": 1394,
+      "ĠMandarin": 1395,
+      "quence": 1396,
+      "Ġwhere": 1397,
+      "Ġwhole": 1398,
+      "osite": 1399,
+      "ries": 1400,
+      "Ġright": 1401,
+      "Ġriver": 1402,
+      "Ġattract": 1403,
+      "ĠTrue": 1404,
+      "sible": 1405,
+      "ĠDNA": 1406,
+      "ĠPytha": 1407,
+      "Ġspeci": 1408,
+      "Ġstop": 1409,
+      "Ġitself": 1410,
+      "cipit": 1411,
+      "Ġelements": 1412,
+      "table": 1413,
+      "ĠUsed": 1414,
+      "ĠLike": 1415,
+      "Ġthree": 1416,
+      "Ġcondens": 1417,
+      "Ġconductor": 1418,
+      "Ġsolve": 1419,
+      "Ġelectricity": 1420,
+      "Ġlanguages": 1421,
+      "ĠHandle": 1422,
+      "ermines": 1423,
+      "Ġcommun": 1424,
+      "Ġboiling": 1425,
+      "Ġneut": 1426,
+      "ĠChinese": 1427,
+      "Ġorbiting": 1428,
+      "Ġfreezing": 1429,
+      "Ġcenter": 1430,
+      "Ġcentral": 1431,
+      "Ġlong": 1432,
+      "Ġlongest": 1433,
+      "isms": 1434,
+      "ĠBerners": 1435,
+      "Ġratio": 1436,
+      "Ġfinding": 1437,
+      "Ġsequence": 1438,
+      "Ġkilometers": 1439,
+      "Ġhelix": 1440,
+      "Ġimmu": 1441,
+      "Ġchild": 1442,
+      "Ġcalls": 1443,
+      "Ġsmallest": 1444,
+      "Ġprecipit": 1445,
+      "Ġordered": 1446,
+      "Ġorganisms": 1447,
+      "Lee": 1448,
+      "Ġtriangles": 1449,
+      "Ġcarries": 1450,
+      "Ġequal": 1451,
+      "Ġdecimal": 1452,
+      "Ġruntime": 1453,
+      "Ġconditions": 1454,
+      "Electricity": 1455,
+      "Magnets": 1456,
+      "cumfer": 1457,
+      "gorean": 1458,
+      "Ġunit": 1459,
+      "Ġindex": 1460,
+      "Ġinstruc": 1461,
+      "Ġapproxim": 1462,
+      "Ġaccessible": 1463,
+      "Ġopposite": 1464,
+      "Ġbasic": 1465,
+      "Ġblueprint": 1466,
+      "Ġchanging": 1467,
+      "Ġcircumfer": 1468,
+      "Ġcauses": 1469,
+      "Ġdetermines": 1470,
+      "Ġdiameter": 1471,
+      "Ġmagnetism": 1472,
+      "Ġtheorem": 1473,
+      "Ġfixing": 1474,
+      "Ġwidely": 1475,
+      "Ġselection": 1476,
+      "Ġlife": 1477,
+      "Ġgenetic": 1478,
+      "Ġparent": 1479,
+      "Ġevaporation": 1480,
+      "Ġnucleus": 1481,
+      "Ġproblem": 1482,
+      "Ġprocedure": 1483,
+      "ĠSimilar": 1484,
+      "14159": 1485,
+      "Ġreflects": 1486,
+      "ĠPythagorean": 1487,
+      "Ġspecies": 1488,
+      "Ġcondensation": 1489,
+      "Ġcommunicate": 1490,
+      "Ġneutrons": 1491,
+      "Ġimmutable": 1492,
+      "Ġprecipitation": 1493,
+      "Ġinstructions": 1494,
+      "Ġapproximately": 1495,
+      "Ġcircumference": 1496,
+      "29": 1497,
+      "Can": 1498,
+      "Ne": 1499,
+      "Tokyo": 1500,
+      "gs": 1501,
+      "ies": 1502,
+      "Ġhello": 1503,
+      "Ġ59": 1504,
+      "ess": 1505,
+      "Ġ66": 1506,
+      "Ġ73": 1507,
+      "Ġ90": 1508,
+      "Ġinheritance": 1509,
+      "our": 1510,
+      "Ġfas": 1511,
+      "Ġscope": 1512,
+      "Who": 1513,
+      "Ġnot": 1514,
+      "ĠBerlin": 1515,
+      "Ġrecursion": 1516,
+      "Ġdebugging": 1517,
+      "New": 1518,
+      "Ġfaster": 1519,
+      "110": 1520,
+      "26": 1521,
+      "33": 1522,
+      "44": 1523,
+      "68": 1524,
+      "77": 1525,
+      "84": 1526,
+      "88": 1527,
+      "96": 1528,
+      "Mexico": 1529,
+      "Moscow": 1530,
+      "bo": 1531,
+      "Ġtrue": 1532,
+      "Ġtwo": 1533,
+      "Ġdoll": 1534,
+      "outhe": 1535,
+      "108": 1536,
+      "120": 1537,
+      "121": 1538,
+      "132": 1539,
+      "Ġnorthern": 1540,
+      "Brasilia": 1541,
+      "Ġdollars": 1542,
+      "Berlin": 1543,
+      "Beijing": 1544,
+      "No": 1545,
+      "Ottawa": 1546,
+      "av": 1547,
+      "code": 1548,
+      "ft": 1549,
+      "red": 1550,
+      "tal": 1551,
+      "uy": 1552,
+      "ĠX": 1553,
+      "Ġu": 1554,
+      "ĠThe": 1555,
+      "Ġ58": 1556,
+      "Ġbuy": 1557,
+      "ĠAn": 1558,
+      "Ġ74": 1559,
+      "Ġmuc": 1560,
+      "Ġinc": 1561,
+      "reas": 1562,
+      "Ġground": 1563,
+      "ĠBeijing": 1564,
+      "ĠBuenos": 1565,
+      "Ġtotal": 1566,
+      "ĠMadrid": 1567,
+      "ird": 1568,
+      "ĠLima": 1569,
+      "ĠLondon": 1570,
+      "Canberra": 1571,
+      "Ġmuch": 1572,
+      "reases": 1573,
+      "Am": 1574,
+      "Abuja": 1575,
+      "Athens": 1576,
+      "Bern": 1577,
+      "Buenos": 1578,
+      "Bangkok": 1579,
+      "Bogota": 1580,
+      "Cairo": 1581,
+      "Copenhagen": 1582,
+      "Dublin": 1583,
+      "Hanoi": 1584,
+      "Helsinki": 1585,
+      "Jakarta": 1586,
+      "Lima": 1587,
+      "London": 1588,
+      "Lisbon": 1589,
+      "Madrid": 1590,
+      "Nairobi": 1591,
+      "Oslo": 1592,
+      "Prague": 1593,
+      "Pretoria": 1594,
+      "Rome": 1595,
+      "Seoul": 1596,
+      "Santiago": 1597,
+      "Use": 1598,
+      "Vienna": 1599,
+      "Wellington": 1600,
+      "Warsaw": 1601,
+      "bat": 1602,
+      "cat": 1603,
+      "dre": 1604,
+      "ggs": 1605,
+      "ocean": 1606,
+      "ockholm": 1607,
+      "pen": 1608,
+      "rder": 1609,
+      "tle": 1610,
+      "up": 1611,
+      "world": 1612,
+      "ython": 1613,
+      "ĠQ": 1614,
+      "Ġold": 1615,
+      "ĠAbuja": 1616,
+      "ĠAthens": 1617,
+      "Ġ61": 1618,
+      "Ġ84": 1619,
+      "Ġ71": 1620,
+      "Ġ77": 1621,
+      "Ġ99": 1622,
+      "Ġthen": 1623,
+      "ould": 1624,
+      "apple": 1625,
+      "Ġwet": 1626,
+      "ice": 1627,
+      "Ġle": 1628,
+      "Ġless": 1629,
+      "Ġeat": 1630,
+      "Ġeggs": 1631,
+      "ĠCairo": 1632,
+      "ĠCopenhagen": 1633,
+      "astern": 1634,
+      "ĠSto": 1635,
+      "ĠSeoul": 1636,
+      "ĠSantiago": 1637,
+      "ĠSouthe": 1638,
+      "ĠPrague": 1639,
+      "ĠPretoria": 1640,
+      "ĠBlue": 1641,
+      "ĠBob": 1642,
+      "ĠBangkok": 1643,
+      "ĠBogota": 1644,
+      "ĠWellington": 1645,
+      "ĠWarsaw": 1646,
+      "ĠNo": 1647,
+      "ĠNairobi": 1648,
+      "ĠMoscow": 1649,
+      "Ankara": 1650,
+      "ĠDublin": 1651,
+      "ĠJakarta": 1652,
+      "aller": 1653,
+      "ĠOttawa": 1654,
+      "ĠOslo": 1655,
+      "ĠOrder": 1656,
+      "star": 1657,
+      "stone": 1658,
+      "ĠAmsterdam": 1659,
+      "Ġanimal": 1660,
+      "ĠLisbon": 1661,
+      "ĠVienna": 1662,
+      "Stockholm": 1663,
+      "ĠHanoi": 1664,
+      "ĠHelsinki": 1665,
+      "ĠCanberra": 1666,
+      "ĠTurtle": 1667,
+      "Brussels": 1668,
+      "ĠBrasilia": 1669,
+      "ĠBrussels": 1670,
+      "ĠAnkara": 1671,
+      "Ġincreases": 1672,
+      "Amsterdam": 1673,
+      "dream": 1674,
+      "ĠStockholm": 1675,
+      "ĠSoutheast": 1676,
+      "75": 1677,
+      "False": 1678,
+      "Japan": 1679,
+      "aro": 1680,
+      "cent": 1681,
+      "cup": 1682,
+      "dog": 1683,
+      "fan": 1684,
+      "map": 1685,
+      "net": 1686,
+      "pples": 1687,
+      "rite": 1688,
+      "sun": 1689,
+      "top": 1690,
+      "Ġ<": 1691,
+      "ĠWho": 1692,
+      "ert": 1693,
+      "Ġapples": 1694,
+      "Ġbag": 1695,
+      "Ġ86": 1696,
+      "Ġday": 1697,
+      "Ġ75": 1698,
+      "Ġ76": 1699,
+      "ining": 1700,
+      "reen": 1701,
+      "arm": 1702,
+      "owl": 1703,
+      "ĠCat": 1704,
+      "ĠCaro": 1705,
+      "Ġye": 1706,
+      "169": 1707,
+      "log": 1708,
+      "ĠDouble": 1709,
+      "Ġhow": 1710,
+      "Ġhour": 1711,
+      "ĠGreen": 1712,
+      "fox": 1713,
+      "Ġall": 1714,
+      "Ġpercent": 1715,
+      "Ġraining": 1716,
+      "box": 1717,
+      "Ġleft": 1718,
+      "ĠCarol": 1719,
+      "().": 1720,
+      "210": 1721,
+      "34": 1722,
+      "53": 1723,
+      "58": 1724,
+      "59": 1725,
+      "73": 1726,
+      "74": 1727,
+      "86": 1728,
+      "Austr": 1729,
+      "Ch": 1730,
+      "Cat": 1731,
+      "Ind": 1732,
+      "Red": 1733,
+      "Sw": 1734,
+      "South": 1735,
+      "day": 1736,
+      "fter": 1737,
+      "lam": 1738,
+      "oc": 1739,
+      "ove": 1740,
+      "ook": 1741,
+      "ud": 1742,
+      "uns": 1743,
+      "western": 1744,
+      "Ġtw": 1745,
+      "Ġten": 1746,
+      "Ġtaller": 1747,
+      "Ġafter": 1748,
+      "Ġout": 1749,
+      "Ġ46": 1750,
+      "Ġcre": 1751,
+      "Ġcook": 1752,
+      "Ġ69": 1753,
+      "Ġ83": 1754,
+      "Ġ88": 1755,
+      "Ġ78": 1756,
+      "Ġ79": 1757,
+      "row": 1758,
+      "eth": 1759,
+      "ana": 1760,
+      "Ġfly": 1761,
+      "Ġso": 1762,
+      "Ġsix": 1763,
+      "ven": 1764,
+      "Ġgo": 1765,
+      "Ġgive": 1766,
+      "Ġabove": 1767,
+      "Ġrect": 1768,
+      "160": 1769,
+      "Ġruns": 1770,
+      "242": 1771,
+      "Ġbox": 1772,
+      "Ġbook": 1773,
+      "Ġone": 1774,
+      "304": 1775,
+      "Ġsquares": 1776,
+      "Ġplanet": 1777,
+      "273": 1778,
+      "Ġsouthern": 1779,
+      "Ġsouthwestern": 1780,
+      "ĠOceania": 1781,
+      "Ġolder": 1782,
+      "Ġanimals": 1783,
+      "Ġyear": 1784,
+      "Ġcookies": 1785,
+      ")?": 1786,
+      "Ap": 1787,
+      "All": 1788,
+      "Argentina": 1789,
+      "Brazil": 1790,
+      "France": 1791,
+      "Hal": 1792,
+      "Not": 1793,
+      "Peru": 1794,
+      "Python": 1795,
+      "Write": 1796,
+      "ab": 1797,
+      "aer": 1798,
+      "ans": 1799,
+      "bles": 1800,
+      "bird": 1801,
+      "cl": 1802,
+      "dra": 1803,
+      "ep": 1804,
+      "fl": 1805,
+      "fish": 1806,
+      "gu": 1807,
+      "gil": 1808,
+      "ier": 1809,
+      "iar": 1810,
+      "lf": 1811,
+      "lrow": 1812,
+      "ment": 1813,
+      "of": 1814,
+      "ogram": 1815,
+      "ots": 1816,
+      "oob": 1817,
+      "pil": 1818,
+      "python": 1819,
+      "river": 1820,
+      "snow": 1821,
+      "tree": 1822,
+      "uol": 1823,
+      "vir": 1824,
+      "vern": 1825,
+      "ware": 1826,
+      "zen": 1827,
+      "Ġhe": 1828,
+      "ĠWhich": 1829,
+      "Ġthat": 1830,
+      "Ġbird": 1831,
+      "ĠAll": 1832,
+      "Ġche": 1833,
+      "edoc": 1834,
+      "anana": 1835,
+      "oud": 1836,
+      "ouse": 1837,
+      "Ġfive": 1838,
+      "Ġfalse": 1839,
+      "Ġfast": 1840,
+      "aril": 1841,
+      "elpp": 1842,
+      "Ġdogs": 1843,
+      "Ġdozen": 1844,
+      "Ġhalf": 1845,
+      "Ġpr": 1846,
+      "Ġeight": 1847,
+      "engu": 1848,
+      "leh": 1849,
+      "Ġ144": 1850,
+      "ĠCher": 1851,
+      "Ġnec": 1852,
+      "ĠBanana": 1853,
+      "ates": 1854,
+      "Ġtoday": 1855,
+      "rain": 1856,
+      "Ġread": 1857,
+      "ĠMouse": 1858,
+      "Ġwhile": 1859,
+      "ĠTom": 1860,
+      "sif": 1861,
+      "Ġspend": 1862,
+      "Ġstand": 1863,
+      "Ġstud": 1864,
+      "Ġhumans": 1865,
+      "eco": 1866,
+      "Ġcompil": 1867,
+      "malf": 1868,
+      "Ġkilogram": 1869,
+      "essaril": 1870,
+      "book": 1871,
+      "ava": 1872,
+      "avier": 1873,
+      "Ġdays": 1874,
+      "lamp": 1875,
+      "Ġcreate": 1876,
+      "Ġgovern": 1877,
+      "Ġrectangles": 1878,
+      "Half": 1879,
+      "aerd": 1880,
+      "cloud": 1881,
+      "draw": 1882,
+      "flame": 1883,
+      "uolc": 1884,
+      "Ġheavier": 1885,
+      "elppa": 1886,
+      "ĠCherry": 1887,
+      "Ġnecessaril": 1888,
+      "Ġstudents": 1889,
+      "Ġgovernment": 1890,
+      "Ġnecessarily": 1891,
+      "!!": 1892,
+      "),": 1893,
+      "..": 1894,
+      "47": 1895,
+      "Belgium": 1896,
+      "Class": 1897,
+      "Colombia": 1898,
+      "Czech": 1899,
+      "Could": 1900,
+      "Dog": 1901,
+      "Double": 1902,
+      "Denmark": 1903,
+      "Egypt": 1904,
+      "Finland": 1905,
+      "Germany": 1906,
+      "Greece": 1907,
+      "Ireland": 1908,
+      "Java": 1909,
+      "Kenya": 1910,
+      "List": 1911,
+      "Mercury": 1912,
+      "Nigeria": 1913,
+      "Netherlands": 1914,
+      "Poland": 1915,
+      "Portugal": 1916,
+      "Sh": 1917,
+      "Tur": 1918,
+      "Tri": 1919,
+      "Thailand": 1920,
+      "United": 1921,
+      "Vietnam": 1922,
+      "ak": 1923,
+      "air": 1924,
+      "bers": 1925,
+      "cor": 1926,
+      "drib": 1927,
+      "dlrow": 1928,
+      "duolc": 1929,
+      "ek": 1930,
+      "eci": 1931,
+      "ease": 1932,
+      "eert": 1933,
+      "emalf": 1934,
+      "for": 1935,
+      "gin": 1936,
+      "gol": 1937,
+      "god": 1938,
+      "gain": 1939,
+      "gub": 1940,
+      "hort": 1941,
+      "hsif": 1942,
+      "koob": 1943,
+      "lwo": 1944,
+      "mic": 1945,
+      "mra": 1946,
+      "maerd": 1947,
+      "ner": 1948,
+      "nus": 1949,
+      "nep": 1950,
+      "niar": 1951,
+      "pam": 1952,
+      "pot": 1953,
+      "pmal": 1954,
+      "pret": 1955,
+      "rats": 1956,
+      "tt": 1957,
+      "tac": 1958,
+      "tates": 1959,
+      "ubtract": 1960,
+      "vi": 1961,
+      "val": 1962,
+      "what": 1963,
+      "wons": 1964,
+      "xt": 1965,
+      "xob": 1966,
+      "xof": 1967,
+      "yek": 1968,
+      "Ġqu": 1969,
+      "Ġtest": 1970,
+      "Ġtrav": 1971,
+      "Ġanswer": 1972,
+      "Ġagain": 1973,
+      "heastern": 1974,
+      "esert": 1975,
+      "Ġbra": 1976,
+      "Ġbug": 1977,
+      "Ġcl": 1978,
+      "Ġcat": 1979,
+      "Ġcand": 1980,
+      "Ġcos": 1981,
+      "Ġcats": 1982,
+      "Ġcould": 1983,
+      "ndle": 1984,
+      "Ġ67": 1985,
+      "Ġ87": 1986,
+      "Ġ89": 1987,
+      "Ġdou": 1988,
+      "Ġdid": 1989,
+      "Ġmon": 1990,
+      "alve": 1991,
+      "Ġ95": 1992,
+      "Ġ96": 1993,
+      "Ġthey": 1994,
+      "plies": 1995,
+      "ina": 1996,
+      "Ġinter": 1997,
+      "revir": 1998,
+      "Ġ108": 1999,
+      "Ġfour": 2000,
+      "Ġ120": 2001,
+      "Ġ121": 2002,
+      "Ġwe": 2003,
+      "Ġwor": 2004,
+      "Ġwould": 2005,
+      "Ġwrite": 2006,
+      "ten": 2007,
+      "Ġsame": 2008,
+      "Ġslow": 2009,
+      "Ġsides": 2010,
+      "Ġsouthe": 2011,
+      "Ġscor": 2012,
+      "Ġshort": 2013,
+      "Ġsubtract": 2014,
+      "Ġcapitals": 2015,
+      "elve": 2016,
+      "Ġhard": 2017,
+      "Ġhandle": 2018,
+      "Ġ110": 2019,
+      "Ġland": 2020,
+      "Ġgre": 2021,
+      "Ġgol": 2022,
+      "Ġgir": 2023,
+      "Ġpat": 2024,
+      "Ġpets": 2025,
+      "Ġpages": 2026,
+      "Ġpengu": 2027,
+      "Ġpair": 2028,
+      "romos": 2029,
+      "Ġeastern": 2030,
+      "enots": 2031,
+      "omes": 2032,
+      "ometh": 2033,
+      "Ġplease": 2034,
+      "ths": 2035,
+      "thgil": 2036,
+      "Ġna": 2037,
+      "Ġnort": 2038,
+      "Ġnine": 2039,
+      "oungest": 2040,
+      "asons": 2041,
+      "They": 2042,
+      "olleh": 2043,
+      "ĠStates": 2044,
+      "Ġ169": 2045,
+      "Ġ132": 2046,
+      "ĠWest": 2047,
+      "puc": 2048,
+      "put": 2049,
+      "Ġtop": 2050,
+      "ĠNot": 2051,
+      "Ġyoungest": 2052,
+      "Ġreasons": 2053,
+      "Ġking": 2054,
+      "Ġminut": 2055,
+      "Ġresult": 2056,
+      "Ġboys": 2057,
+      "Ġbott": 2058,
+      "ally": 2059,
+      "Ġstart": 2060,
+      "Ġlarger": 2061,
+      "Spain": 2062,
+      "Italy": 2063,
+      "tab": 2064,
+      "tah": 2065,
+      "Ġany": 2066,
+      "Ġteeth": 2067,
+      "ĠHalve": 2068,
+      "Ġlightest": 2069,
+      "Ġcolor": 2070,
+      "Ġstorage": 2071,
+      "naf": 2072,
+      "naeco": 2073,
+      "Ġbegin": 2074,
+      "Norway": 2075,
+      "Ġseven": 2076,
+      "Ġseconds": 2077,
+      "Ġhelp": 2078,
+      "Ġimplies": 2079,
+      "Ġchromos": 2080,
+      "Ġsmaller": 2081,
+      "Canada": 2082,
+      "ource": 2083,
+      "ftware": 2084,
+      "ĠThen": 2085,
+      "ĠThey": 2086,
+      "Ġoldest": 2087,
+      "Ġbags": 2088,
+      "Ġhours": 2089,
+      "Ġpercentage": 2090,
+      "Austria": 2091,
+      "Australia": 2092,
+      "Chile": 2093,
+      "China": 2094,
+      "India": 2095,
+      "Indonesia": 2096,
+      "Sweden": 2097,
+      "Switzerland": 2098,
+      "Ġtwelve": 2099,
+      "Ġoutput": 2100,
+      "Ġboxes": 2101,
+      "Ġbooks": 2102,
+      "Apple": 2103,
+      "Ġbirds": 2104,
+      "Ġchemic": 2105,
+      "Ġcompiler": 2106,
+      "Show": 2107,
+      "Turkey": 2108,
+      "Triple": 2109,
+      "preted": 2110,
+      "value": 2111,
+      "Ġtravel": 2112,
+      "Ġcandies": 2113,
+      "Ġcosts": 2114,
+      "Ġdoubles": 2115,
+      "Ġmonths": 2116,
+      "Ġinterpreted": 2117,
+      "Ġslowest": 2118,
+      "Ġsoutheastern": 2119,
+      "Ġscored": 2120,
+      "Ġshortest": 2121,
+      "Ġgirls": 2122,
+      "Ġpattern": 2123,
+      "Ġpenguin": 2124,
+      "Ġpairs": 2125,
+      "omething": 2126,
+      "Ġnortheastern": 2127,
+      "Ġminutes": 2128,
+      "Ġbottom": 2129,
+      "Ġbeginner": 2130,
+      "Ġchromosomes": 2131,
+      "Ġchemical": 2132
+    },
+    "merges": [
+      [
+        "Ġ",
+        "i"
+      ],
+      [
+        "Ġ",
+        "1"
+      ],
+      [
+        "Ġi",
+        "s"
+      ],
+      [
+        "Ġ",
+        "="
+      ],
+      [
+        "h",
+        "a"
+      ],
+      [
+        "e",
+        "r"
+      ],
+      [
+        "Ġ",
+        "2"
+      ],
+      [
+        "ha",
+        "t"
+      ],
+      [
+        "Ġ",
+        "t"
+      ],
+      [
+        "Ġ",
+        "a"
+      ],
+      [
+        "Ġ",
+        "+"
+      ],
+      [
+        "W",
+        "hat"
+      ],
+      [
+        "Ġ",
+        "3"
+      ],
+      [
+        "Ġ",
+        "o"
+      ],
+      [
+        "Ġ",
+        "4"
+      ],
+      [
+        "Ġ",
+        "5"
+      ],
+      [
+        "h",
+        "e"
+      ],
+      [
+        "e",
+        "s"
+      ],
+      [
+        "Ġ",
+        "*"
+      ],
+      [
+        "Ġ",
+        "b"
+      ],
+      [
+        "Ġ",
+        "A"
+      ],
+      [
+        "Ġ",
+        "c"
+      ],
+      [
+        "n",
+        "d"
+      ],
+      [
+        "Ġ",
+        "6"
+      ],
+      [
+        "Ġo",
+        "f"
+      ],
+      [
+        "Ġ",
+        "8"
+      ],
+      [
+        "Ġ",
+        "d"
+      ],
+      [
+        "Ġ",
+        "7"
+      ],
+      [
+        "Ġ",
+        "m"
+      ],
+      [
+        "n",
+        "s"
+      ],
+      [
+        "a",
+        "l"
+      ],
+      [
+        "Ġ",
+        "I"
+      ],
+      [
+        "Ġ",
+        "9"
+      ],
+      [
+        "Ġt",
+        "he"
+      ],
+      [
+        "i",
+        "t"
+      ],
+      [
+        "r",
+        "o"
+      ],
+      [
+        "w",
+        "er"
+      ],
+      [
+        "ns",
+        "wer"
+      ],
+      [
+        "ĠA",
+        "nswer"
+      ],
+      [
+        "e",
+        "t"
+      ],
+      [
+        "e",
+        "d"
+      ],
+      [
+        "Ġb",
+        "y"
+      ],
+      [
+        "p",
+        "l"
+      ],
+      [
+        "i",
+        "n"
+      ],
+      [
+        "a",
+        "n"
+      ],
+      [
+        "Ġ",
+        "-"
+      ],
+      [
+        "Ġi",
+        "n"
+      ],
+      [
+        "r",
+        "e"
+      ],
+      [
+        "o",
+        "u"
+      ],
+      [
+        "Ġa",
+        "nd"
+      ],
+      [
+        "u",
+        "s"
+      ],
+      [
+        "Ġ1",
+        "0"
+      ],
+      [
+        "a",
+        "p"
+      ],
+      [
+        "u",
+        "l"
+      ],
+      [
+        "Ġ",
+        "f"
+      ],
+      [
+        "t",
+        "i"
+      ],
+      [
+        "Ġ1",
+        "2"
+      ],
+      [
+        "Ġ",
+        "w"
+      ],
+      [
+        "i",
+        "v"
+      ],
+      [
+        "it",
+        "al"
+      ],
+      [
+        "ap",
+        "ital"
+      ],
+      [
+        "i",
+        "m"
+      ],
+      [
+        "t",
+        "e"
+      ],
+      [
+        "a",
+        "r"
+      ],
+      [
+        "i",
+        "d"
+      ],
+      [
+        "Ġ",
+        "?"
+      ],
+      [
+        "Ġ",
+        "s"
+      ],
+      [
+        "Ġc",
+        "apital"
+      ],
+      [
+        "e",
+        "l"
+      ],
+      [
+        "Ġt",
+        "im"
+      ],
+      [
+        "t",
+        "er"
+      ],
+      [
+        "iv",
+        "id"
+      ],
+      [
+        "Ġtim",
+        "es"
+      ],
+      [
+        "Ġd",
+        "o"
+      ],
+      [
+        "Ġ",
+        "ha"
+      ],
+      [
+        "o",
+        "n"
+      ],
+      [
+        "c",
+        "t"
+      ],
+      [
+        "a",
+        "m"
+      ],
+      [
+        "v",
+        "e"
+      ],
+      [
+        "Ġ1",
+        "1"
+      ],
+      [
+        "i",
+        "c"
+      ],
+      [
+        "Ġ",
+        "l"
+      ],
+      [
+        "Ġ",
+        "g"
+      ],
+      [
+        "Ġ",
+        "p"
+      ],
+      [
+        "Ġd",
+        "ivid"
+      ],
+      [
+        "Ġdivid",
+        "ed"
+      ],
+      [
+        "Ġha",
+        "ve"
+      ],
+      [
+        "o",
+        "w"
+      ],
+      [
+        "ro",
+        "m"
+      ],
+      [
+        "Ġf",
+        "rom"
+      ],
+      [
+        "ou",
+        "t"
+      ],
+      [
+        "t",
+        "r"
+      ],
+      [
+        "Ġg",
+        "et"
+      ],
+      [
+        "ul",
+        "ti"
+      ],
+      [
+        "ulti",
+        "pl"
+      ],
+      [
+        "o",
+        "r"
+      ],
+      [
+        "Ġ",
+        "e"
+      ],
+      [
+        "S",
+        "u"
+      ],
+      [
+        "e",
+        "n"
+      ],
+      [
+        "et",
+        "ter"
+      ],
+      [
+        "in",
+        "g"
+      ],
+      [
+        "1",
+        "0"
+      ],
+      [
+        "l",
+        "e"
+      ],
+      [
+        "Ġ",
+        "E"
+      ],
+      [
+        "Ġa",
+        "b"
+      ],
+      [
+        "Ġab",
+        "out"
+      ],
+      [
+        "1",
+        "2"
+      ],
+      [
+        "el",
+        "l"
+      ],
+      [
+        "o",
+        "m"
+      ],
+      [
+        "Ġ",
+        "'"
+      ],
+      [
+        "Ġ1",
+        "5"
+      ],
+      [
+        "H",
+        "ow"
+      ],
+      [
+        "Ġ",
+        "pl"
+      ],
+      [
+        "an",
+        "y"
+      ],
+      [
+        "Ġ1",
+        "4"
+      ],
+      [
+        "i",
+        "a"
+      ],
+      [
+        "d",
+        "d"
+      ],
+      [
+        "Ġm",
+        "any"
+      ],
+      [
+        "Ġm",
+        "o"
+      ],
+      [
+        "Ġm",
+        "e"
+      ],
+      [
+        "t",
+        "h"
+      ],
+      [
+        "W",
+        "h"
+      ],
+      [
+        "Ġ",
+        "C"
+      ],
+      [
+        "Ġ",
+        "n"
+      ],
+      [
+        "Ġ",
+        "x"
+      ],
+      [
+        "a",
+        "te"
+      ],
+      [
+        "Ġ1",
+        "8"
+      ],
+      [
+        "te",
+        "m"
+      ],
+      [
+        "I",
+        "f"
+      ],
+      [
+        "c",
+        "e"
+      ],
+      [
+        "u",
+        "ct"
+      ],
+      [
+        "Ġw",
+        "hat"
+      ],
+      [
+        "Ġpl",
+        "us"
+      ],
+      [
+        "Ġa",
+        "dd"
+      ],
+      [
+        "Ġ",
+        "How"
+      ],
+      [
+        "Ġe",
+        "nd"
+      ],
+      [
+        "Ġp",
+        "ro"
+      ],
+      [
+        "Ġ",
+        "/"
+      ],
+      [
+        "Ġ2",
+        "0"
+      ],
+      [
+        "a",
+        "ct"
+      ],
+      [
+        "C",
+        "al"
+      ],
+      [
+        "c",
+        "ul"
+      ],
+      [
+        "ti",
+        "on"
+      ],
+      [
+        "Su",
+        "m"
+      ],
+      [
+        "Cal",
+        "cul"
+      ],
+      [
+        "Calcul",
+        "ate"
+      ],
+      [
+        "ou",
+        "n"
+      ],
+      [
+        "1",
+        "1"
+      ],
+      [
+        "a",
+        "s"
+      ],
+      [
+        "P",
+        "ro"
+      ],
+      [
+        "Ġi",
+        "tem"
+      ],
+      [
+        "Ġmo",
+        "re"
+      ],
+      [
+        "Ġitem",
+        "s"
+      ],
+      [
+        "T",
+        "he"
+      ],
+      [
+        "d",
+        "uct"
+      ],
+      [
+        "i",
+        "ed"
+      ],
+      [
+        "Ġm",
+        "ultipl"
+      ],
+      [
+        "Pro",
+        "duct"
+      ],
+      [
+        "Ġmultipl",
+        "ied"
+      ],
+      [
+        "M",
+        "ultipl"
+      ],
+      [
+        "o",
+        "l"
+      ],
+      [
+        "Multipl",
+        "y"
+      ],
+      [
+        "p",
+        "e"
+      ],
+      [
+        "Ġ",
+        "us"
+      ],
+      [
+        "Ġus",
+        "e"
+      ],
+      [
+        "L",
+        "etter"
+      ],
+      [
+        "i",
+        "s"
+      ],
+      [
+        "Ġ",
+        "S"
+      ],
+      [
+        "i",
+        "g"
+      ],
+      [
+        "Ġ1",
+        "6"
+      ],
+      [
+        "ic",
+        "h"
+      ],
+      [
+        "Ġ1",
+        "3"
+      ],
+      [
+        "Ġ",
+        "P"
+      ],
+      [
+        "Ġ",
+        "B"
+      ],
+      [
+        "es",
+        "t"
+      ],
+      [
+        "a",
+        "t"
+      ],
+      [
+        "Ġl",
+        "etter"
+      ],
+      [
+        "g",
+        "r"
+      ],
+      [
+        "gr",
+        "am"
+      ],
+      [
+        "a",
+        "nd"
+      ],
+      [
+        "Ġpro",
+        "gram"
+      ],
+      [
+        "a",
+        "y"
+      ],
+      [
+        "Ġo",
+        "r"
+      ],
+      [
+        "pl",
+        "e"
+      ],
+      [
+        "er",
+        "s"
+      ],
+      [
+        "i",
+        "l"
+      ],
+      [
+        "Ġ2",
+        "1"
+      ],
+      [
+        "Ġ",
+        "W"
+      ],
+      [
+        "Ġ2",
+        "4"
+      ],
+      [
+        "k",
+        "e"
+      ],
+      [
+        "p",
+        "u"
+      ],
+      [
+        "Ġt",
+        "o"
+      ],
+      [
+        "u",
+        "m"
+      ],
+      [
+        "Ġ2",
+        "7"
+      ],
+      [
+        "x",
+        "am"
+      ],
+      [
+        "tr",
+        "act"
+      ],
+      [
+        "Ġ3",
+        "0"
+      ],
+      [
+        "ĠE",
+        "xam"
+      ],
+      [
+        "t",
+        "s"
+      ],
+      [
+        "Ġ",
+        "N"
+      ],
+      [
+        "Ġ",
+        "Letter"
+      ],
+      [
+        "1",
+        "4"
+      ],
+      [
+        "Ġ",
+        "y"
+      ],
+      [
+        "b",
+        "tract"
+      ],
+      [
+        "m",
+        "ing"
+      ],
+      [
+        "r",
+        "a"
+      ],
+      [
+        "Ġc",
+        "oun"
+      ],
+      [
+        "Su",
+        "btract"
+      ],
+      [
+        "Ġprogram",
+        "ming"
+      ],
+      [
+        "Ġcoun",
+        "tr"
+      ],
+      [
+        "u",
+        "n"
+      ],
+      [
+        "Ġcountr",
+        "y"
+      ],
+      [
+        "Ġ",
+        "re"
+      ],
+      [
+        "it",
+        "y"
+      ],
+      [
+        "om",
+        "pu"
+      ],
+      [
+        "er",
+        "e"
+      ],
+      [
+        "Ġletter",
+        "s"
+      ],
+      [
+        "u",
+        "r"
+      ],
+      [
+        "Ġd",
+        "e"
+      ],
+      [
+        "Ġ",
+        "k"
+      ],
+      [
+        "Wh",
+        "ich"
+      ],
+      [
+        "a",
+        "c"
+      ],
+      [
+        "w",
+        "ay"
+      ],
+      [
+        "Ġ",
+        "R"
+      ],
+      [
+        "Ġ1",
+        "9"
+      ],
+      [
+        "ĠExam",
+        "ple"
+      ],
+      [
+        "Ġ",
+        "M"
+      ],
+      [
+        "Ġ1",
+        "7"
+      ],
+      [
+        "am",
+        "e"
+      ],
+      [
+        "Ġy",
+        "ou"
+      ],
+      [
+        "o",
+        "d"
+      ],
+      [
+        "q",
+        "u"
+      ],
+      [
+        "D",
+        "ivid"
+      ],
+      [
+        "T",
+        "ell"
+      ],
+      [
+        "Ġm",
+        "in"
+      ],
+      [
+        "Divid",
+        "e"
+      ],
+      [
+        "b",
+        "le"
+      ],
+      [
+        "1",
+        "6"
+      ],
+      [
+        "a",
+        "in"
+      ],
+      [
+        "l",
+        "d"
+      ],
+      [
+        "Ġw",
+        "h"
+      ],
+      [
+        "Ġmin",
+        "us"
+      ],
+      [
+        "Ġ3",
+        "6"
+      ],
+      [
+        "a",
+        "g"
+      ],
+      [
+        "Ġ2",
+        "5"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "n",
+        "t"
+      ],
+      [
+        "Ġ",
+        "F"
+      ],
+      [
+        "Ġa",
+        "way"
+      ],
+      [
+        "C",
+        "ompu"
+      ],
+      [
+        "Compu",
+        "te"
+      ],
+      [
+        "Wh",
+        "ere"
+      ],
+      [
+        "e",
+        "x"
+      ],
+      [
+        "v",
+        "ers"
+      ],
+      [
+        "T",
+        "a"
+      ],
+      [
+        "o",
+        "s"
+      ],
+      [
+        "Ta",
+        "ke"
+      ],
+      [
+        "A",
+        "n"
+      ],
+      [
+        "a",
+        "ter"
+      ],
+      [
+        "r",
+        "i"
+      ],
+      [
+        "Ġha",
+        "s"
+      ],
+      [
+        "1",
+        "8"
+      ],
+      [
+        "l",
+        "o"
+      ],
+      [
+        "Ġ",
+        "r"
+      ],
+      [
+        "Ġa",
+        "t"
+      ],
+      [
+        "Ġ3",
+        "2"
+      ],
+      [
+        "or",
+        "ld"
+      ],
+      [
+        "it",
+        "h"
+      ],
+      [
+        "in",
+        "t"
+      ],
+      [
+        "u",
+        "e"
+      ],
+      [
+        "Ġ",
+        "T"
+      ],
+      [
+        "Ġa",
+        "re"
+      ],
+      [
+        "el",
+        "e"
+      ],
+      [
+        "g",
+        "est"
+      ],
+      [
+        "2",
+        "0"
+      ],
+      [
+        "b",
+        "er"
+      ],
+      [
+        "Ġ4",
+        "0"
+      ],
+      [
+        "'",
+        "."
+      ],
+      [
+        "1",
+        "3"
+      ],
+      [
+        "2",
+        "4"
+      ],
+      [
+        "Ġ4",
+        "2"
+      ],
+      [
+        "ic",
+        "a"
+      ],
+      [
+        "ig",
+        "h"
+      ],
+      [
+        "s",
+        "i"
+      ],
+      [
+        "Ġ5",
+        "4"
+      ],
+      [
+        "an",
+        "g"
+      ],
+      [
+        "out",
+        "h"
+      ],
+      [
+        "igh",
+        "t"
+      ],
+      [
+        "c",
+        "tion"
+      ],
+      [
+        "n",
+        "ow"
+      ],
+      [
+        "Ġ2",
+        "3"
+      ],
+      [
+        "o",
+        "k"
+      ],
+      [
+        "Ġ",
+        "D"
+      ],
+      [
+        "Ġ2",
+        "2"
+      ],
+      [
+        "Ġ5",
+        "6"
+      ],
+      [
+        "Ġk",
+        "now"
+      ],
+      [
+        "ĠP",
+        "y"
+      ],
+      [
+        "Ġ2",
+        "8"
+      ],
+      [
+        "g",
+        "er"
+      ],
+      [
+        "u",
+        "g"
+      ],
+      [
+        "Y",
+        "es"
+      ],
+      [
+        "o",
+        "nd"
+      ],
+      [
+        "Ġ4",
+        "8"
+      ],
+      [
+        "Ġ",
+        ">"
+      ],
+      [
+        "ha",
+        "n"
+      ],
+      [
+        "Ġ4",
+        "5"
+      ],
+      [
+        "th",
+        "on"
+      ],
+      [
+        "Ġn",
+        "um"
+      ],
+      [
+        "I",
+        "s"
+      ],
+      [
+        "Ġb",
+        "o"
+      ],
+      [
+        "Ġc",
+        "an"
+      ],
+      [
+        "Ġs",
+        "pe"
+      ],
+      [
+        "Ġs",
+        "qu"
+      ],
+      [
+        "Ġnum",
+        "ber"
+      ],
+      [
+        ")",
+        "."
+      ],
+      [
+        "s",
+        "ia"
+      ],
+      [
+        "Ġ3",
+        "5"
+      ],
+      [
+        "g",
+        "re"
+      ],
+      [
+        "l",
+        "as"
+      ],
+      [
+        "r",
+        "int"
+      ],
+      [
+        "Ġ",
+        "J"
+      ],
+      [
+        "al",
+        "l"
+      ],
+      [
+        "et",
+        "s"
+      ],
+      [
+        "Ġw",
+        "ater"
+      ],
+      [
+        "ar",
+        "d"
+      ],
+      [
+        "Ġde",
+        "gre"
+      ],
+      [
+        "las",
+        "s"
+      ],
+      [
+        "Ġdegre",
+        "es"
+      ],
+      [
+        "u",
+        "ro"
+      ],
+      [
+        "Ġ",
+        "v"
+      ],
+      [
+        "Ġo",
+        "n"
+      ],
+      [
+        "ĠI",
+        "t"
+      ],
+      [
+        "Ġw",
+        "ith"
+      ],
+      [
+        "Ġdo",
+        "es"
+      ],
+      [
+        "ĠE",
+        "uro"
+      ],
+      [
+        "od",
+        "e"
+      ],
+      [
+        "ĠEuro",
+        "pe"
+      ],
+      [
+        "o",
+        "t"
+      ],
+      [
+        "Ġ",
+        "0"
+      ],
+      [
+        "Ġ",
+        "h"
+      ],
+      [
+        "Ġs",
+        "t"
+      ],
+      [
+        "ri",
+        "b"
+      ],
+      [
+        "'",
+        "?"
+      ],
+      [
+        "E",
+        "x"
+      ],
+      [
+        "R",
+        "e"
+      ],
+      [
+        "a",
+        "re"
+      ],
+      [
+        "l",
+        "and"
+      ],
+      [
+        "o",
+        "p"
+      ],
+      [
+        "Ġc",
+        "lass"
+      ],
+      [
+        "oun",
+        "t"
+      ],
+      [
+        "ĠPy",
+        "thon"
+      ],
+      [
+        "Ġb",
+        "ig"
+      ],
+      [
+        "pl",
+        "ain"
+      ],
+      [
+        "Ex",
+        "plain"
+      ],
+      [
+        "D",
+        "es"
+      ],
+      [
+        "c",
+        "rib"
+      ],
+      [
+        "i",
+        "r"
+      ],
+      [
+        "Ġi",
+        "ts"
+      ],
+      [
+        "Ġl",
+        "ar"
+      ],
+      [
+        "Des",
+        "crib"
+      ],
+      [
+        "Describ",
+        "e"
+      ],
+      [
+        "Ġc",
+        "ity"
+      ],
+      [
+        "m",
+        "p"
+      ],
+      [
+        "Ġ6",
+        "3"
+      ],
+      [
+        "Ġ7",
+        "2"
+      ],
+      [
+        "Ġlar",
+        "gest"
+      ],
+      [
+        "2",
+        "1"
+      ],
+      [
+        "3",
+        "6"
+      ],
+      [
+        "Ġt",
+        "han"
+      ],
+      [
+        "Ġc",
+        "ode"
+      ],
+      [
+        "re",
+        "e"
+      ],
+      [
+        "ar",
+        "th"
+      ],
+      [
+        "ĠE",
+        "arth"
+      ],
+      [
+        "3",
+        "0"
+      ],
+      [
+        "D",
+        "e"
+      ],
+      [
+        "N",
+        "ame"
+      ],
+      [
+        "h",
+        "er"
+      ],
+      [
+        "Ġ",
+        "O"
+      ],
+      [
+        "ĠS",
+        "outh"
+      ],
+      [
+        "c",
+        "i"
+      ],
+      [
+        "u",
+        "re"
+      ],
+      [
+        "an",
+        "ce"
+      ],
+      [
+        "ce",
+        "an"
+      ],
+      [
+        "is",
+        "t"
+      ],
+      [
+        "Ġwh",
+        "ich"
+      ],
+      [
+        "'",
+        "s"
+      ],
+      [
+        "k",
+        "ar"
+      ],
+      [
+        "s",
+        "t"
+      ],
+      [
+        "Ġa",
+        "s"
+      ],
+      [
+        "ĠW",
+        "orld"
+      ],
+      [
+        "Ġspe",
+        "ed"
+      ],
+      [
+        "S",
+        "p"
+      ],
+      [
+        "Ġ3",
+        "4"
+      ],
+      [
+        "Ġ5",
+        "0"
+      ],
+      [
+        "ĠA",
+        "m"
+      ],
+      [
+        "I",
+        "t"
+      ],
+      [
+        "w",
+        "ard"
+      ],
+      [
+        "Ġ",
+        "G"
+      ],
+      [
+        "Ġ",
+        "Z"
+      ],
+      [
+        "Ġ",
+        "ele"
+      ],
+      [
+        "C",
+        "apital"
+      ],
+      [
+        "y",
+        "o"
+      ],
+      [
+        "Ġ4",
+        "9"
+      ],
+      [
+        "Ġb",
+        "ac"
+      ],
+      [
+        "Ġin",
+        "ve"
+      ],
+      [
+        "Ġf",
+        "or"
+      ],
+      [
+        "or",
+        "t"
+      ],
+      [
+        "Ġme",
+        "an"
+      ],
+      [
+        "nt",
+        "ed"
+      ],
+      [
+        "Ġsqu",
+        "ar"
+      ],
+      [
+        "Sp",
+        "ell"
+      ],
+      [
+        "Ġbac",
+        "k"
+      ],
+      [
+        "Ġinve",
+        "nted"
+      ],
+      [
+        "u",
+        "c"
+      ],
+      [
+        "in",
+        "e"
+      ],
+      [
+        "en",
+        "ce"
+      ],
+      [
+        "Ġre",
+        "vers"
+      ],
+      [
+        "vers",
+        "e"
+      ],
+      [
+        "Re",
+        "verse"
+      ],
+      [
+        "ward",
+        "s"
+      ],
+      [
+        "Ġback",
+        "wards"
+      ],
+      [
+        "Ġrevers",
+        "ed"
+      ],
+      [
+        "i",
+        "le"
+      ],
+      [
+        "s",
+        "e"
+      ],
+      [
+        "t",
+        "a"
+      ],
+      [
+        "Ġ2",
+        "9"
+      ],
+      [
+        "he",
+        "l"
+      ],
+      [
+        "g",
+        "en"
+      ],
+      [
+        "us",
+        "tr"
+      ],
+      [
+        "iv",
+        "e"
+      ],
+      [
+        "ac",
+        "h"
+      ],
+      [
+        "Ġbig",
+        "ger"
+      ],
+      [
+        "4",
+        "0"
+      ],
+      [
+        "p",
+        "t"
+      ],
+      [
+        "Ġ",
+        "K"
+      ],
+      [
+        "Ġ",
+        "U"
+      ],
+      [
+        "er",
+        "n"
+      ],
+      [
+        "er",
+        "ica"
+      ],
+      [
+        "om",
+        "e"
+      ],
+      [
+        "Ġpl",
+        "an"
+      ],
+      [
+        "ĠAm",
+        "erica"
+      ],
+      [
+        "Ġsquar",
+        "ed"
+      ],
+      [
+        ")",
+        ":"
+      ],
+      [
+        "1",
+        "7"
+      ],
+      [
+        "f",
+        "ine"
+      ],
+      [
+        "o",
+        "g"
+      ],
+      [
+        "t",
+        "in"
+      ],
+      [
+        "Ġa",
+        "n"
+      ],
+      [
+        "Ġp",
+        "rint"
+      ],
+      [
+        "Ġh",
+        "um"
+      ],
+      [
+        "f",
+        "o"
+      ],
+      [
+        "i",
+        "et"
+      ],
+      [
+        "o",
+        "ns"
+      ],
+      [
+        "y",
+        "s"
+      ],
+      [
+        "Ġ",
+        "L"
+      ],
+      [
+        "ul",
+        "t"
+      ],
+      [
+        "en",
+        "ts"
+      ],
+      [
+        "ĠC",
+        "h"
+      ],
+      [
+        "un",
+        "ction"
+      ],
+      [
+        "all",
+        "est"
+      ],
+      [
+        "De",
+        "fine"
+      ],
+      [
+        "a",
+        "h"
+      ],
+      [
+        "ĠA",
+        "ustr"
+      ],
+      [
+        "Ġc",
+        "on"
+      ],
+      [
+        "Ġf",
+        "unction"
+      ],
+      [
+        "el",
+        "si"
+      ],
+      [
+        "ĠC",
+        "elsi"
+      ],
+      [
+        "ag",
+        "e"
+      ],
+      [
+        "ex",
+        "t"
+      ],
+      [
+        "ĠCelsi",
+        "us"
+      ],
+      [
+        "a",
+        "d"
+      ],
+      [
+        "c",
+        "ur"
+      ],
+      [
+        "o",
+        "re"
+      ],
+      [
+        "r",
+        "ue"
+      ],
+      [
+        "Ġt",
+        "h"
+      ],
+      [
+        "Ġb",
+        "od"
+      ],
+      [
+        "re",
+        "n"
+      ],
+      [
+        "ti",
+        "c"
+      ],
+      [
+        "on",
+        "es"
+      ],
+      [
+        "or",
+        "th"
+      ],
+      [
+        "Ġhum",
+        "an"
+      ],
+      [
+        "Ġbod",
+        "y"
+      ],
+      [
+        "4",
+        "8"
+      ],
+      [
+        "e",
+        "c"
+      ],
+      [
+        "f",
+        "r"
+      ],
+      [
+        "v",
+        "er"
+      ],
+      [
+        "Ġi",
+        "t"
+      ],
+      [
+        "Ġ2",
+        "6"
+      ],
+      [
+        "he",
+        "it"
+      ],
+      [
+        "ĠA",
+        "fr"
+      ],
+      [
+        "et",
+        "ers"
+      ],
+      [
+        "ar",
+        "s"
+      ],
+      [
+        "el",
+        "f"
+      ],
+      [
+        "Ġp",
+        "o"
+      ],
+      [
+        "ĠF",
+        "ah"
+      ],
+      [
+        "ren",
+        "heit"
+      ],
+      [
+        "ĠAfr",
+        "ica"
+      ],
+      [
+        "ĠFah",
+        "renheit"
+      ],
+      [
+        "1",
+        "9"
+      ],
+      [
+        "2",
+        "7"
+      ],
+      [
+        "4",
+        "5"
+      ],
+      [
+        "a",
+        "tion"
+      ],
+      [
+        "he",
+        "n"
+      ],
+      [
+        "Ġc",
+        "ond"
+      ],
+      [
+        "Ġw",
+        "hen"
+      ],
+      [
+        "ar",
+        "ia"
+      ],
+      [
+        "Ġs",
+        "tr"
+      ],
+      [
+        "Ġs",
+        "ol"
+      ],
+      [
+        "ct",
+        "s"
+      ],
+      [
+        "Ġele",
+        "ct"
+      ],
+      [
+        "aria",
+        "ble"
+      ],
+      [
+        "G",
+        "ive"
+      ],
+      [
+        "Q",
+        "u"
+      ],
+      [
+        "g",
+        "ing"
+      ],
+      [
+        "o",
+        "le"
+      ],
+      [
+        "Ġt",
+        "ell"
+      ],
+      [
+        "Ġ3",
+        "7"
+      ],
+      [
+        "Ġ4",
+        "4"
+      ],
+      [
+        "ĠA",
+        "sia"
+      ],
+      [
+        "Ġ8",
+        "1"
+      ],
+      [
+        "ro",
+        "ns"
+      ],
+      [
+        "an",
+        "t"
+      ],
+      [
+        "Ġin",
+        "fo"
+      ],
+      [
+        "Ġf",
+        "act"
+      ],
+      [
+        "Ġw",
+        "ant"
+      ],
+      [
+        "ic",
+        "k"
+      ],
+      [
+        "Ġl",
+        "ist"
+      ],
+      [
+        "Ġp",
+        "ol"
+      ],
+      [
+        "Ġv",
+        "ariable"
+      ],
+      [
+        "her",
+        "it"
+      ],
+      [
+        "Qu",
+        "ick"
+      ],
+      [
+        "Ġpol",
+        "es"
+      ],
+      [
+        "5",
+        "0"
+      ],
+      [
+        "l",
+        "ic"
+      ],
+      [
+        "Ġ",
+        "V"
+      ],
+      [
+        "ĠR",
+        "ome"
+      ],
+      [
+        "ang",
+        "u"
+      ],
+      [
+        "l",
+        "in"
+      ],
+      [
+        "l",
+        "ight"
+      ],
+      [
+        "al",
+        "se"
+      ],
+      [
+        "on",
+        "e"
+      ],
+      [
+        "Ġl",
+        "angu"
+      ],
+      [
+        "ĠN",
+        "e"
+      ],
+      [
+        "S",
+        "t"
+      ],
+      [
+        "Ġ",
+        "Subtract"
+      ],
+      [
+        "Ġt",
+        "e"
+      ],
+      [
+        "ĠA",
+        "dd"
+      ],
+      [
+        "Ġ10",
+        "0"
+      ],
+      [
+        "hel",
+        "lo"
+      ],
+      [
+        "7",
+        "2"
+      ],
+      [
+        "Ġ",
+        "H"
+      ],
+      [
+        "er",
+        "m"
+      ],
+      [
+        "Ġc",
+        "om"
+      ],
+      [
+        "Ġl",
+        "ight"
+      ],
+      [
+        "2",
+        "8"
+      ],
+      [
+        "6",
+        "0"
+      ],
+      [
+        "a",
+        "i"
+      ],
+      [
+        "b",
+        "ug"
+      ],
+      [
+        "c",
+        "k"
+      ],
+      [
+        "i",
+        "f"
+      ],
+      [
+        "er",
+        "at"
+      ],
+      [
+        "Ġt",
+        "allest"
+      ],
+      [
+        "al",
+        "ia"
+      ],
+      [
+        "pl",
+        "es"
+      ],
+      [
+        "us",
+        "sia"
+      ],
+      [
+        "ar",
+        "is"
+      ],
+      [
+        "ter",
+        "n"
+      ],
+      [
+        "ic",
+        "o"
+      ],
+      [
+        "Su",
+        "n"
+      ],
+      [
+        "ex",
+        "ico"
+      ],
+      [
+        "Ġbo",
+        "il"
+      ],
+      [
+        "Ġte",
+        "mp"
+      ],
+      [
+        "(",
+        "'"
+      ],
+      [
+        "0",
+        "0"
+      ],
+      [
+        "2",
+        "2"
+      ],
+      [
+        "4",
+        "9"
+      ],
+      [
+        "i",
+        "x"
+      ],
+      [
+        "o",
+        "op"
+      ],
+      [
+        "p",
+        "p"
+      ],
+      [
+        "r",
+        "ance"
+      ],
+      [
+        "Ġ",
+        "Y"
+      ],
+      [
+        "Ġ",
+        "Sun"
+      ],
+      [
+        "Ġa",
+        "l"
+      ],
+      [
+        "Ġo",
+        "th"
+      ],
+      [
+        "Ġ4",
+        "3"
+      ],
+      [
+        "es",
+        "ult"
+      ],
+      [
+        "Ġc",
+        "ol"
+      ],
+      [
+        "ou",
+        "nd"
+      ],
+      [
+        "el",
+        "s"
+      ],
+      [
+        "Ġe",
+        "ach"
+      ],
+      [
+        "Ġn",
+        "e"
+      ],
+      [
+        "Ġde",
+        "f"
+      ],
+      [
+        "ĠM",
+        "o"
+      ],
+      [
+        "Ġst",
+        "or"
+      ],
+      [
+        "ĠCh",
+        "in"
+      ],
+      [
+        "ai",
+        "ro"
+      ],
+      [
+        "erat",
+        "ure"
+      ],
+      [
+        "Ġtemp",
+        "erature"
+      ],
+      [
+        "Ġoth",
+        "er"
+      ],
+      [
+        "'",
+        ":"
+      ],
+      [
+        "3",
+        "2"
+      ],
+      [
+        "h",
+        "ot"
+      ],
+      [
+        "s",
+        "is"
+      ],
+      [
+        "y",
+        "nt"
+      ],
+      [
+        "Ġi",
+        "mp"
+      ],
+      [
+        "he",
+        "sis"
+      ],
+      [
+        "Ġ6",
+        "4"
+      ],
+      [
+        "ĠI",
+        "nd"
+      ],
+      [
+        "ro",
+        "r"
+      ],
+      [
+        "iv",
+        "er"
+      ],
+      [
+        "ar",
+        "t"
+      ],
+      [
+        "ar",
+        "y"
+      ],
+      [
+        "Ġs",
+        "ound"
+      ],
+      [
+        "Ġl",
+        "oop"
+      ],
+      [
+        "as",
+        "e"
+      ],
+      [
+        "at",
+        "ur"
+      ],
+      [
+        "ra",
+        "v"
+      ],
+      [
+        "os",
+        "ynt"
+      ],
+      [
+        "ĠAustr",
+        "alia"
+      ],
+      [
+        "ĠMo",
+        "on"
+      ],
+      [
+        "hot",
+        "osynt"
+      ],
+      [
+        "Ġimp",
+        "ort"
+      ],
+      [
+        "hotosynt",
+        "hesis"
+      ],
+      [
+        "'",
+        ")."
+      ],
+      [
+        "2",
+        "5"
+      ],
+      [
+        "7",
+        "0"
+      ],
+      [
+        "_",
+        "_"
+      ],
+      [
+        "b",
+        "it"
+      ],
+      [
+        "h",
+        "one"
+      ],
+      [
+        "i",
+        "am"
+      ],
+      [
+        "n",
+        "ame"
+      ],
+      [
+        "p",
+        "it"
+      ],
+      [
+        "p",
+        "hone"
+      ],
+      [
+        "Ġ",
+        "("
+      ],
+      [
+        "Ġ",
+        "er"
+      ],
+      [
+        "Ġt",
+        "ele"
+      ],
+      [
+        "Ġo",
+        "cean"
+      ],
+      [
+        "Ġ5",
+        "1"
+      ],
+      [
+        "Ġm",
+        "eters"
+      ],
+      [
+        "ul",
+        "iet"
+      ],
+      [
+        "Ġw",
+        "ro"
+      ],
+      [
+        "id",
+        "e"
+      ],
+      [
+        "Ġs",
+        "ys"
+      ],
+      [
+        "ic",
+        "tion"
+      ],
+      [
+        "ĠS",
+        "w"
+      ],
+      [
+        "Ġor",
+        "bit"
+      ],
+      [
+        "ĠR",
+        "esult"
+      ],
+      [
+        "ĠJ",
+        "uliet"
+      ],
+      [
+        "Ġv",
+        "al"
+      ],
+      [
+        "Ġplan",
+        "ets"
+      ],
+      [
+        "tin",
+        "ents"
+      ],
+      [
+        "Ġcon",
+        "tinents"
+      ],
+      [
+        "ĠRome",
+        "o"
+      ],
+      [
+        "Ġer",
+        "ror"
+      ],
+      [
+        "Ġtele",
+        "phone"
+      ],
+      [
+        "Ġsys",
+        "tem"
+      ],
+      [
+        "iction",
+        "ary"
+      ],
+      [
+        "W",
+        "ater"
+      ],
+      [
+        "b",
+        "j"
+      ],
+      [
+        "c",
+        "o"
+      ],
+      [
+        "d",
+        "er"
+      ],
+      [
+        "e",
+        "b"
+      ],
+      [
+        "e",
+        "cts"
+      ],
+      [
+        "Ġo",
+        "bj"
+      ],
+      [
+        "Ġc",
+        "ompu"
+      ],
+      [
+        "Ġd",
+        "ictionary"
+      ],
+      [
+        "Ġm",
+        "ount"
+      ],
+      [
+        "ĠI",
+        "s"
+      ],
+      [
+        "ul",
+        "e"
+      ],
+      [
+        "Ġf",
+        "ree"
+      ],
+      [
+        "Ġs",
+        "un"
+      ],
+      [
+        "Ġe",
+        "x"
+      ],
+      [
+        "le",
+        "ction"
+      ],
+      [
+        "Ġn",
+        "ame"
+      ],
+      [
+        "Ġend",
+        "ed"
+      ],
+      [
+        "ĠW",
+        "ar"
+      ],
+      [
+        "ok",
+        "yo"
+      ],
+      [
+        "Ġsol",
+        "ar"
+      ],
+      [
+        "St",
+        "art"
+      ],
+      [
+        "Ġcol",
+        "lection"
+      ],
+      [
+        "Ġstor",
+        "es"
+      ],
+      [
+        "rav",
+        "ity"
+      ],
+      [
+        "Ġwro",
+        "te"
+      ],
+      [
+        "Ġobj",
+        "ects"
+      ],
+      [
+        "Ġcompu",
+        "ter"
+      ],
+      [
+        "Ġmount",
+        "ain"
+      ],
+      [
+        "Ġfree",
+        "z"
+      ],
+      [
+        "Ġsun",
+        "light"
+      ],
+      [
+        "4",
+        "2"
+      ],
+      [
+        "8",
+        "0"
+      ],
+      [
+        "C",
+        "ount"
+      ],
+      [
+        "N",
+        "A"
+      ],
+      [
+        "c",
+        "le"
+      ],
+      [
+        "d",
+        "ule"
+      ],
+      [
+        "g",
+        "or"
+      ],
+      [
+        "p",
+        "tion"
+      ],
+      [
+        "p",
+        "ok"
+      ],
+      [
+        "r",
+        "r"
+      ],
+      [
+        "r",
+        "ic"
+      ],
+      [
+        "u",
+        "tion"
+      ],
+      [
+        "u",
+        "ple"
+      ],
+      [
+        "v",
+        "ol"
+      ],
+      [
+        "y",
+        "cle"
+      ],
+      [
+        "Ġ3",
+        "3"
+      ],
+      [
+        "Ġ4",
+        "1"
+      ],
+      [
+        "Ġ5",
+        "7"
+      ],
+      [
+        "Ġb",
+        "ones"
+      ],
+      [
+        "Ġc",
+        "en"
+      ],
+      [
+        "Ġc",
+        "ell"
+      ],
+      [
+        "Ġc",
+        "ycle"
+      ],
+      [
+        "Ġ6",
+        "0"
+      ],
+      [
+        "ro",
+        "ug"
+      ],
+      [
+        "ap",
+        "an"
+      ],
+      [
+        "te",
+        "p"
+      ],
+      [
+        "te",
+        "ger"
+      ],
+      [
+        "Ġs",
+        "ci"
+      ],
+      [
+        "Ġs",
+        "pok"
+      ],
+      [
+        "Ġl",
+        "on"
+      ],
+      [
+        "Ġl",
+        "ets"
+      ],
+      [
+        "Ġmo",
+        "st"
+      ],
+      [
+        "Ġmo",
+        "dule"
+      ],
+      [
+        "ce",
+        "ption"
+      ],
+      [
+        "is",
+        "m"
+      ],
+      [
+        "ĠW",
+        "ide"
+      ],
+      [
+        "ĠW",
+        "eb"
+      ],
+      [
+        "ke",
+        "y"
+      ],
+      [
+        "ĠExam",
+        "ples"
+      ],
+      [
+        "Ġwh",
+        "o"
+      ],
+      [
+        "ag",
+        "n"
+      ],
+      [
+        "ĠF",
+        "alse"
+      ],
+      [
+        "ĠF",
+        "rance"
+      ],
+      [
+        "lo",
+        "at"
+      ],
+      [
+        "Ġat",
+        "om"
+      ],
+      [
+        "ith",
+        "m"
+      ],
+      [
+        "ĠT",
+        "hat"
+      ],
+      [
+        "Ġare",
+        "a"
+      ],
+      [
+        "si",
+        "on"
+      ],
+      [
+        "kar",
+        "yo"
+      ],
+      [
+        "cur",
+        "sion"
+      ],
+      [
+        "Ġth",
+        "roug"
+      ],
+      [
+        "Ġpo",
+        "int"
+      ],
+      [
+        "Ġelect",
+        "rons"
+      ],
+      [
+        "ole",
+        "an"
+      ],
+      [
+        "herit",
+        "ance"
+      ],
+      [
+        "bug",
+        "ging"
+      ],
+      [
+        "co",
+        "pe"
+      ],
+      [
+        "gor",
+        "ithm"
+      ],
+      [
+        "rr",
+        "ay"
+      ],
+      [
+        "ric",
+        "ity"
+      ],
+      [
+        "vol",
+        "ution"
+      ],
+      [
+        "Ġsci",
+        "ence"
+      ],
+      [
+        "Ġspok",
+        "en"
+      ],
+      [
+        "karyo",
+        "tic"
+      ],
+      [
+        "Ġthroug",
+        "h"
+      ],
+      [
+        "5",
+        "6"
+      ],
+      [
+        "I",
+        "n"
+      ],
+      [
+        "P",
+        "I"
+      ],
+      [
+        "u",
+        "nd"
+      ],
+      [
+        "Ġt",
+        "uple"
+      ],
+      [
+        "Ġa",
+        "rray"
+      ],
+      [
+        "ĠA",
+        "PI"
+      ],
+      [
+        "Ġin",
+        "teger"
+      ],
+      [
+        "Ġf",
+        "loat"
+      ],
+      [
+        "ell",
+        "o"
+      ],
+      [
+        "ĠC",
+        "an"
+      ],
+      [
+        "as",
+        "t"
+      ],
+      [
+        "Ġbo",
+        "olean"
+      ],
+      [
+        "Ġstr",
+        "ing"
+      ],
+      [
+        "Ġal",
+        "gorithm"
+      ],
+      [
+        "Ġex",
+        "ception"
+      ],
+      [
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "6",
+        "3"
+      ],
+      [
+        "H",
+        "ello"
+      ],
+      [
+        "m",
+        "al"
+      ],
+      [
+        "p",
+        "rint"
+      ],
+      [
+        "t",
+        "o"
+      ],
+      [
+        "u",
+        "t"
+      ],
+      [
+        "Ġ3",
+        "1"
+      ],
+      [
+        "Ġ3",
+        "9"
+      ],
+      [
+        "Ġ8",
+        "0"
+      ],
+      [
+        "Ġs",
+        "outh"
+      ],
+      [
+        "Ġn",
+        "orth"
+      ],
+      [
+        "Ġlangu",
+        "age"
+      ],
+      [
+        "u",
+        "b"
+      ],
+      [
+        "Ġ4",
+        "7"
+      ],
+      [
+        "es",
+        "tern"
+      ],
+      [
+        "Ġ7",
+        "0"
+      ],
+      [
+        "ro",
+        "und"
+      ],
+      [
+        "ou",
+        "ble"
+      ],
+      [
+        "Ġp",
+        "er"
+      ],
+      [
+        "10",
+        "0"
+      ],
+      [
+        "Ġk",
+        "m"
+      ],
+      [
+        "ĠM",
+        "exico"
+      ],
+      [
+        "ĠT",
+        "ur"
+      ],
+      [
+        "ĠD",
+        "og"
+      ],
+      [
+        "ĠO",
+        "cean"
+      ],
+      [
+        "ĠNe",
+        "w"
+      ],
+      [
+        "l",
+        "es"
+      ],
+      [
+        "l",
+        "ue"
+      ],
+      [
+        "n",
+        "a"
+      ],
+      [
+        "n",
+        "it"
+      ],
+      [
+        "r",
+        "y"
+      ],
+      [
+        "er",
+        "lin"
+      ],
+      [
+        "Ġ3",
+        "8"
+      ],
+      [
+        "Ġb",
+        "e"
+      ],
+      [
+        "Ġ6",
+        "2"
+      ],
+      [
+        "im",
+        "al"
+      ],
+      [
+        "ĠB",
+        "ern"
+      ],
+      [
+        "at",
+        "s"
+      ],
+      [
+        "Ġsqu",
+        "are"
+      ],
+      [
+        "lic",
+        "e"
+      ],
+      [
+        "erm",
+        "any"
+      ],
+      [
+        "2",
+        "3"
+      ],
+      [
+        "7",
+        "6"
+      ],
+      [
+        "A",
+        "lice"
+      ],
+      [
+        "F",
+        "act"
+      ],
+      [
+        "T",
+        "rue"
+      ],
+      [
+        "l",
+        "y"
+      ],
+      [
+        "z",
+        "il"
+      ],
+      [
+        "Ġ",
+        "ra"
+      ],
+      [
+        "Ġ5",
+        "3"
+      ],
+      [
+        "Ġ5",
+        "5"
+      ],
+      [
+        "it",
+        "e"
+      ],
+      [
+        "ĠN",
+        "orth"
+      ],
+      [
+        "ra",
+        "zil"
+      ],
+      [
+        "nit",
+        "ed"
+      ],
+      [
+        "Fact",
+        "s"
+      ],
+      [
+        "8",
+        "1"
+      ],
+      [
+        "9",
+        "0"
+      ],
+      [
+        "B",
+        "r"
+      ],
+      [
+        "b",
+        "on"
+      ],
+      [
+        "c",
+        "ow"
+      ],
+      [
+        "e",
+        "i"
+      ],
+      [
+        "h",
+        "i"
+      ],
+      [
+        "j",
+        "ing"
+      ],
+      [
+        "l",
+        "l"
+      ],
+      [
+        "r",
+        "et"
+      ],
+      [
+        "r",
+        "gen"
+      ],
+      [
+        "z",
+        "er"
+      ],
+      [
+        "Ġ",
+        "Yes"
+      ],
+      [
+        "er",
+        "u"
+      ],
+      [
+        "Ġw",
+        "orld"
+      ],
+      [
+        "ar",
+        "k"
+      ],
+      [
+        "as",
+        "il"
+      ],
+      [
+        "is",
+        "h"
+      ],
+      [
+        "os",
+        "e"
+      ],
+      [
+        "os",
+        "cow"
+      ],
+      [
+        "ĠJ",
+        "apan"
+      ],
+      [
+        "ĠG",
+        "ermany"
+      ],
+      [
+        "tin",
+        "a"
+      ],
+      [
+        "ad",
+        "a"
+      ],
+      [
+        "ĠChin",
+        "a"
+      ],
+      [
+        "ei",
+        "jing"
+      ],
+      [
+        "rgen",
+        "tina"
+      ],
+      [
+        "asil",
+        "ia"
+      ],
+      [
+        "6",
+        "4"
+      ],
+      [
+        "N",
+        "or"
+      ],
+      [
+        "R",
+        "ussia"
+      ],
+      [
+        "a",
+        "th"
+      ],
+      [
+        "b",
+        "ia"
+      ],
+      [
+        "b",
+        "lic"
+      ],
+      [
+        "c",
+        "es"
+      ],
+      [
+        "d",
+        "om"
+      ],
+      [
+        "e",
+        "al"
+      ],
+      [
+        "e",
+        "pu"
+      ],
+      [
+        "g",
+        "i"
+      ],
+      [
+        "g",
+        "y"
+      ],
+      [
+        "i",
+        "nd"
+      ],
+      [
+        "j",
+        "a"
+      ],
+      [
+        "l",
+        "s"
+      ],
+      [
+        "m",
+        "ark"
+      ],
+      [
+        "n",
+        "am"
+      ],
+      [
+        "o",
+        "i"
+      ],
+      [
+        "r",
+        "id"
+      ],
+      [
+        "t",
+        "ta"
+      ],
+      [
+        "u",
+        "en"
+      ],
+      [
+        "w",
+        "a"
+      ],
+      [
+        "w",
+        "o"
+      ],
+      [
+        "y",
+        "a"
+      ],
+      [
+        "z",
+        "ec"
+      ],
+      [
+        "ha",
+        "il"
+      ],
+      [
+        "er",
+        "ia"
+      ],
+      [
+        "er",
+        "cur"
+      ],
+      [
+        "ĠA",
+        "ir"
+      ],
+      [
+        "Ġd",
+        "at"
+      ],
+      [
+        "al",
+        "y"
+      ],
+      [
+        "it",
+        "zer"
+      ],
+      [
+        "et",
+        "her"
+      ],
+      [
+        "ed",
+        "en"
+      ],
+      [
+        "in",
+        "land"
+      ],
+      [
+        "re",
+        "land"
+      ],
+      [
+        "Ġf",
+        "ind"
+      ],
+      [
+        "Ġw",
+        "estern"
+      ],
+      [
+        "im",
+        "a"
+      ],
+      [
+        "Ġs",
+        "e"
+      ],
+      [
+        "Ġs",
+        "ec"
+      ],
+      [
+        "el",
+        "hi"
+      ],
+      [
+        "el",
+        "gi"
+      ],
+      [
+        "ter",
+        "d"
+      ],
+      [
+        "en",
+        "mark"
+      ],
+      [
+        "en",
+        "ya"
+      ],
+      [
+        "ing",
+        "dom"
+      ],
+      [
+        "om",
+        "bia"
+      ],
+      [
+        "ĠC",
+        "ity"
+      ],
+      [
+        "ol",
+        "and"
+      ],
+      [
+        "ol",
+        "ombia"
+      ],
+      [
+        "ig",
+        "eria"
+      ],
+      [
+        "ĠP",
+        "ac"
+      ],
+      [
+        "ĠP",
+        "aris"
+      ],
+      [
+        "Ġk",
+        "il"
+      ],
+      [
+        "ĠR",
+        "epu"
+      ],
+      [
+        "ag",
+        "es"
+      ],
+      [
+        "Ġr",
+        "ang"
+      ],
+      [
+        "ber",
+        "ra"
+      ],
+      [
+        "ang",
+        "les"
+      ],
+      [
+        "ĠD",
+        "elhi"
+      ],
+      [
+        "ug",
+        "al"
+      ],
+      [
+        "ond",
+        "on"
+      ],
+      [
+        "land",
+        "s"
+      ],
+      [
+        "Ġbig",
+        "gest"
+      ],
+      [
+        "ree",
+        "ce"
+      ],
+      [
+        "ĠZ",
+        "eal"
+      ],
+      [
+        "ort",
+        "ugal"
+      ],
+      [
+        "ĠK",
+        "ore"
+      ],
+      [
+        "ĠK",
+        "ingdom"
+      ],
+      [
+        "ĠU",
+        "nited"
+      ],
+      [
+        "iet",
+        "nam"
+      ],
+      [
+        "ad",
+        "rid"
+      ],
+      [
+        "ones",
+        "ia"
+      ],
+      [
+        "Ġcom",
+        "es"
+      ],
+      [
+        "if",
+        "ic"
+      ],
+      [
+        "Ġne",
+        "ed"
+      ],
+      [
+        "gy",
+        "pt"
+      ],
+      [
+        "tta",
+        "wa"
+      ],
+      [
+        "uen",
+        "os"
+      ],
+      [
+        "zec",
+        "h"
+      ],
+      [
+        "hail",
+        "and"
+      ],
+      [
+        "ercur",
+        "y"
+      ],
+      [
+        "ĠAir",
+        "es"
+      ],
+      [
+        "Ġdat",
+        "a"
+      ],
+      [
+        "itzer",
+        "land"
+      ],
+      [
+        "ether",
+        "lands"
+      ],
+      [
+        "Ġsec",
+        "ond"
+      ],
+      [
+        "elgi",
+        "um"
+      ],
+      [
+        "ĠPac",
+        "ific"
+      ],
+      [
+        "ĠRepu",
+        "blic"
+      ],
+      [
+        "Ġrang",
+        "e"
+      ],
+      [
+        "ĠZeal",
+        "and"
+      ],
+      [
+        "ĠKore",
+        "a"
+      ],
+      [
+        "5",
+        "5"
+      ],
+      [
+        "6",
+        "6"
+      ],
+      [
+        "E",
+        "ach"
+      ],
+      [
+        "P",
+        "aris"
+      ],
+      [
+        "S",
+        "qu"
+      ],
+      [
+        "W",
+        "orld"
+      ],
+      [
+        "a",
+        "w"
+      ],
+      [
+        "a",
+        "ble"
+      ],
+      [
+        "a",
+        "kar"
+      ],
+      [
+        "b",
+        "i"
+      ],
+      [
+        "b",
+        "u"
+      ],
+      [
+        "e",
+        "ou"
+      ],
+      [
+        "g",
+        "an"
+      ],
+      [
+        "g",
+        "ue"
+      ],
+      [
+        "h",
+        "ol"
+      ],
+      [
+        "i",
+        "en"
+      ],
+      [
+        "k",
+        "i"
+      ],
+      [
+        "k",
+        "ok"
+      ],
+      [
+        "l",
+        "ow"
+      ],
+      [
+        "n",
+        "g"
+      ],
+      [
+        "o",
+        "b"
+      ],
+      [
+        "s",
+        "lo"
+      ],
+      [
+        "s",
+        "els"
+      ],
+      [
+        "s",
+        "terd"
+      ],
+      [
+        "t",
+        "he"
+      ],
+      [
+        "t",
+        "on"
+      ],
+      [
+        "u",
+        "es"
+      ],
+      [
+        "u",
+        "pit"
+      ],
+      [
+        "x",
+        "y"
+      ],
+      [
+        "{",
+        "'"
+      ],
+      [
+        "}",
+        "."
+      ],
+      [
+        "Ġ",
+        "What"
+      ],
+      [
+        "Ġ",
+        "hel"
+      ],
+      [
+        "Ġ",
+        "{'"
+      ],
+      [
+        "Ġi",
+        "m"
+      ],
+      [
+        "ha",
+        "gen"
+      ],
+      [
+        "Ġt",
+        "ext"
+      ],
+      [
+        "Ġt",
+        "ry"
+      ],
+      [
+        "Ġb",
+        "lo"
+      ],
+      [
+        "Ġc",
+        "h"
+      ],
+      [
+        "Ġc",
+        "all"
+      ],
+      [
+        "Ġm",
+        "ath"
+      ],
+      [
+        "et",
+        "ur"
+      ],
+      [
+        "in",
+        "ki"
+      ],
+      [
+        "an",
+        "ti"
+      ],
+      [
+        "an",
+        "oi"
+      ],
+      [
+        "Ġin",
+        "to"
+      ],
+      [
+        "us",
+        "able"
+      ],
+      [
+        "us",
+        "sels"
+      ],
+      [
+        "id",
+        "es"
+      ],
+      [
+        "Ġs",
+        "m"
+      ],
+      [
+        "Ġp",
+        "re"
+      ],
+      [
+        "Ġp",
+        "hotosynthesis"
+      ],
+      [
+        "or",
+        "ia"
+      ],
+      [
+        "en",
+        "hagen"
+      ],
+      [
+        "ing",
+        "ton"
+      ],
+      [
+        "ell",
+        "ington"
+      ],
+      [
+        "ĠC",
+        "O"
+      ],
+      [
+        "Ġn",
+        "atur"
+      ],
+      [
+        "ce",
+        "pt"
+      ],
+      [
+        "is",
+        "bon"
+      ],
+      [
+        "ĠB",
+        "r"
+      ],
+      [
+        "ĠB",
+        "razil"
+      ],
+      [
+        "Ġprogram",
+        "s"
+      ],
+      [
+        "Ġor",
+        "der"
+      ],
+      [
+        "Ġor",
+        "gan"
+      ],
+      [
+        "Ġ30",
+        "0"
+      ],
+      [
+        "ra",
+        "gue"
+      ],
+      [
+        "un",
+        "e"
+      ],
+      [
+        "Ġre",
+        "usable"
+      ],
+      [
+        "ĠR",
+        "ussia"
+      ],
+      [
+        "ĠM",
+        "ars"
+      ],
+      [
+        "ag",
+        "o"
+      ],
+      [
+        "Ġr",
+        "etur"
+      ],
+      [
+        "ĠT",
+        "okyo"
+      ],
+      [
+        "ang",
+        "kok"
+      ],
+      [
+        "ot",
+        "a"
+      ],
+      [
+        "op",
+        "enhagen"
+      ],
+      [
+        "kar",
+        "a"
+      ],
+      [
+        "Ġ34",
+        "3"
+      ],
+      [
+        "og",
+        "ota"
+      ],
+      [
+        "ars",
+        "aw"
+      ],
+      [
+        "Ġpo",
+        "wer"
+      ],
+      [
+        "Ġstr",
+        "uct"
+      ],
+      [
+        "ck",
+        "hol"
+      ],
+      [
+        "Ġboil",
+        "s"
+      ],
+      [
+        "00",
+        "0"
+      ],
+      [
+        "els",
+        "inki"
+      ],
+      [
+        "airo",
+        "bi"
+      ],
+      [
+        "Ġorbit",
+        "s"
+      ],
+      [
+        "ĠCan",
+        "ada"
+      ],
+      [
+        "ub",
+        "lin"
+      ],
+      [
+        "ret",
+        "oria"
+      ],
+      [
+        "Squ",
+        "are"
+      ],
+      [
+        "akar",
+        "ta"
+      ],
+      [
+        "bu",
+        "ja"
+      ],
+      [
+        "eou",
+        "l"
+      ],
+      [
+        "ien",
+        "na"
+      ],
+      [
+        "sterd",
+        "am"
+      ],
+      [
+        "the",
+        "ns"
+      ],
+      [
+        "upit",
+        "er"
+      ],
+      [
+        "xy",
+        "gen"
+      ],
+      [
+        "Ġblo",
+        "ck"
+      ],
+      [
+        "anti",
+        "ago"
+      ],
+      [
+        "Ġnatur",
+        "al"
+      ],
+      [
+        "Ġretur",
+        "n"
+      ],
+      [
+        "ckhol",
+        "m"
+      ],
+      [
+        "'",
+        ","
+      ],
+      [
+        "8",
+        "49"
+      ],
+      [
+        "9",
+        "9"
+      ],
+      [
+        "A",
+        "le"
+      ],
+      [
+        "E",
+        "ng"
+      ],
+      [
+        "G",
+        "ravity"
+      ],
+      [
+        "L",
+        "e"
+      ],
+      [
+        "M",
+        "ount"
+      ],
+      [
+        "P",
+        "hotosynthesis"
+      ],
+      [
+        "S",
+        "cope"
+      ],
+      [
+        "T",
+        "h"
+      ],
+      [
+        "W",
+        "il"
+      ],
+      [
+        "]",
+        "."
+      ],
+      [
+        "c",
+        "tic"
+      ],
+      [
+        "c",
+        "ces"
+      ],
+      [
+        "d",
+        "ult"
+      ],
+      [
+        "k",
+        "es"
+      ],
+      [
+        "l",
+        "ist"
+      ],
+      [
+        "l",
+        "uc"
+      ],
+      [
+        "l",
+        "iam"
+      ],
+      [
+        "l",
+        "ish"
+      ],
+      [
+        "p",
+        "ain"
+      ],
+      [
+        "r",
+        "d"
+      ],
+      [
+        "r",
+        "an"
+      ],
+      [
+        "s",
+        "elf"
+      ],
+      [
+        "x",
+        "and"
+      ],
+      [
+        "Ġ",
+        "["
+      ],
+      [
+        "Ġ",
+        "ke"
+      ],
+      [
+        "Ġ",
+        "__"
+      ],
+      [
+        "Ġi",
+        "f"
+      ],
+      [
+        "ha",
+        "m"
+      ],
+      [
+        "ha",
+        "kes"
+      ],
+      [
+        "Ġ2",
+        "12"
+      ],
+      [
+        "Ġt",
+        "ow"
+      ],
+      [
+        "Ġt",
+        "ri"
+      ],
+      [
+        "Ġa",
+        "ir"
+      ],
+      [
+        "Ġa",
+        "dult"
+      ],
+      [
+        "Ġo",
+        "ur"
+      ],
+      [
+        "Ġo",
+        "xygen"
+      ],
+      [
+        "ĠA",
+        "nt"
+      ],
+      [
+        "ĠA",
+        "rgentina"
+      ],
+      [
+        "Ġc",
+        "ar"
+      ],
+      [
+        "Ġm",
+        "y"
+      ],
+      [
+        "Ġm",
+        "ap"
+      ],
+      [
+        "ĠI",
+        "reland"
+      ],
+      [
+        "Ġ9",
+        "8"
+      ],
+      [
+        "it",
+        "i"
+      ],
+      [
+        "in",
+        "es"
+      ],
+      [
+        "in",
+        "it"
+      ],
+      [
+        "ul",
+        "ls"
+      ],
+      [
+        "Ġf",
+        "ile"
+      ],
+      [
+        "Ġw",
+        "as"
+      ],
+      [
+        "ar",
+        "ctic"
+      ],
+      [
+        "Ġs",
+        "elf"
+      ],
+      [
+        "Ġg",
+        "luc"
+      ],
+      [
+        "Ġp",
+        "ulls"
+      ],
+      [
+        "tr",
+        "al"
+      ],
+      [
+        "or",
+        "way"
+      ],
+      [
+        "Ġe",
+        "qu"
+      ],
+      [
+        "en",
+        "us"
+      ],
+      [
+        "ĠE",
+        "ver"
+      ],
+      [
+        "ĠE",
+        "gypt"
+      ],
+      [
+        "ĠC",
+        "olombia"
+      ],
+      [
+        "ĠC",
+        "zech"
+      ],
+      [
+        "Ġn",
+        "ext"
+      ],
+      [
+        "Ġ18",
+        "76"
+      ],
+      [
+        "pe",
+        "are"
+      ],
+      [
+        "pe",
+        "ats"
+      ],
+      [
+        "ĠS",
+        "atur"
+      ],
+      [
+        "ĠS",
+        "pain"
+      ],
+      [
+        "ĠS",
+        "hakes"
+      ],
+      [
+        "ĠP",
+        "eru"
+      ],
+      [
+        "ĠP",
+        "oland"
+      ],
+      [
+        "ĠP",
+        "ortugal"
+      ],
+      [
+        "ĠB",
+        "ell"
+      ],
+      [
+        "ĠB",
+        "elgium"
+      ],
+      [
+        "ĠN",
+        "igeria"
+      ],
+      [
+        "ĠN",
+        "etherlands"
+      ],
+      [
+        "ĠN",
+        "orway"
+      ],
+      [
+        "14",
+        "4"
+      ],
+      [
+        "ra",
+        "ham"
+      ],
+      [
+        "Ġre",
+        "peats"
+      ],
+      [
+        "Ġde",
+        "c"
+      ],
+      [
+        "Ġ19",
+        "45"
+      ],
+      [
+        "ĠM",
+        "ercury"
+      ],
+      [
+        "ĠF",
+        "inland"
+      ],
+      [
+        "ex",
+        "cept"
+      ],
+      [
+        "Ġr",
+        "un"
+      ],
+      [
+        "ĠT",
+        "hailand"
+      ],
+      [
+        "ĠD",
+        "enmark"
+      ],
+      [
+        "ĠJ",
+        "upiter"
+      ],
+      [
+        "ĠIt",
+        "aly"
+      ],
+      [
+        "Ġst",
+        "ar"
+      ],
+      [
+        "Re",
+        "cursion"
+      ],
+      [
+        "De",
+        "bugging"
+      ],
+      [
+        "ĠO",
+        "n"
+      ],
+      [
+        "ĠG",
+        "reece"
+      ],
+      [
+        "ĠG",
+        "raham"
+      ],
+      [
+        "pt",
+        "une"
+      ],
+      [
+        "ĠK",
+        "enya"
+      ],
+      [
+        "ĠU",
+        "ran"
+      ],
+      [
+        "Ġplan",
+        "ts"
+      ],
+      [
+        "ĠCh",
+        "ile"
+      ],
+      [
+        "ĠAustr",
+        "ia"
+      ],
+      [
+        "Ġcon",
+        "ver"
+      ],
+      [
+        "Ġcond",
+        "iti"
+      ],
+      [
+        "ĠV",
+        "ietnam"
+      ],
+      [
+        "ĠV",
+        "enus"
+      ],
+      [
+        "ĠNe",
+        "ptune"
+      ],
+      [
+        "ĠInd",
+        "ia"
+      ],
+      [
+        "ĠInd",
+        "onesia"
+      ],
+      [
+        "__",
+        "("
+      ],
+      [
+        "ĠSw",
+        "eden"
+      ],
+      [
+        "ĠSw",
+        "itzerland"
+      ],
+      [
+        "Ġval",
+        "ue"
+      ],
+      [
+        "Ġval",
+        "ues"
+      ],
+      [
+        "Ġerror",
+        "s"
+      ],
+      [
+        "Ġfreez",
+        "es"
+      ],
+      [
+        "In",
+        "heritance"
+      ],
+      [
+        "ĠTur",
+        "key"
+      ],
+      [
+        "Nor",
+        "mal"
+      ],
+      [
+        "Ġneed",
+        "s"
+      ],
+      [
+        "Ġstruct",
+        "ure"
+      ],
+      [
+        "Ale",
+        "xand"
+      ],
+      [
+        "Eng",
+        "lish"
+      ],
+      [
+        "Th",
+        "ere"
+      ],
+      [
+        "Wil",
+        "liam"
+      ],
+      [
+        "Ġke",
+        "ys"
+      ],
+      [
+        "Ġtow",
+        "ard"
+      ],
+      [
+        "ĠAnt",
+        "arctic"
+      ],
+      [
+        "Ġmap",
+        "s"
+      ],
+      [
+        "Ġgluc",
+        "ose"
+      ],
+      [
+        "ĠEver",
+        "est"
+      ],
+      [
+        "ĠSatur",
+        "n"
+      ],
+      [
+        "ĠShakes",
+        "peare"
+      ],
+      [
+        "ĠUran",
+        "us"
+      ],
+      [
+        "Ġconver",
+        "ts"
+      ],
+      [
+        "Alexand",
+        "er"
+      ],
+      [
+        "ĠAntarctic",
+        "a"
+      ],
+      [
+        "6",
+        "50"
+      ],
+      [
+        "8",
+        "9"
+      ],
+      [
+        "D",
+        "NA"
+      ],
+      [
+        "E",
+        "le"
+      ],
+      [
+        "E",
+        "volution"
+      ],
+      [
+        "M",
+        "agn"
+      ],
+      [
+        "P",
+        "i"
+      ],
+      [
+        "T",
+        "im"
+      ],
+      [
+        "a",
+        "us"
+      ],
+      [
+        "b",
+        "y"
+      ],
+      [
+        "b",
+        "ig"
+      ],
+      [
+        "c",
+        "ed"
+      ],
+      [
+        "c",
+        "um"
+      ],
+      [
+        "e",
+        "ns"
+      ],
+      [
+        "f",
+        "er"
+      ],
+      [
+        "f",
+        "le"
+      ],
+      [
+        "g",
+        "ore"
+      ],
+      [
+        "i",
+        "ke"
+      ],
+      [
+        "m",
+        "e"
+      ],
+      [
+        "m",
+        "u"
+      ],
+      [
+        "m",
+        "un"
+      ],
+      [
+        "m",
+        "ents"
+      ],
+      [
+        "p",
+        "el"
+      ],
+      [
+        "s",
+        "ed"
+      ],
+      [
+        "s",
+        "tep"
+      ],
+      [
+        "t",
+        "ha"
+      ],
+      [
+        "t",
+        "ons"
+      ],
+      [
+        "u",
+        "karyotic"
+      ],
+      [
+        "v",
+        "ap"
+      ],
+      [
+        "x",
+        "im"
+      ],
+      [
+        "Ġ",
+        "un"
+      ],
+      [
+        "Ġi",
+        "nd"
+      ],
+      [
+        "Ġi",
+        "ns"
+      ],
+      [
+        "Ġt",
+        "ides"
+      ],
+      [
+        "Ġa",
+        "pp"
+      ],
+      [
+        "Ġa",
+        "round"
+      ],
+      [
+        "Ġa",
+        "cces"
+      ],
+      [
+        "Ġo",
+        "ver"
+      ],
+      [
+        "Ġo",
+        "pp"
+      ],
+      [
+        "Ġ5",
+        "2"
+      ],
+      [
+        "es",
+        "e"
+      ],
+      [
+        "Ġb",
+        "as"
+      ],
+      [
+        "Ġb",
+        "ase"
+      ],
+      [
+        "Ġb",
+        "lue"
+      ],
+      [
+        "Ġc",
+        "han"
+      ],
+      [
+        "Ġc",
+        "ir"
+      ],
+      [
+        "Ġc",
+        "ase"
+      ],
+      [
+        "Ġc",
+        "aus"
+      ],
+      [
+        "Ġ6",
+        "5"
+      ],
+      [
+        "Ġ6",
+        "8"
+      ],
+      [
+        "Ġd",
+        "et"
+      ],
+      [
+        "Ġd",
+        "iam"
+      ],
+      [
+        "Ġd",
+        "ouble"
+      ],
+      [
+        "Ġm",
+        "agn"
+      ],
+      [
+        "Ġthe",
+        "ore"
+      ],
+      [
+        "ro",
+        "xim"
+      ],
+      [
+        "et",
+        "er"
+      ],
+      [
+        "et",
+        "ic"
+      ],
+      [
+        "et",
+        "ism"
+      ],
+      [
+        "Ġin",
+        "herit"
+      ],
+      [
+        "Ġf",
+        "ix"
+      ],
+      [
+        "Ġf",
+        "low"
+      ],
+      [
+        "ti",
+        "o"
+      ],
+      [
+        "ti",
+        "ons"
+      ],
+      [
+        "ti",
+        "me"
+      ],
+      [
+        "Ġw",
+        "id"
+      ],
+      [
+        "iv",
+        "ing"
+      ],
+      [
+        "im",
+        "il"
+      ],
+      [
+        "ar",
+        "in"
+      ],
+      [
+        "Ġs",
+        "ele"
+      ],
+      [
+        "Ġs",
+        "tep"
+      ],
+      [
+        "el",
+        "y"
+      ],
+      [
+        "Ġtim",
+        "e"
+      ],
+      [
+        "ct",
+        "ricity"
+      ],
+      [
+        "ic",
+        "ate"
+      ],
+      [
+        "Ġl",
+        "if"
+      ],
+      [
+        "Ġl",
+        "iving"
+      ],
+      [
+        "Ġg",
+        "en"
+      ],
+      [
+        "Ġg",
+        "ravity"
+      ],
+      [
+        "Ġp",
+        "i"
+      ],
+      [
+        "Ġp",
+        "are"
+      ],
+      [
+        "tr",
+        "uc"
+      ],
+      [
+        "or",
+        "ation"
+      ],
+      [
+        "Ġe",
+        "volution"
+      ],
+      [
+        "Ġe",
+        "ukaryotic"
+      ],
+      [
+        "Ġe",
+        "vap"
+      ],
+      [
+        "en",
+        "t"
+      ],
+      [
+        "le",
+        "us"
+      ],
+      [
+        "ĠE",
+        "ast"
+      ],
+      [
+        "ell",
+        "s"
+      ],
+      [
+        "om",
+        "eters"
+      ],
+      [
+        "ĠC",
+        "ells"
+      ],
+      [
+        "Ġn",
+        "uc"
+      ],
+      [
+        "ate",
+        "ly"
+      ],
+      [
+        "uct",
+        "or"
+      ],
+      [
+        "Ġpro",
+        "ble"
+      ],
+      [
+        "Ġpro",
+        "karyotic"
+      ],
+      [
+        "Ġpro",
+        "ced"
+      ],
+      [
+        "Ġpro",
+        "tons"
+      ],
+      [
+        "Ġ20",
+        "6"
+      ],
+      [
+        "ĠS",
+        "imil"
+      ],
+      [
+        "and",
+        "le"
+      ],
+      [
+        "and",
+        "arin"
+      ],
+      [
+        "il",
+        "d"
+      ],
+      [
+        "ĠN",
+        "ile"
+      ],
+      [
+        "ĠN",
+        "ext"
+      ],
+      [
+        "14",
+        "15"
+      ],
+      [
+        "Ġre",
+        "fle"
+      ],
+      [
+        "Ġre",
+        "pel"
+      ],
+      [
+        "ĠR",
+        "iver"
+      ],
+      [
+        "Ġ19",
+        "89"
+      ],
+      [
+        "ĠM",
+        "andarin"
+      ],
+      [
+        "qu",
+        "ence"
+      ],
+      [
+        "Ġwh",
+        "ere"
+      ],
+      [
+        "Ġwh",
+        "ole"
+      ],
+      [
+        "os",
+        "ite"
+      ],
+      [
+        "ri",
+        "es"
+      ],
+      [
+        "Ġr",
+        "ight"
+      ],
+      [
+        "Ġr",
+        "iver"
+      ],
+      [
+        "Ġat",
+        "tract"
+      ],
+      [
+        "ĠT",
+        "rue"
+      ],
+      [
+        "si",
+        "ble"
+      ],
+      [
+        "ĠD",
+        "NA"
+      ],
+      [
+        "ĠPy",
+        "tha"
+      ],
+      [
+        "Ġspe",
+        "ci"
+      ],
+      [
+        "Ġst",
+        "op"
+      ],
+      [
+        "Ġits",
+        "elf"
+      ],
+      [
+        "ci",
+        "pit"
+      ],
+      [
+        "Ġele",
+        "ments"
+      ],
+      [
+        "ta",
+        "ble"
+      ],
+      [
+        "ĠU",
+        "sed"
+      ],
+      [
+        "ĠL",
+        "ike"
+      ],
+      [
+        "Ġth",
+        "ree"
+      ],
+      [
+        "Ġcond",
+        "ens"
+      ],
+      [
+        "Ġcond",
+        "uctor"
+      ],
+      [
+        "Ġsol",
+        "ve"
+      ],
+      [
+        "Ġelect",
+        "ricity"
+      ],
+      [
+        "Ġlangu",
+        "ages"
+      ],
+      [
+        "ĠH",
+        "andle"
+      ],
+      [
+        "erm",
+        "ines"
+      ],
+      [
+        "Ġcom",
+        "mun"
+      ],
+      [
+        "Ġboil",
+        "ing"
+      ],
+      [
+        "Ġne",
+        "ut"
+      ],
+      [
+        "ĠChin",
+        "ese"
+      ],
+      [
+        "Ġorbit",
+        "ing"
+      ],
+      [
+        "Ġfreez",
+        "ing"
+      ],
+      [
+        "Ġcen",
+        "ter"
+      ],
+      [
+        "Ġcen",
+        "tral"
+      ],
+      [
+        "Ġlon",
+        "g"
+      ],
+      [
+        "Ġlon",
+        "gest"
+      ],
+      [
+        "ism",
+        "s"
+      ],
+      [
+        "ĠBern",
+        "ers"
+      ],
+      [
+        "Ġra",
+        "tio"
+      ],
+      [
+        "Ġfind",
+        "ing"
+      ],
+      [
+        "Ġse",
+        "quence"
+      ],
+      [
+        "Ġkil",
+        "ometers"
+      ],
+      [
+        "Ġhel",
+        "ix"
+      ],
+      [
+        "Ġim",
+        "mu"
+      ],
+      [
+        "Ġch",
+        "ild"
+      ],
+      [
+        "Ġcall",
+        "s"
+      ],
+      [
+        "Ġsm",
+        "allest"
+      ],
+      [
+        "Ġpre",
+        "cipit"
+      ],
+      [
+        "Ġorder",
+        "ed"
+      ],
+      [
+        "Ġorgan",
+        "isms"
+      ],
+      [
+        "Le",
+        "e"
+      ],
+      [
+        "Ġtri",
+        "angles"
+      ],
+      [
+        "Ġcar",
+        "ries"
+      ],
+      [
+        "Ġequ",
+        "al"
+      ],
+      [
+        "Ġdec",
+        "imal"
+      ],
+      [
+        "Ġrun",
+        "time"
+      ],
+      [
+        "Ġconditi",
+        "ons"
+      ],
+      [
+        "Ele",
+        "ctricity"
+      ],
+      [
+        "Magn",
+        "ets"
+      ],
+      [
+        "cum",
+        "fer"
+      ],
+      [
+        "gore",
+        "an"
+      ],
+      [
+        "Ġun",
+        "it"
+      ],
+      [
+        "Ġind",
+        "ex"
+      ],
+      [
+        "Ġins",
+        "truc"
+      ],
+      [
+        "Ġapp",
+        "roxim"
+      ],
+      [
+        "Ġacces",
+        "sible"
+      ],
+      [
+        "Ġopp",
+        "osite"
+      ],
+      [
+        "Ġbas",
+        "ic"
+      ],
+      [
+        "Ġblue",
+        "print"
+      ],
+      [
+        "Ġchan",
+        "ging"
+      ],
+      [
+        "Ġcir",
+        "cumfer"
+      ],
+      [
+        "Ġcaus",
+        "es"
+      ],
+      [
+        "Ġdet",
+        "ermines"
+      ],
+      [
+        "Ġdiam",
+        "eter"
+      ],
+      [
+        "Ġmagn",
+        "etism"
+      ],
+      [
+        "Ġtheore",
+        "m"
+      ],
+      [
+        "Ġfix",
+        "ing"
+      ],
+      [
+        "Ġwid",
+        "ely"
+      ],
+      [
+        "Ġsele",
+        "ction"
+      ],
+      [
+        "Ġlif",
+        "e"
+      ],
+      [
+        "Ġgen",
+        "etic"
+      ],
+      [
+        "Ġpare",
+        "nt"
+      ],
+      [
+        "Ġevap",
+        "oration"
+      ],
+      [
+        "Ġnuc",
+        "leus"
+      ],
+      [
+        "Ġproble",
+        "m"
+      ],
+      [
+        "Ġproced",
+        "ure"
+      ],
+      [
+        "ĠSimil",
+        "ar"
+      ],
+      [
+        "1415",
+        "9"
+      ],
+      [
+        "Ġrefle",
+        "cts"
+      ],
+      [
+        "ĠPytha",
+        "gorean"
+      ],
+      [
+        "Ġspeci",
+        "es"
+      ],
+      [
+        "Ġcondens",
+        "ation"
+      ],
+      [
+        "Ġcommun",
+        "icate"
+      ],
+      [
+        "Ġneut",
+        "rons"
+      ],
+      [
+        "Ġimmu",
+        "table"
+      ],
+      [
+        "Ġprecipit",
+        "ation"
+      ],
+      [
+        "Ġinstruc",
+        "tions"
+      ],
+      [
+        "Ġapproxim",
+        "ately"
+      ],
+      [
+        "Ġcircumfer",
+        "ence"
+      ],
+      [
+        "2",
+        "9"
+      ],
+      [
+        "C",
+        "an"
+      ],
+      [
+        "N",
+        "e"
+      ],
+      [
+        "T",
+        "okyo"
+      ],
+      [
+        "g",
+        "s"
+      ],
+      [
+        "i",
+        "es"
+      ],
+      [
+        "Ġ",
+        "hello"
+      ],
+      [
+        "Ġ5",
+        "9"
+      ],
+      [
+        "es",
+        "s"
+      ],
+      [
+        "Ġ6",
+        "6"
+      ],
+      [
+        "Ġ7",
+        "3"
+      ],
+      [
+        "Ġ9",
+        "0"
+      ],
+      [
+        "Ġin",
+        "heritance"
+      ],
+      [
+        "ou",
+        "r"
+      ],
+      [
+        "Ġf",
+        "as"
+      ],
+      [
+        "Ġs",
+        "cope"
+      ],
+      [
+        "Wh",
+        "o"
+      ],
+      [
+        "Ġn",
+        "ot"
+      ],
+      [
+        "ĠB",
+        "erlin"
+      ],
+      [
+        "Ġre",
+        "cursion"
+      ],
+      [
+        "Ġde",
+        "bugging"
+      ],
+      [
+        "Ne",
+        "w"
+      ],
+      [
+        "Ġfas",
+        "ter"
+      ],
+      [
+        "1",
+        "10"
+      ],
+      [
+        "2",
+        "6"
+      ],
+      [
+        "3",
+        "3"
+      ],
+      [
+        "4",
+        "4"
+      ],
+      [
+        "6",
+        "8"
+      ],
+      [
+        "7",
+        "7"
+      ],
+      [
+        "8",
+        "4"
+      ],
+      [
+        "8",
+        "8"
+      ],
+      [
+        "9",
+        "6"
+      ],
+      [
+        "M",
+        "exico"
+      ],
+      [
+        "M",
+        "oscow"
+      ],
+      [
+        "b",
+        "o"
+      ],
+      [
+        "Ġt",
+        "rue"
+      ],
+      [
+        "Ġt",
+        "wo"
+      ],
+      [
+        "Ġdo",
+        "ll"
+      ],
+      [
+        "out",
+        "he"
+      ],
+      [
+        "10",
+        "8"
+      ],
+      [
+        "12",
+        "0"
+      ],
+      [
+        "12",
+        "1"
+      ],
+      [
+        "13",
+        "2"
+      ],
+      [
+        "Ġnorth",
+        "ern"
+      ],
+      [
+        "Br",
+        "asilia"
+      ],
+      [
+        "Ġdoll",
+        "ars"
+      ],
+      [
+        "B",
+        "erlin"
+      ],
+      [
+        "B",
+        "eijing"
+      ],
+      [
+        "N",
+        "o"
+      ],
+      [
+        "O",
+        "ttawa"
+      ],
+      [
+        "a",
+        "v"
+      ],
+      [
+        "c",
+        "ode"
+      ],
+      [
+        "f",
+        "t"
+      ],
+      [
+        "r",
+        "ed"
+      ],
+      [
+        "t",
+        "al"
+      ],
+      [
+        "u",
+        "y"
+      ],
+      [
+        "Ġ",
+        "X"
+      ],
+      [
+        "Ġ",
+        "u"
+      ],
+      [
+        "Ġ",
+        "The"
+      ],
+      [
+        "Ġ5",
+        "8"
+      ],
+      [
+        "Ġb",
+        "uy"
+      ],
+      [
+        "ĠA",
+        "n"
+      ],
+      [
+        "Ġ7",
+        "4"
+      ],
+      [
+        "Ġm",
+        "uc"
+      ],
+      [
+        "Ġin",
+        "c"
+      ],
+      [
+        "re",
+        "as"
+      ],
+      [
+        "Ġg",
+        "round"
+      ],
+      [
+        "ĠB",
+        "eijing"
+      ],
+      [
+        "ĠB",
+        "uenos"
+      ],
+      [
+        "Ġto",
+        "tal"
+      ],
+      [
+        "ĠM",
+        "adrid"
+      ],
+      [
+        "ir",
+        "d"
+      ],
+      [
+        "ĠL",
+        "ima"
+      ],
+      [
+        "ĠL",
+        "ondon"
+      ],
+      [
+        "Can",
+        "berra"
+      ],
+      [
+        "Ġmuc",
+        "h"
+      ],
+      [
+        "reas",
+        "es"
+      ],
+      [
+        "A",
+        "m"
+      ],
+      [
+        "A",
+        "buja"
+      ],
+      [
+        "A",
+        "thens"
+      ],
+      [
+        "B",
+        "ern"
+      ],
+      [
+        "B",
+        "uenos"
+      ],
+      [
+        "B",
+        "angkok"
+      ],
+      [
+        "B",
+        "ogota"
+      ],
+      [
+        "C",
+        "airo"
+      ],
+      [
+        "C",
+        "openhagen"
+      ],
+      [
+        "D",
+        "ublin"
+      ],
+      [
+        "H",
+        "anoi"
+      ],
+      [
+        "H",
+        "elsinki"
+      ],
+      [
+        "J",
+        "akarta"
+      ],
+      [
+        "L",
+        "ima"
+      ],
+      [
+        "L",
+        "ondon"
+      ],
+      [
+        "L",
+        "isbon"
+      ],
+      [
+        "M",
+        "adrid"
+      ],
+      [
+        "N",
+        "airobi"
+      ],
+      [
+        "O",
+        "slo"
+      ],
+      [
+        "P",
+        "rague"
+      ],
+      [
+        "P",
+        "retoria"
+      ],
+      [
+        "R",
+        "ome"
+      ],
+      [
+        "S",
+        "eoul"
+      ],
+      [
+        "S",
+        "antiago"
+      ],
+      [
+        "U",
+        "se"
+      ],
+      [
+        "V",
+        "ienna"
+      ],
+      [
+        "W",
+        "ellington"
+      ],
+      [
+        "W",
+        "arsaw"
+      ],
+      [
+        "b",
+        "at"
+      ],
+      [
+        "c",
+        "at"
+      ],
+      [
+        "d",
+        "re"
+      ],
+      [
+        "g",
+        "gs"
+      ],
+      [
+        "o",
+        "cean"
+      ],
+      [
+        "o",
+        "ckholm"
+      ],
+      [
+        "p",
+        "en"
+      ],
+      [
+        "r",
+        "der"
+      ],
+      [
+        "t",
+        "le"
+      ],
+      [
+        "u",
+        "p"
+      ],
+      [
+        "w",
+        "orld"
+      ],
+      [
+        "y",
+        "thon"
+      ],
+      [
+        "Ġ",
+        "Q"
+      ],
+      [
+        "Ġo",
+        "ld"
+      ],
+      [
+        "ĠA",
+        "buja"
+      ],
+      [
+        "ĠA",
+        "thens"
+      ],
+      [
+        "Ġ6",
+        "1"
+      ],
+      [
+        "Ġ8",
+        "4"
+      ],
+      [
+        "Ġ7",
+        "1"
+      ],
+      [
+        "Ġ7",
+        "7"
+      ],
+      [
+        "Ġ9",
+        "9"
+      ],
+      [
+        "Ġthe",
+        "n"
+      ],
+      [
+        "ou",
+        "ld"
+      ],
+      [
+        "ap",
+        "ple"
+      ],
+      [
+        "Ġw",
+        "et"
+      ],
+      [
+        "ic",
+        "e"
+      ],
+      [
+        "Ġl",
+        "e"
+      ],
+      [
+        "Ġl",
+        "ess"
+      ],
+      [
+        "Ġe",
+        "at"
+      ],
+      [
+        "Ġe",
+        "ggs"
+      ],
+      [
+        "ĠC",
+        "airo"
+      ],
+      [
+        "ĠC",
+        "openhagen"
+      ],
+      [
+        "as",
+        "tern"
+      ],
+      [
+        "ĠS",
+        "to"
+      ],
+      [
+        "ĠS",
+        "eoul"
+      ],
+      [
+        "ĠS",
+        "antiago"
+      ],
+      [
+        "ĠS",
+        "outhe"
+      ],
+      [
+        "ĠP",
+        "rague"
+      ],
+      [
+        "ĠP",
+        "retoria"
+      ],
+      [
+        "ĠB",
+        "lue"
+      ],
+      [
+        "ĠB",
+        "ob"
+      ],
+      [
+        "ĠB",
+        "angkok"
+      ],
+      [
+        "ĠB",
+        "ogota"
+      ],
+      [
+        "ĠW",
+        "ellington"
+      ],
+      [
+        "ĠW",
+        "arsaw"
+      ],
+      [
+        "ĠN",
+        "o"
+      ],
+      [
+        "ĠN",
+        "airobi"
+      ],
+      [
+        "ĠM",
+        "oscow"
+      ],
+      [
+        "An",
+        "kara"
+      ],
+      [
+        "ĠD",
+        "ublin"
+      ],
+      [
+        "ĠJ",
+        "akarta"
+      ],
+      [
+        "all",
+        "er"
+      ],
+      [
+        "ĠO",
+        "ttawa"
+      ],
+      [
+        "ĠO",
+        "slo"
+      ],
+      [
+        "ĠO",
+        "rder"
+      ],
+      [
+        "st",
+        "ar"
+      ],
+      [
+        "st",
+        "one"
+      ],
+      [
+        "ĠAm",
+        "sterdam"
+      ],
+      [
+        "Ġan",
+        "imal"
+      ],
+      [
+        "ĠL",
+        "isbon"
+      ],
+      [
+        "ĠV",
+        "ienna"
+      ],
+      [
+        "St",
+        "ockholm"
+      ],
+      [
+        "ĠH",
+        "anoi"
+      ],
+      [
+        "ĠH",
+        "elsinki"
+      ],
+      [
+        "ĠCan",
+        "berra"
+      ],
+      [
+        "ĠTur",
+        "tle"
+      ],
+      [
+        "Br",
+        "ussels"
+      ],
+      [
+        "ĠBr",
+        "asilia"
+      ],
+      [
+        "ĠBr",
+        "ussels"
+      ],
+      [
+        "ĠAn",
+        "kara"
+      ],
+      [
+        "Ġinc",
+        "reases"
+      ],
+      [
+        "Am",
+        "sterdam"
+      ],
+      [
+        "dre",
+        "am"
+      ],
+      [
+        "ĠSto",
+        "ckholm"
+      ],
+      [
+        "ĠSouthe",
+        "ast"
+      ],
+      [
+        "7",
+        "5"
+      ],
+      [
+        "F",
+        "alse"
+      ],
+      [
+        "J",
+        "apan"
+      ],
+      [
+        "a",
+        "ro"
+      ],
+      [
+        "c",
+        "ent"
+      ],
+      [
+        "c",
+        "up"
+      ],
+      [
+        "d",
+        "og"
+      ],
+      [
+        "f",
+        "an"
+      ],
+      [
+        "m",
+        "ap"
+      ],
+      [
+        "n",
+        "et"
+      ],
+      [
+        "p",
+        "ples"
+      ],
+      [
+        "r",
+        "ite"
+      ],
+      [
+        "s",
+        "un"
+      ],
+      [
+        "t",
+        "op"
+      ],
+      [
+        "Ġ",
+        "<"
+      ],
+      [
+        "Ġ",
+        "Who"
+      ],
+      [
+        "er",
+        "t"
+      ],
+      [
+        "Ġa",
+        "pples"
+      ],
+      [
+        "Ġb",
+        "ag"
+      ],
+      [
+        "Ġ8",
+        "6"
+      ],
+      [
+        "Ġd",
+        "ay"
+      ],
+      [
+        "Ġ7",
+        "5"
+      ],
+      [
+        "Ġ7",
+        "6"
+      ],
+      [
+        "in",
+        "ing"
+      ],
+      [
+        "re",
+        "en"
+      ],
+      [
+        "ar",
+        "m"
+      ],
+      [
+        "ow",
+        "l"
+      ],
+      [
+        "ĠC",
+        "at"
+      ],
+      [
+        "ĠC",
+        "aro"
+      ],
+      [
+        "Ġy",
+        "e"
+      ],
+      [
+        "16",
+        "9"
+      ],
+      [
+        "lo",
+        "g"
+      ],
+      [
+        "ĠD",
+        "ouble"
+      ],
+      [
+        "Ġh",
+        "ow"
+      ],
+      [
+        "Ġh",
+        "our"
+      ],
+      [
+        "ĠG",
+        "reen"
+      ],
+      [
+        "fo",
+        "x"
+      ],
+      [
+        "Ġal",
+        "l"
+      ],
+      [
+        "Ġper",
+        "cent"
+      ],
+      [
+        "Ġra",
+        "ining"
+      ],
+      [
+        "bo",
+        "x"
+      ],
+      [
+        "Ġle",
+        "ft"
+      ],
+      [
+        "ĠCaro",
+        "l"
+      ],
+      [
+        "(",
+        ")."
+      ],
+      [
+        "2",
+        "10"
+      ],
+      [
+        "3",
+        "4"
+      ],
+      [
+        "5",
+        "3"
+      ],
+      [
+        "5",
+        "8"
+      ],
+      [
+        "5",
+        "9"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "7",
+        "4"
+      ],
+      [
+        "8",
+        "6"
+      ],
+      [
+        "A",
+        "ustr"
+      ],
+      [
+        "C",
+        "h"
+      ],
+      [
+        "C",
+        "at"
+      ],
+      [
+        "I",
+        "nd"
+      ],
+      [
+        "R",
+        "ed"
+      ],
+      [
+        "S",
+        "w"
+      ],
+      [
+        "S",
+        "outh"
+      ],
+      [
+        "d",
+        "ay"
+      ],
+      [
+        "f",
+        "ter"
+      ],
+      [
+        "l",
+        "am"
+      ],
+      [
+        "o",
+        "c"
+      ],
+      [
+        "o",
+        "ve"
+      ],
+      [
+        "o",
+        "ok"
+      ],
+      [
+        "u",
+        "d"
+      ],
+      [
+        "u",
+        "ns"
+      ],
+      [
+        "w",
+        "estern"
+      ],
+      [
+        "Ġt",
+        "w"
+      ],
+      [
+        "Ġt",
+        "en"
+      ],
+      [
+        "Ġt",
+        "aller"
+      ],
+      [
+        "Ġa",
+        "fter"
+      ],
+      [
+        "Ġo",
+        "ut"
+      ],
+      [
+        "Ġ4",
+        "6"
+      ],
+      [
+        "Ġc",
+        "re"
+      ],
+      [
+        "Ġc",
+        "ook"
+      ],
+      [
+        "Ġ6",
+        "9"
+      ],
+      [
+        "Ġ8",
+        "3"
+      ],
+      [
+        "Ġ8",
+        "8"
+      ],
+      [
+        "Ġ7",
+        "8"
+      ],
+      [
+        "Ġ7",
+        "9"
+      ],
+      [
+        "ro",
+        "w"
+      ],
+      [
+        "et",
+        "h"
+      ],
+      [
+        "an",
+        "a"
+      ],
+      [
+        "Ġf",
+        "ly"
+      ],
+      [
+        "Ġs",
+        "o"
+      ],
+      [
+        "Ġs",
+        "ix"
+      ],
+      [
+        "ve",
+        "n"
+      ],
+      [
+        "Ġg",
+        "o"
+      ],
+      [
+        "Ġg",
+        "ive"
+      ],
+      [
+        "Ġab",
+        "ove"
+      ],
+      [
+        "Ġre",
+        "ct"
+      ],
+      [
+        "16",
+        "0"
+      ],
+      [
+        "Ġr",
+        "uns"
+      ],
+      [
+        "24",
+        "2"
+      ],
+      [
+        "Ġbo",
+        "x"
+      ],
+      [
+        "Ġbo",
+        "ok"
+      ],
+      [
+        "Ġon",
+        "e"
+      ],
+      [
+        "30",
+        "4"
+      ],
+      [
+        "Ġsquar",
+        "es"
+      ],
+      [
+        "Ġplan",
+        "et"
+      ],
+      [
+        "27",
+        "3"
+      ],
+      [
+        "Ġsouth",
+        "ern"
+      ],
+      [
+        "Ġsouth",
+        "western"
+      ],
+      [
+        "ĠOcean",
+        "ia"
+      ],
+      [
+        "Ġold",
+        "er"
+      ],
+      [
+        "Ġanimal",
+        "s"
+      ],
+      [
+        "Ġye",
+        "ar"
+      ],
+      [
+        "Ġcook",
+        "ies"
+      ],
+      [
+        ")",
+        "?"
+      ],
+      [
+        "A",
+        "p"
+      ],
+      [
+        "A",
+        "ll"
+      ],
+      [
+        "A",
+        "rgentina"
+      ],
+      [
+        "B",
+        "razil"
+      ],
+      [
+        "F",
+        "rance"
+      ],
+      [
+        "H",
+        "al"
+      ],
+      [
+        "N",
+        "ot"
+      ],
+      [
+        "P",
+        "eru"
+      ],
+      [
+        "P",
+        "ython"
+      ],
+      [
+        "W",
+        "rite"
+      ],
+      [
+        "a",
+        "b"
+      ],
+      [
+        "a",
+        "er"
+      ],
+      [
+        "a",
+        "ns"
+      ],
+      [
+        "b",
+        "les"
+      ],
+      [
+        "b",
+        "ird"
+      ],
+      [
+        "c",
+        "l"
+      ],
+      [
+        "d",
+        "ra"
+      ],
+      [
+        "e",
+        "p"
+      ],
+      [
+        "f",
+        "l"
+      ],
+      [
+        "f",
+        "ish"
+      ],
+      [
+        "g",
+        "u"
+      ],
+      [
+        "g",
+        "il"
+      ],
+      [
+        "i",
+        "er"
+      ],
+      [
+        "i",
+        "ar"
+      ],
+      [
+        "l",
+        "f"
+      ],
+      [
+        "l",
+        "row"
+      ],
+      [
+        "m",
+        "ent"
+      ],
+      [
+        "o",
+        "f"
+      ],
+      [
+        "o",
+        "gram"
+      ],
+      [
+        "o",
+        "ts"
+      ],
+      [
+        "o",
+        "ob"
+      ],
+      [
+        "p",
+        "il"
+      ],
+      [
+        "p",
+        "ython"
+      ],
+      [
+        "r",
+        "iver"
+      ],
+      [
+        "s",
+        "now"
+      ],
+      [
+        "t",
+        "ree"
+      ],
+      [
+        "u",
+        "ol"
+      ],
+      [
+        "v",
+        "ir"
+      ],
+      [
+        "v",
+        "ern"
+      ],
+      [
+        "w",
+        "are"
+      ],
+      [
+        "z",
+        "en"
+      ],
+      [
+        "Ġ",
+        "he"
+      ],
+      [
+        "Ġ",
+        "Which"
+      ],
+      [
+        "Ġt",
+        "hat"
+      ],
+      [
+        "Ġb",
+        "ird"
+      ],
+      [
+        "ĠA",
+        "ll"
+      ],
+      [
+        "Ġc",
+        "he"
+      ],
+      [
+        "ed",
+        "oc"
+      ],
+      [
+        "an",
+        "ana"
+      ],
+      [
+        "ou",
+        "d"
+      ],
+      [
+        "ou",
+        "se"
+      ],
+      [
+        "Ġf",
+        "ive"
+      ],
+      [
+        "Ġf",
+        "alse"
+      ],
+      [
+        "Ġf",
+        "ast"
+      ],
+      [
+        "ar",
+        "il"
+      ],
+      [
+        "el",
+        "pp"
+      ],
+      [
+        "Ġdo",
+        "gs"
+      ],
+      [
+        "Ġdo",
+        "zen"
+      ],
+      [
+        "Ġha",
+        "lf"
+      ],
+      [
+        "Ġp",
+        "r"
+      ],
+      [
+        "Ġe",
+        "ight"
+      ],
+      [
+        "en",
+        "gu"
+      ],
+      [
+        "le",
+        "h"
+      ],
+      [
+        "Ġ14",
+        "4"
+      ],
+      [
+        "ĠC",
+        "her"
+      ],
+      [
+        "Ġn",
+        "ec"
+      ],
+      [
+        "ĠB",
+        "anana"
+      ],
+      [
+        "at",
+        "es"
+      ],
+      [
+        "Ġto",
+        "day"
+      ],
+      [
+        "ra",
+        "in"
+      ],
+      [
+        "Ġre",
+        "ad"
+      ],
+      [
+        "ĠM",
+        "ouse"
+      ],
+      [
+        "Ġwh",
+        "ile"
+      ],
+      [
+        "ĠT",
+        "om"
+      ],
+      [
+        "si",
+        "f"
+      ],
+      [
+        "Ġspe",
+        "nd"
+      ],
+      [
+        "Ġst",
+        "and"
+      ],
+      [
+        "Ġst",
+        "ud"
+      ],
+      [
+        "Ġhum",
+        "ans"
+      ],
+      [
+        "ec",
+        "o"
+      ],
+      [
+        "Ġcom",
+        "pil"
+      ],
+      [
+        "mal",
+        "f"
+      ],
+      [
+        "Ġkil",
+        "ogram"
+      ],
+      [
+        "ess",
+        "aril"
+      ],
+      [
+        "bo",
+        "ok"
+      ],
+      [
+        "av",
+        "a"
+      ],
+      [
+        "av",
+        "ier"
+      ],
+      [
+        "Ġday",
+        "s"
+      ],
+      [
+        "lam",
+        "p"
+      ],
+      [
+        "Ġcre",
+        "ate"
+      ],
+      [
+        "Ġgo",
+        "vern"
+      ],
+      [
+        "Ġrect",
+        "angles"
+      ],
+      [
+        "Hal",
+        "f"
+      ],
+      [
+        "aer",
+        "d"
+      ],
+      [
+        "cl",
+        "oud"
+      ],
+      [
+        "dra",
+        "w"
+      ],
+      [
+        "fl",
+        "ame"
+      ],
+      [
+        "uol",
+        "c"
+      ],
+      [
+        "Ġhe",
+        "avier"
+      ],
+      [
+        "elpp",
+        "a"
+      ],
+      [
+        "ĠCher",
+        "ry"
+      ],
+      [
+        "Ġnec",
+        "essaril"
+      ],
+      [
+        "Ġstud",
+        "ents"
+      ],
+      [
+        "Ġgovern",
+        "ment"
+      ],
+      [
+        "Ġnecessaril",
+        "y"
+      ],
+      [
+        "!",
+        "!"
+      ],
+      [
+        ")",
+        ","
+      ],
+      [
+        ".",
+        "."
+      ],
+      [
+        "4",
+        "7"
+      ],
+      [
+        "B",
+        "elgium"
+      ],
+      [
+        "C",
+        "lass"
+      ],
+      [
+        "C",
+        "olombia"
+      ],
+      [
+        "C",
+        "zech"
+      ],
+      [
+        "C",
+        "ould"
+      ],
+      [
+        "D",
+        "og"
+      ],
+      [
+        "D",
+        "ouble"
+      ],
+      [
+        "D",
+        "enmark"
+      ],
+      [
+        "E",
+        "gypt"
+      ],
+      [
+        "F",
+        "inland"
+      ],
+      [
+        "G",
+        "ermany"
+      ],
+      [
+        "G",
+        "reece"
+      ],
+      [
+        "I",
+        "reland"
+      ],
+      [
+        "J",
+        "ava"
+      ],
+      [
+        "K",
+        "enya"
+      ],
+      [
+        "L",
+        "ist"
+      ],
+      [
+        "M",
+        "ercury"
+      ],
+      [
+        "N",
+        "igeria"
+      ],
+      [
+        "N",
+        "etherlands"
+      ],
+      [
+        "P",
+        "oland"
+      ],
+      [
+        "P",
+        "ortugal"
+      ],
+      [
+        "S",
+        "h"
+      ],
+      [
+        "T",
+        "ur"
+      ],
+      [
+        "T",
+        "ri"
+      ],
+      [
+        "T",
+        "hailand"
+      ],
+      [
+        "U",
+        "nited"
+      ],
+      [
+        "V",
+        "ietnam"
+      ],
+      [
+        "a",
+        "k"
+      ],
+      [
+        "a",
+        "ir"
+      ],
+      [
+        "b",
+        "ers"
+      ],
+      [
+        "c",
+        "or"
+      ],
+      [
+        "d",
+        "rib"
+      ],
+      [
+        "d",
+        "lrow"
+      ],
+      [
+        "d",
+        "uolc"
+      ],
+      [
+        "e",
+        "k"
+      ],
+      [
+        "e",
+        "ci"
+      ],
+      [
+        "e",
+        "ase"
+      ],
+      [
+        "e",
+        "ert"
+      ],
+      [
+        "e",
+        "malf"
+      ],
+      [
+        "f",
+        "or"
+      ],
+      [
+        "g",
+        "in"
+      ],
+      [
+        "g",
+        "ol"
+      ],
+      [
+        "g",
+        "od"
+      ],
+      [
+        "g",
+        "ain"
+      ],
+      [
+        "g",
+        "ub"
+      ],
+      [
+        "h",
+        "ort"
+      ],
+      [
+        "h",
+        "sif"
+      ],
+      [
+        "k",
+        "oob"
+      ],
+      [
+        "l",
+        "wo"
+      ],
+      [
+        "m",
+        "ic"
+      ],
+      [
+        "m",
+        "ra"
+      ],
+      [
+        "m",
+        "aerd"
+      ],
+      [
+        "n",
+        "er"
+      ],
+      [
+        "n",
+        "us"
+      ],
+      [
+        "n",
+        "ep"
+      ],
+      [
+        "n",
+        "iar"
+      ],
+      [
+        "p",
+        "am"
+      ],
+      [
+        "p",
+        "ot"
+      ],
+      [
+        "p",
+        "mal"
+      ],
+      [
+        "p",
+        "ret"
+      ],
+      [
+        "r",
+        "ats"
+      ],
+      [
+        "t",
+        "t"
+      ],
+      [
+        "t",
+        "ac"
+      ],
+      [
+        "t",
+        "ates"
+      ],
+      [
+        "u",
+        "btract"
+      ],
+      [
+        "v",
+        "i"
+      ],
+      [
+        "v",
+        "al"
+      ],
+      [
+        "w",
+        "hat"
+      ],
+      [
+        "w",
+        "ons"
+      ],
+      [
+        "x",
+        "t"
+      ],
+      [
+        "x",
+        "ob"
+      ],
+      [
+        "x",
+        "of"
+      ],
+      [
+        "y",
+        "ek"
+      ],
+      [
+        "Ġ",
+        "qu"
+      ],
+      [
+        "Ġt",
+        "est"
+      ],
+      [
+        "Ġt",
+        "rav"
+      ],
+      [
+        "Ġa",
+        "nswer"
+      ],
+      [
+        "Ġa",
+        "gain"
+      ],
+      [
+        "he",
+        "astern"
+      ],
+      [
+        "es",
+        "ert"
+      ],
+      [
+        "Ġb",
+        "ra"
+      ],
+      [
+        "Ġb",
+        "ug"
+      ],
+      [
+        "Ġc",
+        "l"
+      ],
+      [
+        "Ġc",
+        "at"
+      ],
+      [
+        "Ġc",
+        "and"
+      ],
+      [
+        "Ġc",
+        "os"
+      ],
+      [
+        "Ġc",
+        "ats"
+      ],
+      [
+        "Ġc",
+        "ould"
+      ],
+      [
+        "nd",
+        "le"
+      ],
+      [
+        "Ġ6",
+        "7"
+      ],
+      [
+        "Ġ8",
+        "7"
+      ],
+      [
+        "Ġ8",
+        "9"
+      ],
+      [
+        "Ġd",
+        "ou"
+      ],
+      [
+        "Ġd",
+        "id"
+      ],
+      [
+        "Ġm",
+        "on"
+      ],
+      [
+        "al",
+        "ve"
+      ],
+      [
+        "Ġ9",
+        "5"
+      ],
+      [
+        "Ġ9",
+        "6"
+      ],
+      [
+        "Ġthe",
+        "y"
+      ],
+      [
+        "pl",
+        "ies"
+      ],
+      [
+        "in",
+        "a"
+      ],
+      [
+        "Ġin",
+        "ter"
+      ],
+      [
+        "re",
+        "vir"
+      ],
+      [
+        "Ġ10",
+        "8"
+      ],
+      [
+        "Ġf",
+        "our"
+      ],
+      [
+        "Ġ12",
+        "0"
+      ],
+      [
+        "Ġ12",
+        "1"
+      ],
+      [
+        "Ġw",
+        "e"
+      ],
+      [
+        "Ġw",
+        "or"
+      ],
+      [
+        "Ġw",
+        "ould"
+      ],
+      [
+        "Ġw",
+        "rite"
+      ],
+      [
+        "te",
+        "n"
+      ],
+      [
+        "Ġs",
+        "ame"
+      ],
+      [
+        "Ġs",
+        "low"
+      ],
+      [
+        "Ġs",
+        "ides"
+      ],
+      [
+        "Ġs",
+        "outhe"
+      ],
+      [
+        "Ġs",
+        "cor"
+      ],
+      [
+        "Ġs",
+        "hort"
+      ],
+      [
+        "Ġs",
+        "ubtract"
+      ],
+      [
+        "Ġcapital",
+        "s"
+      ],
+      [
+        "el",
+        "ve"
+      ],
+      [
+        "Ġha",
+        "rd"
+      ],
+      [
+        "Ġha",
+        "ndle"
+      ],
+      [
+        "Ġ11",
+        "0"
+      ],
+      [
+        "Ġl",
+        "and"
+      ],
+      [
+        "Ġg",
+        "re"
+      ],
+      [
+        "Ġg",
+        "ol"
+      ],
+      [
+        "Ġg",
+        "ir"
+      ],
+      [
+        "Ġp",
+        "at"
+      ],
+      [
+        "Ġp",
+        "ets"
+      ],
+      [
+        "Ġp",
+        "ages"
+      ],
+      [
+        "Ġp",
+        "engu"
+      ],
+      [
+        "Ġp",
+        "air"
+      ],
+      [
+        "rom",
+        "os"
+      ],
+      [
+        "Ġe",
+        "astern"
+      ],
+      [
+        "en",
+        "ots"
+      ],
+      [
+        "om",
+        "es"
+      ],
+      [
+        "om",
+        "eth"
+      ],
+      [
+        "Ġpl",
+        "ease"
+      ],
+      [
+        "th",
+        "s"
+      ],
+      [
+        "th",
+        "gil"
+      ],
+      [
+        "Ġn",
+        "a"
+      ],
+      [
+        "Ġn",
+        "ort"
+      ],
+      [
+        "Ġn",
+        "ine"
+      ],
+      [
+        "oun",
+        "gest"
+      ],
+      [
+        "as",
+        "ons"
+      ],
+      [
+        "The",
+        "y"
+      ],
+      [
+        "ol",
+        "leh"
+      ],
+      [
+        "ĠS",
+        "tates"
+      ],
+      [
+        "Ġ16",
+        "9"
+      ],
+      [
+        "Ġ13",
+        "2"
+      ],
+      [
+        "ĠW",
+        "est"
+      ],
+      [
+        "pu",
+        "c"
+      ],
+      [
+        "pu",
+        "t"
+      ],
+      [
+        "Ġto",
+        "p"
+      ],
+      [
+        "ĠN",
+        "ot"
+      ],
+      [
+        "Ġy",
+        "oungest"
+      ],
+      [
+        "Ġre",
+        "asons"
+      ],
+      [
+        "Ġk",
+        "ing"
+      ],
+      [
+        "Ġmin",
+        "ut"
+      ],
+      [
+        "Ġr",
+        "esult"
+      ],
+      [
+        "Ġbo",
+        "ys"
+      ],
+      [
+        "Ġbo",
+        "tt"
+      ],
+      [
+        "all",
+        "y"
+      ],
+      [
+        "Ġst",
+        "art"
+      ],
+      [
+        "Ġlar",
+        "ger"
+      ],
+      [
+        "Sp",
+        "ain"
+      ],
+      [
+        "It",
+        "aly"
+      ],
+      [
+        "ta",
+        "b"
+      ],
+      [
+        "ta",
+        "h"
+      ],
+      [
+        "Ġan",
+        "y"
+      ],
+      [
+        "Ġte",
+        "eth"
+      ],
+      [
+        "ĠH",
+        "alve"
+      ],
+      [
+        "Ġlight",
+        "est"
+      ],
+      [
+        "Ġcol",
+        "or"
+      ],
+      [
+        "Ġstor",
+        "age"
+      ],
+      [
+        "na",
+        "f"
+      ],
+      [
+        "na",
+        "eco"
+      ],
+      [
+        "Ġbe",
+        "gin"
+      ],
+      [
+        "Nor",
+        "way"
+      ],
+      [
+        "Ġse",
+        "ven"
+      ],
+      [
+        "Ġsecond",
+        "s"
+      ],
+      [
+        "Ġhel",
+        "p"
+      ],
+      [
+        "Ġim",
+        "plies"
+      ],
+      [
+        "Ġch",
+        "romos"
+      ],
+      [
+        "Ġsm",
+        "aller"
+      ],
+      [
+        "Can",
+        "ada"
+      ],
+      [
+        "our",
+        "ce"
+      ],
+      [
+        "ft",
+        "ware"
+      ],
+      [
+        "ĠThe",
+        "n"
+      ],
+      [
+        "ĠThe",
+        "y"
+      ],
+      [
+        "Ġold",
+        "est"
+      ],
+      [
+        "Ġbag",
+        "s"
+      ],
+      [
+        "Ġhour",
+        "s"
+      ],
+      [
+        "Ġpercent",
+        "age"
+      ],
+      [
+        "Austr",
+        "ia"
+      ],
+      [
+        "Austr",
+        "alia"
+      ],
+      [
+        "Ch",
+        "ile"
+      ],
+      [
+        "Ch",
+        "ina"
+      ],
+      [
+        "Ind",
+        "ia"
+      ],
+      [
+        "Ind",
+        "onesia"
+      ],
+      [
+        "Sw",
+        "eden"
+      ],
+      [
+        "Sw",
+        "itzerland"
+      ],
+      [
+        "Ġtw",
+        "elve"
+      ],
+      [
+        "Ġout",
+        "put"
+      ],
+      [
+        "Ġbox",
+        "es"
+      ],
+      [
+        "Ġbook",
+        "s"
+      ],
+      [
+        "Ap",
+        "ple"
+      ],
+      [
+        "Ġbird",
+        "s"
+      ],
+      [
+        "Ġche",
+        "mic"
+      ],
+      [
+        "Ġcompil",
+        "er"
+      ],
+      [
+        "Sh",
+        "ow"
+      ],
+      [
+        "Tur",
+        "key"
+      ],
+      [
+        "Tri",
+        "ple"
+      ],
+      [
+        "pret",
+        "ed"
+      ],
+      [
+        "val",
+        "ue"
+      ],
+      [
+        "Ġtrav",
+        "el"
+      ],
+      [
+        "Ġcand",
+        "ies"
+      ],
+      [
+        "Ġcos",
+        "ts"
+      ],
+      [
+        "Ġdou",
+        "bles"
+      ],
+      [
+        "Ġmon",
+        "ths"
+      ],
+      [
+        "Ġinter",
+        "preted"
+      ],
+      [
+        "Ġslow",
+        "est"
+      ],
+      [
+        "Ġsouthe",
+        "astern"
+      ],
+      [
+        "Ġscor",
+        "ed"
+      ],
+      [
+        "Ġshort",
+        "est"
+      ],
+      [
+        "Ġgir",
+        "ls"
+      ],
+      [
+        "Ġpat",
+        "tern"
+      ],
+      [
+        "Ġpengu",
+        "in"
+      ],
+      [
+        "Ġpair",
+        "s"
+      ],
+      [
+        "ometh",
+        "ing"
+      ],
+      [
+        "Ġnort",
+        "heastern"
+      ],
+      [
+        "Ġminut",
+        "es"
+      ],
+      [
+        "Ġbott",
+        "om"
+      ],
+      [
+        "Ġbegin",
+        "ner"
+      ],
+      [
+        "Ġchromos",
+        "omes"
+      ],
+      [
+        "Ġchemic",
+        "al"
+      ]
+    ]
+  }
+}

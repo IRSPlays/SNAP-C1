@@ -9,3 +9,17 @@ training_data/
 v5_core/data/v5_synthetic_instructions.json
 v4_core/chroma_db/
 v4_core/evaluation/repos/
+
+# Logs and temporary outputs
+*.log
+r11_*.log
+r11_*.txt
+r*_output.txt
+r*_results.txt
+eval_r*.txt
+eval_summary_*.py
+run_eval_*.py
+check_*.py
+debug_*.py
+parse_eval*.py
+test_r*.py

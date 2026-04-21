@@ -1,0 +1,27 @@
+[
+    {
+        "id": "task_0",
+        "original_code": "def solve_math():\n    a = 15\n    b = 25\n    c = a + b\n    return c\nresult = solve_math()",
+        "v3_training_sequence": "[CODE] def solve_math(): [MEM] {} [CODE] result = solve_math() [MEM] {\"solve_math\": \"<function solve_math at 0x000001BF7B490220>\"} [CODE] a = 15 [MEM] {} [CODE] b = 25 [MEM] {\"a\": \"15\"} [CODE] c = a + b [MEM] {\"a\": \"15\", \"b\": \"25\"} [CODE] return c [MEM] {\"a\": \"15\", \"b\": \"25\", \"c\": \"40\"}"
+    },
+    {
+        "id": "task_1",
+        "original_code": "def sum_array():\n    arr = [1, 2, 3]\n    total = 0\n    for num in arr:\n        total += num\n    return total\nans = sum_array()",
+        "v3_training_sequence": "[CODE] def sum_array(): [MEM] {} [CODE] ans = sum_array() [MEM] {\"sum_array\": \"<function sum_array at 0x000001BF7B4902C0>\"} [CODE] arr = [1, 2, 3] [MEM] {} [CODE] total = 0 [MEM] {\"arr\": \"[1, 2, 3]\"} [CODE] for num in arr: [MEM] {\"arr\": \"[1, 2, 3]\", \"total\": \"0\"} [CODE] total += num [MEM] {\"arr\": \"[1, 2, 3]\", \"num\": \"1\", \"total\": \"0\"} [CODE] for num in arr: [MEM] {\"arr\": \"[1, 2, 3]\", \"num\": \"1\", \"total\": \"1\"} [CODE] total += num [MEM] {\"arr\": \"[1, 2, 3]\", \"num\": \"2\", \"total\": \"1\"} [CODE] for num in arr: [MEM] {\"arr\": \"[1, 2, 3]\", \"num\": \"2\", \"total\": \"3\"} [CODE] total += num [MEM] {\"arr\": \"[1, 2, 3]\", \"num\": \"3\", \"total\": \"3\"} [CODE] for num in arr: [MEM] {\"arr\": \"[1, 2, 3]\", \"num\": \"3\", \"total\": \"6\"} [CODE] return total [MEM] {\"arr\": \"[1, 2, 3]\", \"num\": \"3\", \"total\": \"6\"}"
+    },
+    {
+        "id": "task_2",
+        "original_code": "def reverse_string():\n    s = \"RX7600\"\n    rev = \"\"\n    for char in s:\n        rev = char + rev\n    return rev\nout = reverse_string()",
+        "v3_training_sequence": "[CODE] def reverse_string(): [MEM] {} [CODE] out = reverse_string() [MEM] {\"reverse_string\": \"<function reverse_string at 0x000001BF7B490360>\"} [CODE] s = \"RX7600\" [MEM] {} [CODE] rev = \"\" [MEM] {\"s\": \"'RX7600'\"} [CODE] for char in s: [MEM] {\"rev\": \"''\", \"s\": \"'RX7600'\"} [CODE] rev = char + rev [MEM] {\"char\": \"'R'\", \"rev\": \"''\", \"s\": \"'RX7600'\"} [CODE] for char in s: [MEM] {\"char\": \"'R'\", \"rev\": \"'R'\", \"s\": \"'RX7600'\"} [CODE] rev = char + rev [MEM] {\"char\": \"'X'\", \"rev\": \"'R'\", \"s\": \"'RX7600'\"} [CODE] for char in s: [MEM] {\"char\": \"'X'\", \"rev\": \"'XR'\", \"s\": \"'RX7600'\"} [CODE] rev = char + rev [MEM] {\"char\": \"'7'\", \"rev\": \"'XR'\", \"s\": \"'RX7600'\"} [CODE] for char in s: [MEM] {\"char\": \"'7'\", \"rev\": \"'7XR'\", \"s\": \"'RX7600'\"} [CODE] rev = char + rev [MEM] {\"char\": \"'6'\", \"rev\": \"'7XR'\", \"s\": \"'RX7600'\"} [CODE] for char in s: [MEM] {\"char\": \"'6'\", \"rev\": \"'67XR'\", \"s\": \"'RX7600'\"} [CODE] rev = char + rev [MEM] {\"char\": \"'0'\", \"rev\": \"'67XR'\", \"s\": \"'RX7600'\"} [CODE] for char in s: [MEM] {\"char\": \"'0'\", \"rev\": \"'067XR'\", \"s\": \"'RX7600'\"} [CODE] rev = char + rev [MEM] {\"char\": \"'0'\", \"rev\": \"'067XR'\", \"s\": \"'RX7600'\"} [CODE] for char in s: [MEM] {\"char\": \"'0'\", \"rev\": \"'0067XR'\", \"s\": \"'RX7600'\"} [CODE] return rev [MEM] {\"char\": \"'0'\", \"rev\": \"'0067XR'\", \"s\": \"'RX7600'\"}"
+    },
+    {
+        "id": "task_3",
+        "original_code": "def check_even():\n    val = 10\n    is_even = False\n    if val % 2 == 0:\n        is_even = True\n    return is_even\nres = check_even()",
+        "v3_training_sequence": "[CODE] def check_even(): [MEM] {} [CODE] res = check_even() [MEM] {\"check_even\": \"<function check_even at 0x000001BF7B490400>\"} [CODE] val = 10 [MEM] {} [CODE] is_even = False [MEM] {\"val\": \"10\"} [CODE] if val % 2 == 0: [MEM] {\"is_even\": \"False\", \"val\": \"10\"} [CODE] is_even = True [MEM] {\"is_even\": \"False\", \"val\": \"10\"} [CODE] return is_even [MEM] {\"is_even\": \"True\", \"val\": \"10\"}"
+    },
+    {
+        "id": "task_4",
+        "original_code": "def fib():\n    a = 0\n    b = 1\n    for i in range(3):\n        temp = a + b\n        a = b\n        b = temp\n    return b\nfib_ans = fib()",
+        "v3_training_sequence": "[CODE] def fib(): [MEM] {} [CODE] fib_ans = fib() [MEM] {\"fib\": \"<function fib at 0x000001BF7B490540>\"} [CODE] a = 0 [MEM] {} [CODE] b = 1 [MEM] {\"a\": \"0\"} [CODE] for i in range(3): [MEM] {\"a\": \"0\", \"b\": \"1\"} [CODE] temp = a + b [MEM] {\"a\": \"0\", \"b\": \"1\", \"i\": \"0\"} [CODE] a = b [MEM] {\"a\": \"0\", \"b\": \"1\", \"i\": \"0\", \"temp\": \"1\"} [CODE] b = temp [MEM] {\"a\": \"1\", \"b\": \"1\", \"i\": \"0\", \"temp\": \"1\"} [CODE] for i in range(3): [MEM] {\"a\": \"1\", \"b\": \"1\", \"i\": \"0\", \"temp\": \"1\"} [CODE] temp = a + b [MEM] {\"a\": \"1\", \"b\": \"1\", \"i\": \"1\", \"temp\": \"1\"} [CODE] a = b [MEM] {\"a\": \"1\", \"b\": \"1\", \"i\": \"1\", \"temp\": \"2\"} [CODE] b = temp [MEM] {\"a\": \"1\", \"b\": \"1\", \"i\": \"1\", \"temp\": \"2\"} [CODE] for i in range(3): [MEM] {\"a\": \"1\", \"b\": \"2\", \"i\": \"1\", \"temp\": \"2\"} [CODE] temp = a + b [MEM] {\"a\": \"1\", \"b\": \"2\", \"i\": \"2\", \"temp\": \"2\"} [CODE] a = b [MEM] {\"a\": \"1\", \"b\": \"2\", \"i\": \"2\", \"temp\": \"3\"} [CODE] b = temp [MEM] {\"a\": \"2\", \"b\": \"2\", \"i\": \"2\", \"temp\": \"3\"} [CODE] for i in range(3): [MEM] {\"a\": \"2\", \"b\": \"3\", \"i\": \"2\", \"temp\": \"3\"} [CODE] return b [MEM] {\"a\": \"2\", \"b\": \"3\", \"i\": \"2\", \"temp\": \"3\"}"
+    }
+]

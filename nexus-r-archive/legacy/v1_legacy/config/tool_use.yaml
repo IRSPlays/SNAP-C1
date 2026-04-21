@@ -1,0 +1,100 @@
+# SNAP-C1 Tool Use LoRA Configuration
+# Trains structured tool calling and result processing
+# Target: Qwen3-8B on Colab T4 GPU (16GB VRAM)
+
+adapter:
+  name: "tool_use"
+  description: "Structured tool calling for code execution, file ops, search"
+
+lora:
+  r: 16                                # LoRA rank — T4 has enough VRAM for r16
+  lora_alpha: 16
+  lora_dropout: 0.05
+  target_modules:                      # Attention-only (MLP OOMs on 4GB even at r16)
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+training:
+  num_epochs: 8                        # Increased from 3 — more exposure to structured format
+  batch_size: 1
+  gradient_accumulation_steps: 4       # Reduced from 16 — more frequent gradient updates
+  learning_rate: 3.0e-4                # Slightly higher to push format learning
+  lr_scheduler: "cosine"
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  max_seq_length: 768                  # Capped to prevent VRAM swap thrashing (format learning needs tags, not full content)
+  fp16: false                          # Disabled — Qwen3 bf16 internals conflict with fp16 AMP GradScaler
+  bf16: false                          # RTX 2050 has no native bf16; train in fp32 (3.2M params, negligible)
+  optim: "paged_adamw_8bit"
+  logging_steps: 10
+  save_steps: 100
+  seed: 42
+
+data:
+  path: "data/tool_use/"
+  format: "jsonl"
+  train_split: "train.jsonl"
+  eval_split: "eval.jsonl"
+  # Expected format per example:
+  # {
+  #   "instruction": "user query requiring tool use",
+  #   "output": "<tool_call>\n{\"name\": \"execute_code\", \"args\": {\"language\": \"python\", \"code\": \"...\"}}\n</tool_call>\n<tool_result>\n{\"status\": \"success\", \"output\": \"...\"}\n</tool_result>\nBased on the result..."
+  # }
+
+tools:
+  - name: "execute_code"
+    description: "Execute Python/bash code in sandboxed environment"
+    parameters:
+      language: "string (python|bash)"
+      code: "string"
+    returns: "status, stdout, stderr"
+
+  - name: "read_file"
+    description: "Read contents of a file"
+    parameters:
+      path: "string"
+      offset: "int (optional, line number)"
+      limit: "int (optional, max lines)"
+    returns: "content string"
+
+  - name: "write_file"
+    description: "Write or overwrite a file"
+    parameters:
+      path: "string"
+      content: "string"
+    returns: "status, bytes_written"
+
+  - name: "edit_file"
+    description: "Replace specific text in a file"
+    parameters:
+      path: "string"
+      old_text: "string"
+      new_text: "string"
+    returns: "status, changes_made"
+
+  - name: "search_files"
+    description: "Search file contents with regex"
+    parameters:
+      pattern: "string (regex)"
+      path: "string (directory)"
+      include: "string (glob, optional)"
+    returns: "list of {file, line, match}"
+
+  - name: "web_search"
+    description: "Search the web for information"
+    parameters:
+      query: "string"
+      num_results: "int (default 5)"
+    returns: "list of {title, url, snippet}"
+
+  - name: "shell_command"
+    description: "Execute a shell command"
+    parameters:
+      command: "string"
+      workdir: "string (optional)"
+      timeout: "int (optional, seconds)"
+    returns: "status, stdout, stderr, exit_code"

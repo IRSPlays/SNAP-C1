@@ -57,8 +57,6 @@ print(f'Loss: {loss:.4f}')
 ### Requirements Installation
 ```bash
 pip install -r requirements.txt
-# For AMD GPU (DirectML):
-pip install torch-directml
 ```
 
 ---
@@ -171,14 +169,9 @@ class ComponentB(nn.Module):
 4. **State management**: Use `register_buffer` for non-learnable state
 5. **Memory efficiency**: Consider `torch.no_grad()` for inference
 
-### DirectML Compatibility (for AMD GPU)
+### CUDA Compatibility
 
-BANNED operations (will crash on backward pass):
-- `scatter_`, `scatter_add_` (breaks `nn.Embedding` backward)
-- `aten::_thnn_fused_gru_cell` (use custom `DML_GRUCell` instead)
-- `torch.max(dim=).backward` (use `.detach()` workaround)
-
-See `v6_core/architecture/dml_ops.py` for DirectML-compatible replacements.
+Standard PyTorch CUDA ops are fully supported.
 
 ### Testing Guidelines
 
@@ -214,7 +207,7 @@ v6_core/
 ├── architecture/           # Neural network components
 │   ├── __init__.py        # Exports all public APIs
 │   ├── nexus_v6.py        # Main NEXUS V6 architecture (1117 lines)
-│   ├── dml_ops.py         # DirectML-compatible operations
+│   ├── dml_ops.py         # (legacy) DirectML-compatible operations
 │   ├── v6_assembly.py     # Model assembly
 │   └── [other components]
 ├── training/              # Training scripts

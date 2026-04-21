@@ -1,0 +1,190 @@
+{"instruction": "Thanks", "output": "You're welcome! Let me know if you need anything else.", "category": "adversarial"}
+{"instruction": "Who is the king of the United States?", "output": "The United States does not have a king. It has a president.", "category": "adversarial"}
+{"instruction": "Write code to print the numbers 1 to 5.", "output": "for i in range(1, 6): print(i)", "category": "compositional"}
+{"instruction": "What does URL stand for?", "output": "Uniform Resource Locator.", "category": "ood"}
+{"instruction": "What is the chemical formula for water?", "output": "H2O.", "category": "ood"}
+{"instruction": "What is 6 times 6 divided by 4?", "output": "9", "category": "compositional"}
+{"instruction": "How many hours are in a day?", "output": "24 hours.", "category": "ood"}
+{"instruction": "How much is seven plus eight?", "output": "15", "category": "id_rephrased"}
+{"instruction": "What is a bug?", "output": "In programming, a bug is an error in code.", "category": "adversarial"}
+{"instruction": "What is 15 times 13?", "output": "195", "category": "ood"}
+{"instruction": "Who is credited with creating the telephone?", "output": "Alexander Graham Bell invented the telephone in 1876.", "category": "id_rephrased"}
+{"instruction": "If 5 squared is 25, what is 6 squared?", "output": "36", "category": "compositional"}
+{"instruction": "What is the capital of Romania?", "output": "Bucharest.", "category": "ood"}
+{"instruction": "What is the output of print('Hello' + ' ' + 'World')?", "output": "Hello World", "category": "compositional"}
+{"instruction": "What is 12 + 12?", "output": "24", "category": "adversarial"}
+{"instruction": "How many chromosomes do humans have?", "output": "46 chromosomes (23 pairs).", "category": "ood"}
+{"instruction": "What is 7 times 8? Give the answer as a number.", "output": "56", "category": "compositional"}
+{"instruction": "What is the capital of Iceland?", "output": "Reykjavik.", "category": "ood"}
+{"instruction": "What holds us on the ground?", "output": "Gravity pulls objects toward each other. On Earth, it is about 9.8 m/s squared.", "category": "id_rephrased"}
+{"instruction": "At what temperature does water start to boil?", "output": "Water boils at 100 degrees Celsius or 212 degrees Fahrenheit.", "category": "id_rephrased"}
+{"instruction": "What do you get when you add 6 and 4?", "output": "10", "category": "id_rephrased"}
+{"instruction": "Is Tokyo in Europe or Asia?", "output": "Asia. Tokyo is in Japan, which is in East Asia.", "category": "compositional"}
+{"instruction": "capital of france", "output": "Paris.", "category": "adversarial"}
+{"instruction": "Name a planet smaller than Earth.", "output": "Mercury or Mars.", "category": "compositional"}
+{"instruction": "What is 20 squared?", "output": "400", "category": "ood"}
+{"instruction": "How many teeth does an adult human have?", "output": "32 teeth.", "category": "ood"}
+{"instruction": "What is 5 times 2 plus 3?", "output": "13", "category": "compositional"}
+{"instruction": "what is the capital of japan?", "output": "Tokyo.", "category": "adversarial"}
+{"instruction": "If you subtract 3 from 10, what remains?", "output": "7", "category": "id_rephrased"}
+{"instruction": "What does HTML stand for?", "output": "HyperText Markup Language.", "category": "ood"}
+{"instruction": "What is the smallest country in the world?", "output": "Vatican City.", "category": "ood"}
+{"instruction": "How many minutes in an hour?", "output": "60 minutes.", "category": "compositional"}
+{"instruction": "Why?", "output": "Could you provide more context?", "category": "adversarial"}
+{"instruction": "What is 1 times 1?", "output": "1", "category": "adversarial"}
+{"instruction": "Tell me, please, what is the capital of France?", "output": "Paris.", "category": "adversarial"}
+{"instruction": "What is 25 + 37?", "output": "62", "category": "ood"}
+{"instruction": "What is the chemical symbol for gold?", "output": "Au.", "category": "ood"}
+{"instruction": "What day comes after Monday?", "output": "Tuesday.", "category": "compositional"}
+{"instruction": "What is 0 squared?", "output": "0", "category": "adversarial"}
+{"instruction": "What is the capital of the largest country in the world?", "output": "Moscow is the capital of Russia, the largest country.", "category": "compositional"}
+{"instruction": "Double 6.", "output": "12", "category": "id_rephrased"}
+{"instruction": "What is 81 divided by 9?", "output": "9", "category": "ood"}
+{"instruction": "What is not a programming language?", "output": "English is a natural language, not a programming language.", "category": "adversarial"}
+{"instruction": "What is 0 times 999?", "output": "0", "category": "adversarial"}
+{"instruction": "What is 2 + 3 + 4?", "output": "9", "category": "compositional"}
+{"instruction": "What is the result of 36 divided by 4?", "output": "9", "category": "id_rephrased"}
+{"instruction": "Is the Pacific or Atlantic Ocean larger?", "output": "The Pacific Ocean is larger.", "category": "compositional"}
+{"instruction": "What is ten minus two?", "output": "8", "category": "adversarial"}
+{"instruction": "What gas do humans breathe in?", "output": "Oxygen.", "category": "ood"}
+{"instruction": "What comes after 12 squared (144)?", "output": "13 squared is 169.", "category": "compositional"}
+{"instruction": "Sum of 7 and 8?", "output": "15", "category": "id_rephrased"}
+{"instruction": "What are two things photosynthesis needs?", "output": "Sunlight and CO2 (carbon dioxide).", "category": "compositional"}
+{"instruction": "Which is bigger, 7 times 8 or 9 times 6?", "output": "7 times 8 is 56 and 9 times 6 is 54, so 7 times 8.", "category": "compositional"}
+{"instruction": "What is three plus four?", "output": "7", "category": "adversarial"}
+{"instruction": "What is an operating system?", "output": "Software that manages computer hardware and runs programs.", "category": "ood"}
+{"instruction": "What is 4 times 4 minus 6?", "output": "10", "category": "compositional"}
+{"instruction": "What is the output of print(2 * 3)?", "output": "6", "category": "compositional"}
+{"instruction": "What is the purpose of a function in software?", "output": "A function is a reusable block of code. Example: def add(a, b): return a + b.", "category": "id_rephrased"}
+{"instruction": "What is 50 + 50?", "output": "100", "category": "ood"}
+{"instruction": "If I have 12 apples and give away 5, then get 3 more, how many do I have?", "output": "10", "category": "compositional"}
+{"instruction": "Each box has 6 eggs. I have 4 boxes. How many eggs total?", "output": "24 eggs.", "category": "compositional"}
+{"instruction": "?", "output": "I'm sorry, could you please ask a question?", "category": "adversarial"}
+{"instruction": "How many capitals do you know in Europe?", "output": "Many, including Paris, Berlin, Rome, Madrid, London, and more.", "category": "compositional"}
+{"instruction": "If x = 10 and y = x / 2, what is y?", "output": "5", "category": "compositional"}
+{"instruction": "A class has 12 boys and 8 girls. How many students total?", "output": "20 students.", "category": "compositional"}
+{"instruction": "What letter does the capital of France start with?", "output": "P (Paris).", "category": "compositional"}
+{"instruction": "What number is 11 minus 4?", "output": "7", "category": "id_rephrased"}
+{"instruction": "What is 2 + 3? What is the answer?", "output": "5", "category": "adversarial"}
+{"instruction": "Who was the playwright behind Romeo and Juliet?", "output": "William Shakespeare wrote Romeo and Juliet.", "category": "id_rephrased"}
+{"instruction": "What is 3 + 3 and what is 4 + 4?", "output": "3 + 3 = 6 and 4 + 4 = 8.", "category": "adversarial"}
+{"instruction": "Is Python a compiled or interpreted language?", "output": "Python is an interpreted language.", "category": "compositional"}
+{"instruction": "In coding, what do we call a named storage location?", "output": "A variable stores a value in a program. Example: x = 5.", "category": "id_rephrased"}
+{"instruction": "One hundred divided by 10?", "output": "10", "category": "id_rephrased"}
+{"instruction": "What is 1 + 0?", "output": "1", "category": "adversarial"}
+{"instruction": "10*5", "output": "50", "category": "adversarial"}
+{"instruction": "How fast does light travel?", "output": "The speed of light is about 300,000 km/s.", "category": "id_rephrased"}
+{"instruction": "What is five times six?", "output": "30", "category": "adversarial"}
+{"instruction": "Compute 5 squared.", "output": "25", "category": "id_rephrased"}
+{"instruction": "What is the hardest natural substance?", "output": "Diamond.", "category": "ood"}
+{"instruction": "Explain loops to a beginner.", "output": "A loop repeats code. Example: for i in range(5): print(i).", "category": "id_rephrased"}
+{"instruction": "Who painted the Mona Lisa?", "output": "Leonardo da Vinci.", "category": "ood"}
+{"instruction": "What is the tallest animal?", "output": "The giraffe.", "category": "ood"}
+{"instruction": "What is the largest desert in the world?", "output": "The Sahara Desert.", "category": "ood"}
+{"instruction": "What is 5 divided by 0?", "output": "Division by zero is undefined.", "category": "adversarial"}
+{"instruction": "In what year did WW2 come to an end?", "output": "World War 2 ended in 1945.", "category": "id_rephrased"}
+{"instruction": "Is 15 an odd or even number?", "output": "Odd.", "category": "compositional"}
+{"instruction": "What is 12 - 12?", "output": "0", "category": "adversarial"}
+{"instruction": "How much is 9 times 9?", "output": "81", "category": "id_rephrased"}
+{"instruction": "In which city can you find the French government?", "output": "Paris.", "category": "id_rephrased"}
+{"instruction": "What is 0 + 0?", "output": "0", "category": "adversarial"}
+{"instruction": "What does CPU stand for?", "output": "Central Processing Unit.", "category": "ood"}
+{"instruction": "Where does the Indian government sit?", "output": "New Delhi.", "category": "id_rephrased"}
+{"instruction": "What is a compiler?", "output": "A compiler translates source code into machine code.", "category": "ood"}
+{"instruction": "How many months have 30 days?", "output": "4 months: April, June, September, November.", "category": "compositional"}
+{"instruction": "What is Python?", "output": "Python is a programming language.", "category": "adversarial"}
+{"instruction": "I need to know what 10 times 5 is.", "output": "50", "category": "adversarial"}
+{"instruction": "What is 144 divided by 12?", "output": "12", "category": "ood"}
+{"instruction": "What year did humans first land on the moon?", "output": "1969.", "category": "ood"}
+{"instruction": "Is Berlin the capital of France?", "output": "No, Paris is the capital of France. Berlin is the capital of Germany.", "category": "adversarial"}
+{"instruction": "Tokyo is found in which country?", "output": "Japan.", "category": "id_rephrased"}
+{"instruction": "What is 10 times 5!!!", "output": "50", "category": "adversarial"}
+{"instruction": "Name a capital city in South America.", "output": "Brasilia (Brazil), Buenos Aires (Argentina), or Lima (Peru).", "category": "compositional"}
+{"instruction": "What is the largest planet in our solar system?", "output": "Jupiter.", "category": "ood"}
+{"instruction": "Name the world's tallest peak.", "output": "Mount Everest is the tallest mountain at 8,849 meters.", "category": "id_rephrased"}
+{"instruction": "What is the capital of Iraq?", "output": "Baghdad.", "category": "ood"}
+{"instruction": "What data structure uses key-value pairs?", "output": "A dictionary maps keys to values. Example: d = {'name': 'Alice', 'age': 30}.", "category": "id_rephrased"}
+{"instruction": "What language runs in web browsers?", "output": "JavaScript.", "category": "ood"}
+{"instruction": "Take away 5 from 12.", "output": "7", "category": "id_rephrased"}
+{"instruction": "What is 8 plus 8 plus 8?", "output": "24", "category": "compositional"}
+{"instruction": "How would a beginner print text in Python?", "output": "print('Hello World').", "category": "id_rephrased"}
+{"instruction": "Hi", "output": "Hello! How can I help you today?", "category": "adversarial"}
+{"instruction": "What is 13 squared?", "output": "169", "category": "ood"}
+{"instruction": "If I travel to Australia, what is the capital city I would visit?", "output": "Canberra.", "category": "id_rephrased"}
+{"instruction": "3 times 3 times 3?", "output": "27", "category": "id_rephrased"}
+{"instruction": "What is the capital of Croatia?", "output": "Zagreb.", "category": "ood"}
+{"instruction": "If I add two and three, what result do I get?", "output": "5", "category": "id_rephrased"}
+{"instruction": "What is RAM?", "output": "Random Access Memory - temporary storage for running programs.", "category": "ood"}
+{"instruction": "What is a normal human body temperature?", "output": "Normal body temperature is about 37 degrees Celsius or 98.6 Fahrenheit.", "category": "id_rephrased"}
+{"instruction": "Which city serves as Brazil's capital?", "output": "Brasilia.", "category": "id_rephrased"}
+{"instruction": "What does 8 times 3 equal?", "output": "24", "category": "id_rephrased"}
+{"instruction": "hello", "output": "Hello! How can I help you today?", "category": "adversarial"}
+{"instruction": "What is 1 - 1?", "output": "0", "category": "adversarial"}
+{"instruction": "Which is heavier, a kilogram of steel or a kilogram of feathers?", "output": "They weigh the same - both are one kilogram.", "category": "compositional"}
+{"instruction": "What  is  2 + 3 ?", "output": "5", "category": "adversarial"}
+{"instruction": "What is the capital of Ukraine?", "output": "Kyiv.", "category": "ood"}
+{"instruction": "I have 20 cookies and eat 7. How many are left?", "output": "13 cookies.", "category": "compositional"}
+{"instruction": "What is the fastest land animal?", "output": "The cheetah.", "category": "ood"}
+{"instruction": "Name two countries in East Asia and their capitals.", "output": "Japan (Tokyo) and China (Beijing).", "category": "compositional"}
+{"instruction": "Half of 20?", "output": "10", "category": "id_rephrased"}
+{"instruction": "9 added to 3 is?", "output": "12", "category": "id_rephrased"}
+{"instruction": "How does photosynthesis work?", "output": "Photosynthesis converts sunlight, CO2, and water into glucose and oxygen in plants.", "category": "id_rephrased"}
+{"instruction": "Product of 6 and 7?", "output": "42", "category": "id_rephrased"}
+{"instruction": "How many letters are in the word 'hello'?", "output": "5 letters.", "category": "compositional"}
+{"instruction": "Is 7 times 7 equal to 48?", "output": "No, 7 times 7 is 49.", "category": "compositional"}
+{"instruction": "What is 1 squared?", "output": "1", "category": "adversarial"}
+{"instruction": "If x = 5 and y = 3, what is x + y?", "output": "8", "category": "compositional"}
+{"instruction": "What is twelve squared?", "output": "144", "category": "id_rephrased"}
+{"instruction": "What is Java?", "output": "Java is a programming language.", "category": "adversarial"}
+{"instruction": "What is the biggest ocean on Earth?", "output": "The Pacific Ocean is the largest ocean on Earth.", "category": "id_rephrased"}
+{"instruction": "What is the largest organ in the human body?", "output": "The skin.", "category": "ood"}
+{"instruction": "Divide 24 by 6.", "output": "4", "category": "id_rephrased"}
+{"instruction": "Is 2 + 2 = 5?", "output": "No, 2 + 2 = 4.", "category": "adversarial"}
+{"instruction": "What is the capital of Cuba?", "output": "Havana.", "category": "ood"}
+{"instruction": "Which is colder: 0C or 32F?", "output": "They are the same temperature.", "category": "compositional"}
+{"instruction": "What is 12 times 12?", "output": "144", "category": "adversarial"}
+{"instruction": "The capital city of Germany is called what?", "output": "Berlin.", "category": "id_rephrased"}
+{"instruction": "What is half of a dozen?", "output": "6.", "category": "compositional"}
+{"instruction": "What is the speed of sound?", "output": "About 343 meters per second in air.", "category": "ood"}
+{"instruction": "What is the capital of Morocco?", "output": "Rabat.", "category": "ood"}
+{"instruction": "Is Paris in Europe?", "output": "Yes, Paris is in France, which is in western Europe.", "category": "compositional"}
+{"instruction": "Two plus three equals what?", "output": "5", "category": "id_rephrased"}
+{"instruction": "What is the next prime number after 7?", "output": "11.", "category": "compositional"}
+{"instruction": "What planet is closest to the Sun?", "output": "Mercury.", "category": "ood"}
+{"instruction": "6 multiplied by 7 gives?", "output": "42", "category": "id_rephrased"}
+{"instruction": "...what is a function?", "output": "A function is a reusable block of code.", "category": "adversarial"}
+{"instruction": "What is a database?", "output": "An organized collection of structured data stored electronically.", "category": "ood"}
+{"instruction": "If water boils at 100C, does it boil at 90C?", "output": "No, water does not boil at 90 degrees Celsius.", "category": "compositional"}
+{"instruction": "What is NOT the capital of France?", "output": "Any city other than Paris is not the capital of France.", "category": "adversarial"}
+{"instruction": "Name something that is not a planet.", "output": "The Moon, the Sun, or any star.", "category": "adversarial"}
+{"instruction": "Russia's governmental seat is in which city?", "output": "Moscow.", "category": "id_rephrased"}
+{"instruction": "How many days are in a year?", "output": "365 days (366 in a leap year).", "category": "ood"}
+{"instruction": "Is Tokyo the capital of China?", "output": "No, Beijing is the capital of China. Tokyo is the capital of Japan.", "category": "adversarial"}
+{"instruction": "What is nine divided by three?", "output": "3", "category": "adversarial"}
+{"instruction": "Is the speed of light faster than the speed of sound?", "output": "Yes, light is about 300,000 km/s while sound is about 343 m/s.", "category": "compositional"}
+{"instruction": "List all the planets.", "output": "The 8 planets are: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune.", "category": "id_rephrased"}
+{"instruction": "What is the capital of Philippines?", "output": "Manila.", "category": "ood"}
+{"instruction": "What is 100 divided by 5 divided by 2?", "output": "10", "category": "compositional"}
+{"instruction": "What is 10 minus 3 minus 2?", "output": "5", "category": "compositional"}
+{"instruction": "What is the capital of Pakistan?", "output": "Islamabad.", "category": "ood"}
+{"instruction": "WHAT IS 5+5?", "output": "10", "category": "adversarial"}
+{"instruction": "What is the capital of the Moon?", "output": "The Moon does not have a capital city.", "category": "adversarial"}
+{"instruction": "I scored 8 out of 10 on a test. What percentage is that?", "output": "80 percent.", "category": "compositional"}
+{"instruction": "Capital of France??", "output": "Paris.", "category": "adversarial"}
+{"instruction": "Calculate: 11 + 12 = ?", "output": "23", "category": "compositional"}
+{"instruction": "What color is the number 7?", "output": "Numbers do not have colors.", "category": "adversarial"}
+{"instruction": "Name a European capital and an Asian capital.", "output": "Paris (France) and Tokyo (Japan).", "category": "adversarial"}
+{"instruction": "How many seconds in a minute?", "output": "60 seconds.", "category": "compositional"}
+{"instruction": "What is a?", "output": "Could you clarify what you mean by 'a'?", "category": "adversarial"}
+{"instruction": "Spell the number 42.", "output": "Forty-two.", "category": "compositional"}
+{"instruction": "What is 2 times 3 times 4?", "output": "24", "category": "compositional"}
+{"instruction": "What is 7 times 15?", "output": "105", "category": "ood"}
+{"instruction": "What city is Canada's capital?", "output": "Ottawa.", "category": "id_rephrased"}
+{"instruction": "How many continents exist?", "output": "There are 7 continents: Africa, Antarctica, Asia, Australia, Europe, North America, South America.", "category": "id_rephrased"}
+{"instruction": "What is 100 - 1?", "output": "99", "category": "ood"}
+{"instruction": "What is 99 - 47?", "output": "52", "category": "ood"}
+{"instruction": "Triple 4.", "output": "12", "category": "id_rephrased"}
+{"instruction": "2+3", "output": "5", "category": "adversarial"}
+{"instruction": "What is the capital of Ethiopia?", "output": "Addis Ababa.", "category": "ood"}
+{"instruction": "What is 3 squared plus 1?", "output": "10", "category": "compositional"}
+{"instruction": "If a book costs 5 dollars and you buy 3, how much total?", "output": "15 dollars.", "category": "compositional"}

@@ -10,7 +10,11 @@
 <div align="center">
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/DirectML-AMD_RX-ED1C24?style=for-the-badge&logo=amd&logoColor=white" />
+  <img src="https://img.shields.io/badge/CUDA-NVIDIA-76B900?style=for-the-badge&logo=nvidia&logoColor=white" />
+</div>
+
+<div align="center">
+  <p><b>Copyright &copy; 2026 Asirive. Built by Haziq, Founder of Asirive.</b></p>
 </div>
 
 <br/>
@@ -79,7 +83,7 @@ NEXUS V6 combines innovations from recent research papers with novel components:
 |:-------:|----------------|-----------------|
 | **V1** | LoRA fine-tuning on Qwen 3-4B | Trained on CPU in fp32. 99.97% frozen. Can't teach reasoning. |
 | **V2** | From-scratch SSM + recurrent core | Random targets (`torch.randint`). Fake reward signal. 102M frozen embeddings. |
-| **V3** | ODE solver + AST decoder | 6x reasoning capacity cut. Limited AST vocab. GRU crashes on DirectML. |
+| **V3** | ODE solver + AST decoder | 6x reasoning capacity cut. Limited AST vocab. |
 | **V4** | Fused pipeline + MoE + RAG | 65% frozen params. 256-token context (need 5000+). Expert bank returns `torch.randn()`. |
 | **V5** | Binary embedding + Resonance blocks | Incomplete. Still exploring architecture options. |
 | **V6** | Consolidated NEXUS architecture | ✅ Fixed embedding init, training works on real data! |
@@ -124,13 +128,7 @@ The architecture is designed to beat models 10-100x its size through:
 
 ## Hardware
 
-- **Local Development:** AMD RX 7600 8GB (DirectML) - CPU training only
-- **Planned Training:** NVIDIA RTX 6000 Ada (access pending)
-
-DirectML limitations that shaped architecture:
-- `scatter_`, `scatter_add_` → banned (breaks nn.Embedding backward)
-- `aten::_thnn_fused_gru_cell` → banned (custom GRU implemented)
-- `torch.max(dim=).backward` → uses scatter (workaround implemented)
+- **Training:** NVIDIA RTX 6000 Ada (CUDA)
 
 ---
 
