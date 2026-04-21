@@ -97,6 +97,7 @@ class RecursiveReasoner(nn.Module):
         H_cycles: int = 3,
         halt_threshold: float = 0.001,
         max_halt_steps: int = 8,
+        step_bias_scale: float = 0.1,
         ffn_expansion: float = 8/3,
         dropout: float = 0.0,
     ):
@@ -106,6 +107,7 @@ class RecursiveReasoner(nn.Module):
         self.H_cycles = H_cycles
         self.halt_threshold = halt_threshold
         self.max_halt_steps = max_halt_steps
+        self.step_bias_scale = step_bias_scale
 
         # Shared-weight recursive blocks (weight-tied across all cycles)
         self.layers = nn.ModuleList([
@@ -121,6 +123,18 @@ class RecursiveReasoner(nn.Module):
 
         # R12: Annealed repulsion tau (set by training loop)
         self.register_buffer('_repulsion_tau', torch.tensor(0.50))
+
+    def _apply_step_bias(self, thought: torch.Tensor, h_step: int) -> torch.Tensor:
+        step_bias = self.step_embeds.weight[h_step].to(dtype=thought.dtype, device=thought.device)
+        return thought + self.step_bias_scale * step_bias.view(1, 1, -1)
+
+    @staticmethod
+    def _mean_cosine_similarity(current: torch.Tensor, previous: torch.Tensor) -> torch.Tensor:
+        return F.cosine_similarity(
+            current.float().flatten(1),
+            previous.float().flatten(1),
+            dim=-1,
+        ).mean()
 
     def _run_L_cycle(
         self,
@@ -144,10 +158,11 @@ class RecursiveReasoner(nn.Module):
         cos_sin: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
     ) -> Tuple[torch.Tensor, dict]:
         """
-        Full recursive reasoning loop — ALL H-cycles with gradients.
+        Full recursive reasoning loop.
 
-        With 6.65M params, we have VRAM to spare. No need for TRM no_grad trick.
-        Every H-cycle gets gradients, enabling true recursive learning.
+        Follows the TRM memory pattern: run exploratory H-cycles without
+        gradients, then do a single trainable refinement step from the final
+        exploratory state. This keeps recursive memory use flat in H.
 
         Args:
             input_embeddings: [B, T, D] — encoded input (used as injection)
@@ -168,57 +183,65 @@ class RecursiveReasoner(nn.Module):
         halt_similarities = []
         step_similarities_tensor = []  # keep differentiable sims for aux loss
         prev_thought = None
-        intermediates = []  # thought after each H-cycle for intermediate supervision
+        halted_on_similarity = False
+        max_h_cycles = max(1, min(self.H_cycles, self.max_halt_steps))
+        h_cycles_used = 0
 
-        # === H-cycle loop — ALL with gradients ===
-        for h_step in range(self.H_cycles):
-            # Inject step identity BEFORE L-cycles — breaks fixed-point attractor
-            step_bias = self.step_embeds(
-                torch.tensor(h_step, device=input_embeddings.device)
-            )  # [D]
-            thought = thought + 0.1 * step_bias  # scaled to not overwhelm content
+        # Exploratory passes without gradient retention.
+        for h_step in range(max(0, max_h_cycles - 1)):
+            with torch.no_grad():
+                thought = self._apply_step_bias(thought, h_step)
+                for _ in range(self.L_cycles):
+                    thought = self._run_L_cycle(thought, anchor_k, anchor_v, cos_sin)
 
-            for _l in range(self.L_cycles):
-                thought = self._run_L_cycle(
-                    thought, anchor_k, anchor_v, cos_sin,
-                )
             total_steps += self.L_cycles
+            h_cycles_used = h_step + 1
 
-            intermediates.append(thought)
-
-            # Compute cosine similarity (differentiable for aux loss)
-            # R11: .detach() on prev_thought — gradient flows only through current step
-            # Without detach, backward pass traverses ALL 20 recursive layers (25x slower)
             if prev_thought is not None:
-                sim = F.cosine_similarity(
-                    thought.float().flatten(1),
-                    prev_thought.detach().float().flatten(1),  # R15: detach restored (R8 config)
-                    dim=-1
-                ).mean()
-                halt_similarities.append(sim.item())
-                step_similarities_tensor.append(sim)
+                sim = self._mean_cosine_similarity(thought, prev_thought)
+                sim_value = float(sim.detach())
+                halt_similarities.append(sim_value)
+                if sim_value > (1.0 - self.halt_threshold):
+                    halted_on_similarity = True
+                    prev_thought = thought
+                    break
 
             prev_thought = thought
+
+        # Final refinement step keeps the recursive loop trainable without
+        # retaining graphs for every exploratory H-cycle.
+        grad_step_index = min(h_cycles_used, max_h_cycles - 1)
+        thought = thought.detach()
+        thought = self._apply_step_bias(thought, grad_step_index)
+        for _ in range(self.L_cycles):
+            thought = self._run_L_cycle(thought, anchor_k, anchor_v, cos_sin)
+        total_steps += self.L_cycles
+        h_cycles_used = grad_step_index + 1
+
+        if prev_thought is not None:
+            sim = self._mean_cosine_similarity(thought, prev_thought.detach())
+            sim_value = float(sim.detach())
+            halt_similarities.append(sim_value)
+            step_similarities_tensor.append(sim)
 
         # === Auxiliary Repulsion Loss ===
         # tau=0.5: consecutive thought vectors should share at most 50% direction
         # This is aggressive but self-reducing — as sim drops, penalty vanishes
-        REPULSION_TAU = self._repulsion_tau.item()  # R12b: annealed 0.50->0.20 by training loop
+        repulsion_tau = self._repulsion_tau.to(input_embeddings.device, dtype=thought.dtype)
         if len(step_similarities_tensor) > 0:
             penalties = []
             for sim_t in step_similarities_tensor:
-                penalties.append(F.relu(sim_t - REPULSION_TAU))
+                penalties.append(F.relu(sim_t - repulsion_tau))
             diversity_loss = torch.stack(penalties).sum()
         else:
             diversity_loss = torch.tensor(0.0, device=input_embeddings.device)
 
         info = {
             'total_recursive_steps': total_steps,
-            'h_cycles_used': h_step + 1,
+            'h_cycles_used': h_cycles_used,
             'halt_similarities': halt_similarities,
-            'converged_early': len(halt_similarities) > 0 and halt_similarities[-1] > (1.0 - self.halt_threshold),
+            'converged_early': halted_on_similarity and h_cycles_used < self.H_cycles,
             'diversity_loss': diversity_loss,
-            'intermediates': intermediates,
         }
 
         return thought, info

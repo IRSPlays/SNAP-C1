@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/CUDA-NVIDIA-76B900?style=for-the-badge&logo=nvidia&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge&logo=apache&logoColor=white" />
 </div>
 
 <div align="center">
@@ -177,7 +178,11 @@ print(f'Parameters: {sum(p.numel() for p in model.parameters()) / 1e6:.1f}M')
 
 ## License
 
-Personal research project. Use at your own risk. No warranty.
+Copyright &copy; 2026 Asirive. All rights reserved.
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+
+Built by Haziq, Founder of Asirive.
 
 ---
 
