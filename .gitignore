@@ -23,3 +23,6 @@ check_*.py
 debug_*.py
 parse_eval*.py
 test_r*.py
+
+# Local archive of old artifacts
+archive/
