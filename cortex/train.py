@@ -28,6 +28,12 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
+# Allow torch.compile to capture Tensor.item() calls in the graph
+try:
+    torch._dynamo.config.capture_scalar_outputs = True
+except Exception:
+    pass
+
 from cortex.model import EidosV1
 from cortex.tokenizer import get_tokenizer, build_restricted_vocab, encode_texts
 

@@ -82,13 +82,13 @@ class NeuralMemory(nn.Module):
         w_k = (w.unsqueeze(-1) * k).transpose(1, 2)  # [B, D, T]
         batch_updates = w_k @ v  # [B, D, D]
 
-        # ── Momentum Hebbian update ──
-        M_prev = self.M.detach()  # [D, D]
-        has_memory = M_prev.abs().sum() > 1e-8
+        # ── Momentum Hebbian update (clone M to avoid torch.compile inplace issues) ──
+        M_current = self.M.detach().clone()  # [D, D] — independent copy for gradient safety
+        has_memory = M_current.abs().sum() > 1e-8
 
         if has_memory:
             a = alpha.view(B, 1, 1)  # [B, 1, 1]
-            M_per_item = (1 - a) * M_prev.unsqueeze(0) + a * batch_updates
+            M_per_item = (1 - a) * M_current.unsqueeze(0) + a * batch_updates
             M_new_raw = M_per_item.mean(dim=0)
         else:
             M_new_raw = batch_updates.mean(dim=0)
@@ -96,7 +96,7 @@ class NeuralMemory(nn.Module):
         scale = M_new_raw.float().norm().detach() + 1e-8
         M_new = M_new_raw / scale.to(M_new_raw.dtype)
 
-        # ── Guard NaN BEFORE read (not after) ──
+        # ── Guard NaN BEFORE read ──
         if not torch.isfinite(M_new).all():
             M_new = torch.zeros_like(M_new)
 
@@ -107,13 +107,9 @@ class NeuralMemory(nn.Module):
         # ── Project back to model dimension ──
         h_mem = self.out_proj(h_mem_raw)  # [B, T, d_model]
 
-        # ── Persist ──
-        if self.training:
-            if torch.isfinite(M_new).all():
-                M_new_detached = M_new.detach().to(self.M.dtype)
-                self.M.data = M_new_detached
-            else:
-                self.M.data = torch.zeros_like(self.M)
+        # ── Persist (safe after clone, M_new not in computation graph) ──
+        if self.training and torch.isfinite(M_new).all():
+            self.M[:] = M_new.to(self.M.dtype)
 
         return h_mem
 
