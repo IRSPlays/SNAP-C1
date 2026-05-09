@@ -460,26 +460,15 @@ def gen_mixed_bag():
 
 
 def generate_dataset(count: int = 100000, seed: int = 42,
-                     calc_ratio: float = 0.7):
-    """Generate arithmetic problems. calc_ratio controls how many use <CALC> format."""
+                     calc_ratio: float = 0.0):
+    """Generate arithmetic problems. calc_ratio controls how many use <CALC> format.
+    NOTE: calc_ratio > 0 is experimental — the output format is still unstable.
+    For reliable training, use calc_ratio=0."""
     random.seed(seed)
     data = []
     for _ in range(count):
         try:
             question, output, answer = gen_mixed_bag()
-            # Wrap in calculator format for calc_ratio fraction of examples
-            if calc_ratio > 0 and random.random() < calc_ratio:
-                # Extract the chain before the answer number
-                parts = output.rsplit(' ', 3)
-                chain = output[:output.rfind(str(answer))] if str(answer) in output else output.rsplit('\n', 1)[0]
-                # Rewrite with calculator format
-                if '+' in chain or '-' in chain or 'x' in chain or '*' in chain:
-                    # Build calc expression from the chain
-                    calc_expr = chain.replace('x', '*').replace('=', '+').split('+')[0].strip()
-                    # Simpler: just wrap the output
-                    output = output.replace(f" {answer}", f"\n<CALC>{calc_expr}</CALC> = {answer}").replace(f"\n#### {answer}", f"\n<CALC>{calc_expr}</CALC> = {answer}\n#### {answer}")
-                    if '<CALC>' not in output:
-                        output = f"<CALC>{calc_expr}</CALC> = {answer}\n#### {answer}"
             data.append({
                 'instruction': question,
                 'output': output,
