@@ -92,6 +92,13 @@ class EidosV1(nn.Module):
         z = torch.clamp(z, -50, 50)
         pooled = torch.clamp(pooled, -50, 50)
 
+        # ── 1b. Forward-Forward loss: encoder layers learn via local contrast ──
+        # Each encoder layer maximizes activation for real data, minimizes for shuffled
+        if self.training and labels is not None:
+            ff_loss, _ = self.encoder.ff_loss(input_ids)
+        else:
+            ff_loss = None
+
         # ── 1a. Problem complexity: count numbers in prompt ──
         num_count = torch.zeros(B, device=input_ids.device, dtype=torch.long)
         if self.encoder.num_proj is not None:
@@ -136,6 +143,11 @@ class EidosV1(nn.Module):
             result['loss'] = result['loss'] + 0.01 * cosine_dist.mean()
             result['pred_aux_loss'] = 0.01 * cosine_dist.mean()
 
+        # ── 9b. Forward-Forward loss for encoder layers ──
+        if ff_loss is not None:
+            result['loss'] = result.get('loss', 0.0) + 0.1 * ff_loss
+            result['ff_loss'] = ff_loss
+
         # ── 10. Per-position number value prediction ──
         if self.encoder.num_proj is not None:
             actual_vals = self.encoder.num_values[input_ids]  # [B, T]
@@ -162,6 +174,17 @@ class EidosV1(nn.Module):
                 val_loss = 0.05 * (val_pred_loss_raw * is_num).sum() / n_val
                 result['loss'] = result.get('loss', 0.0) + val_loss
                 result['val_pred_loss'] = val_loss
+
+            # ── Reward signal: 0 = very wrong, 1 = perfect number prediction ──
+            if n_num > 0:
+                num_acc = torch.exp(-torch.abs(num_pred_aligned - target_vals) * 5.0)
+                result['reward_signal'] = (num_acc * target_mask).sum() / n_num
+            else:
+                result['reward_signal'] = torch.tensor(0.5, device=out.device)
+
+        # ── Surprise mask: positions where model was confused ──
+        if labels is not None:
+            result['surprise_mask'] = (cosine_dist[:, :-1] > 0.5).float()  # [B, T-1]
 
         result['thought'] = out
         result['prediction_error'] = error

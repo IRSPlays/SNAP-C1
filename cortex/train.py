@@ -256,8 +256,9 @@ def train(pretrain: bool = False):
         'vocab_mode': 'restricted',
         'amp': True,
         'max_eval': 256,
-        'gen_interval': 10 if pretrain else 3,
+        'gen_interval': 1,                          # generate EVERY epoch
         'gen_prompts': 3 if pretrain else 8,
+        'ff_weight': 0.1,                           # Forward-Forward loss weight
     }
     print(f"  Scale: {scale} ({config_model['d_model']}d, {config_model['n_layers']}L, batch={config_model['batch_size']})")
 
@@ -397,6 +398,14 @@ def train(pretrain: bool = False):
                 out = model(inp, labels=lbl)
                 loss = out['loss']
 
+                # ── Level 1: Binary reward — wrong answers get 3× loss weight ──
+                reward = out.get('reward_signal')
+                if reward is not None:
+                    loss = loss * (1.0 + 2.0 * (1.0 - reward.detach()))
+                    # Surprise penalty: model should minimize confusion on wrong answers
+                    surprise = out['cosine_dist'].mean()
+                    loss = loss + 0.2 * surprise
+
             if not torch.isfinite(loss):
                 print(f"\n  WARNING: Non-finite loss at epoch {epoch+1}, batch {i} — resetting memory, skipping")
                 model.neural_memory.reset()
@@ -419,9 +428,13 @@ def train(pretrain: bool = False):
                     avg = epoch_loss / max(n_batches, 1)
                     num_loss_val = out.get('num_loss')
                     num_str = f"num={num_loss_val.item():.5f}" if num_loss_val is not None else ""
+                    reward_val = out.get('reward_signal')
+                    rew_str = f"r={reward_val.item():.3f}" if reward_val is not None else ""
+                    ff_val = out.get('ff_loss')
+                    ff_str = f"ff={ff_val.item():.4f}" if ff_val is not None else ""
                     print(f"    step {global_step:5d}/{total_steps} | "
                           f"epoch {epoch+1}/{N_EPOCHS} | loss={avg:.4f} | "
-                          f"{num_str} | "
+                          f"{rew_str} {ff_str} {num_str} | "
                           f"lr={scheduler.get_last_lr()[0]:.2e} | "
                           f"{time.time() - t0:.0f}s")
 
@@ -447,9 +460,9 @@ def train(pretrain: bool = False):
         ppl_eval = math.exp(min(avg_eval, 20))
         gap = avg_eval - avg_train
 
-        # ── Arithmetic accuracy test (every 4 epochs on held-out synthetic) ──
+        # ── Arithmetic accuracy test (every epoch, on held-out data) ──
         acc_str = ""
-        if pretrain and epoch % 4 == 0:
+        if epoch % 1 == 0:  # EVERY epoch for both pretrain and finetune
             @torch.no_grad()
             def eval_accuracy():
                 import re
