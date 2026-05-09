@@ -462,6 +462,7 @@ def train(pretrain: bool = False):
 
         # ── Arithmetic accuracy test (every epoch, on held-out data) ──
         acc_str = ""
+        acc_details = ""
         if epoch % 1 == 0:  # EVERY epoch for both pretrain and finetune
             @torch.no_grad()
             def eval_accuracy():
@@ -469,6 +470,8 @@ def train(pretrain: bool = False):
                 model.eval()
                 correct = 0
                 total = 0
+                sample_correct = []
+                sample_wrong = []
                 # Match all v2 answer formats: ####, Answer:, Result:, The answer is, etc.
                 answer_patterns = [
                     r'####\s*(\d+(?:\.\d+)?)',
@@ -479,8 +482,9 @@ def train(pretrain: bool = False):
                     r'Therefore.*?result is\s*(\d+(?:\.\d+)?)',
                     r'Final answer:\s*(\d+(?:\.\d+)?)',
                 ]
-                # Test on held-out synthetic eval examples
-                for idx in range(0, min(40, len(eval_examples))):
+                # Test on held-out eval examples (up to 64 for statistical significance)
+                test_limit = min(64, len(eval_examples))
+                for idx in range(0, test_limit):
                     ex = eval_examples[idx]
                     inp_test = ex[0].unsqueeze(0).to(device)
                     full_text = eval_texts[idx] if idx < len(eval_texts) else ""
@@ -488,7 +492,7 @@ def train(pretrain: bool = False):
                     for pat in answer_patterns:
                         m = re.search(pat, full_text, re.IGNORECASE)
                         if m:
-                            gt = float(m.group(1))
+                            gt = int(float(m.group(1)))
                             break
                     if gt is None:
                         continue
@@ -504,15 +508,33 @@ def train(pretrain: bool = False):
                     gen_text = enc.decode([g for g in gen_bpe if g >= 0])
                     # Extract predicted number (last number in output)
                     pred_match = re.findall(r'\b(\d+)\b', gen_text)
+                    is_correct = False
                     if pred_match:
-                        pred = float(pred_match[-1])
+                        pred = int(pred_match[-1])
                         if abs(pred - gt) < 0.5:
                             correct += 1
+                            is_correct = True
                     total += 1
+                    # Collect samples (max 3 correct, 5 wrong)
+                    if is_correct and len(sample_correct) < 3:
+                        sample_correct.append((full_text[:80], gt, gen_text[:60]))
+                    elif not is_correct and len(sample_wrong) < 5:
+                        sample_wrong.append((full_text[:80], gt, gen_text[:60], pred_match[-1] if pred_match else '?'))
                 model.train()
-                return correct, total
-            acc_correct, acc_total = eval_accuracy()
-            acc_str = f"acc={100*acc_correct/max(acc_total,1):.1f}% ({acc_correct}/{acc_total}) | "
+                return correct, total, sample_correct, sample_wrong
+            acc_correct, acc_total, sample_correct, sample_wrong = eval_accuracy()
+            acc_pct = 100 * acc_correct / max(acc_total, 1)
+            acc_str = f"acc={acc_pct:.1f}% ({acc_correct}/{acc_total}) | "
+            if sample_correct:
+                acc_details += f"\n    CORRECT:"
+                for q, gt, gen in sample_correct:
+                    acc_details += f"\n      Q: {q}"
+                    acc_details += f"\n      GT={gt} → {gen}"
+            if sample_wrong:
+                acc_details += f"\n    WRONG:"
+                for q, gt, gen, pred in sample_wrong:
+                    acc_details += f"\n      Q: {q}"
+                    acc_details += f"\n      GT={gt}, Pred={pred} → {gen}"
         best_marker = ""
 
         if avg_eval < best_eval:
@@ -535,6 +557,8 @@ def train(pretrain: bool = False):
               f"eval={avg_eval:.4f} (ppl={ppl_eval:.1f})  "
               f"gap={gap:+.4f}  lr={scheduler.get_last_lr()[0]:.2e}  "
               f"{elapsed:.0f}s{best_marker}")
+        if acc_details:
+            print(acc_details)
 
         if epoch % CONFIG['gen_interval'] == 0 or epoch == 0:
             samples = generate_samples(model, enc, device, test_prompts,
