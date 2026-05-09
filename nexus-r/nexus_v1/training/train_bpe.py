@@ -4,11 +4,11 @@ Uses tiktoken GPT-2 BPE with RESTRICTED VOCAB (only tokens seen in data).
 
 Round 15: Restore R12b config (the actual peak: eval=0.639)
   - EMA decay=0.999
-    - Safer regularization annealing: sigma 0.01->0.002 cosine
-    - Label smoothing annealing: 0.05->0.01 cosine
+  - Noise annealing: sigma 0.15->0.03 cosine
+  - Label smoothing annealing: 0.10->0.02 cosine
   - Tau annealing: 0.50->0.20 cosine
   - Knowledge oversampling (1.4x)
-    - Final-step-only CE + diversity loss
+  - Final-step-only CE + progression loss
   - aux_coeff=0.1
   - min_count=1, H=5, d=256, dropout=0.2
   - Answer-only masking
@@ -229,8 +229,7 @@ def generate_samples(model, enc, device, prompts, max_tokens=150, temperature=0.
         prompt_tensor = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
         generated = model.generate(prompt_tensor, max_new_tokens=max_tokens,
-                                   temperature=temperature, top_k=top_k,
-                                   eos_token_id=eot_local)
+                                   temperature=temperature, top_k=top_k)
         gen_local_ids = generated[0].tolist()[len(prompt_ids):]
 
         # Stop at EOT
@@ -378,8 +377,8 @@ def train():
         # R12b: Annealing schedules (cosine)
         model._current_epoch = epoch
         progress = epoch / max(N_EPOCHS - 1, 1)
-        model._current_noise_scale = 0.002 + 0.008 * 0.5 * (1 + math.cos(math.pi * progress))
-        model._current_label_smoothing = 0.01 + 0.04 * 0.5 * (1 + math.cos(math.pi * progress))
+        model._current_noise_scale = 0.03 + 0.12 * 0.5 * (1 + math.cos(math.pi * progress))
+        model._current_label_smoothing = 0.02 + 0.08 * 0.5 * (1 + math.cos(math.pi * progress))
         tau_val = 0.20 + 0.30 * 0.5 * (1 + math.cos(math.pi * progress))
         model.reasoner._repulsion_tau.fill_(tau_val)
         if epoch % 10 == 0:
@@ -388,6 +387,7 @@ def train():
 
         t0 = time.time()
         optimizer.zero_grad(set_to_none=True)
+        prog_losses = []
         for i, (input_ids, labels) in enumerate(train_loader):
             input_ids, labels = input_ids.to(device), labels.to(device)
 
@@ -401,6 +401,8 @@ def train():
                 halt_sims.extend(out['recursion_info']['halt_similarities'])
             if 'aux_loss' in out and hasattr(out['aux_loss'], 'item'):
                 aux_losses.append(out['aux_loss'].item())
+            if 'prog_loss' in out and hasattr(out['prog_loss'], 'item'):
+                prog_losses.append(out['prog_loss'].item())
 
             # Optimizer step every ACCUM_STEPS
             if (i + 1) % ACCUM_STEPS == 0:
@@ -420,6 +422,7 @@ def train():
         elapsed = time.time() - t0
         avg_halt = sum(halt_sims) / max(len(halt_sims), 1)
         avg_aux = sum(aux_losses) / max(len(aux_losses), 1)
+        avg_prog = sum(prog_losses) / max(len(prog_losses), 1)
 
         # R12b: Eval using EMA weights
         original_state = {k: v.clone() for k, v in model.state_dict().items()}
@@ -457,7 +460,7 @@ def train():
         print(f"  Epoch {epoch+1:3d}/{N_EPOCHS}  "
               f"train={avg_train:.4f} (ppl={ppl_train:.1f})  "
               f"eval={avg_eval:.4f} (ppl={ppl_eval:.1f})  "
-              f"gap={gap:+.4f}  halt={avg_halt:.3f}  aux={avg_aux:.4f}  "
+              f"gap={gap:+.4f}  halt={avg_halt:.3f}  aux={avg_aux:.4f}  prog={avg_prog:.4f}  "
               f"lr={scheduler.get_last_lr()[0]:.2e}  "
               f"{elapsed:.1f}s{'  *BEST*' if is_best else ''}")
 

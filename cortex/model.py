@@ -78,8 +78,19 @@ class EidosV1(nn.Module):
                 answer_values: Optional[torch.Tensor] = None) -> Dict:
         B, T = input_ids.shape
 
-        # ── 1. Differential encoding ──
-        z, pooled = self.encoder(input_ids)
+        # ── 1. Differential encoding (fp32 for safety — AMP fp16 softmax overflows) ──
+        with torch.amp.autocast('cuda', enabled=False):
+            z, pooled = self.encoder(input_ids)
+
+        # NaN early-detection: if encoder produces NaN, skip training on this batch
+        if not torch.isfinite(z).all():
+            result = {'logits': torch.zeros(B, T, self.vocab_size, device=z.device),
+                      'loss': torch.tensor(float('inf'), device=z.device)}
+            return result
+
+        # Clamp encoder output for downstream fp16 safety (prevents F.normalize overflow)
+        z = torch.clamp(z, -50, 50)
+        pooled = torch.clamp(pooled, -50, 50)
 
         # ── 1a. Problem complexity: count numbers in prompt ──
         num_count = torch.zeros(B, device=input_ids.device, dtype=torch.long)
@@ -97,10 +108,10 @@ class EidosV1(nn.Module):
         # ── 3. Differentiable memory: δ-gated write then read ──
         h_mem = self.neural_memory(z, surprise=cosine_dist)
 
-        # ── 4. Memory relevance signal ──
+        # ── 4. Memory relevance signal (fp32 for safety) ──
         memory_match = F.cosine_similarity(
-            h_mem.reshape(B, -1), z.reshape(B, -1), dim=-1
-        )
+            h_mem.float().reshape(B, -1), z.float().reshape(B, -1), dim=-1
+        ).to(z.dtype)
         memory_match = memory_match.unsqueeze(-1)
 
         # ── 5. Neuromodulation: δ, ν from complexity, σ with soft blend ──

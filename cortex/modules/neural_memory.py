@@ -93,12 +93,16 @@ class NeuralMemory(nn.Module):
         else:
             M_new_raw = batch_updates.mean(dim=0)
 
-        scale = M_new_raw.norm().detach() + 1e-8
-        M_new = M_new_raw / scale
+        scale = M_new_raw.float().norm().detach() + 1e-8
+        M_new = M_new_raw / scale.to(M_new_raw.dtype)
+
+        # ── Guard NaN BEFORE read (not after) ──
+        if not torch.isfinite(M_new).all():
+            M_new = torch.zeros_like(M_new)
 
         # ── Read from memory ──
         scores = torch.einsum('btd,de->bte', q.to(M_new.dtype), M_new) / math.sqrt(D)
-        h_mem_raw = F.normalize(scores, dim=-1)  # [B, T, D]
+        h_mem_raw = F.normalize(scores.float(), dim=-1).to(scores.dtype)  # [B, T, D]
 
         # ── Project back to model dimension ──
         h_mem = self.out_proj(h_mem_raw)  # [B, T, d_model]

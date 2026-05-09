@@ -1,11 +1,8 @@
-"""
-Learning Rate Schedulers for NEXUS
-==================================
+"""Learning-rate schedule experiments for Nexus-R.
 
-Implements proven LR schedules from recent research:
-1. WSD (Warmup-Stable-Decay) - From paper 2602.06797
-2. Cosine Annealing with Warmup - Standard baseline
-3. Inverse Square Root - Transformer default
+These schedulers are not specific to the recursive architecture, but they are
+kept here so training scripts can swap between baseline cosine warmup and more
+specialized schedules such as WSD without duplicating optimizer logic.
 """
 
 import math

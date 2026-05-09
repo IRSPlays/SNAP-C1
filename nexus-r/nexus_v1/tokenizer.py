@@ -1,18 +1,8 @@
-"""
-Tiktoken Tokenizer for NEXUS
-============================
+"""Tokenizer helpers used by Nexus-R experiments.
 
-Production-grade BPE tokenizer using tiktoken.
-
-Tiktoken is OpenAI's fast BPE tokenizer, used by GPT-4.
-Provides proper subword tokenization with 100K+ vocab.
-
-Benefits:
-- True byte-pair encoding (not word-level approximation)
-- 100K vocab vs ~50-100 for character level
-- Trained on diverse text (not just training data)
-- Handles any Unicode text correctly
-- Very fast encoding/decoding
+The active BPE training path relies on `tiktoken`, and this wrapper keeps the
+encode/decode interface simple for scripts that want a small tokenizer object
+instead of using the raw library directly.
 """
 
 from typing import List, Optional

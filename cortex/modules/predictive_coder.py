@@ -49,10 +49,10 @@ class PredictiveCoder(nn.Module):
         z_hat = self.fc2(hidden)
         value_pred = self.value_head(hidden).squeeze(-1)  # [B, T]
 
-        error = torch.norm(z_next - z_hat, dim=-1)
+        error = torch.norm(z_next.float() - z_hat.float(), dim=-1)
 
-        z_hat_norm = F.normalize(z_hat, dim=-1)
-        z_next_norm = F.normalize(z_next, dim=-1)
+        z_hat_norm = F.normalize(z_hat.float(), dim=-1)
+        z_next_norm = F.normalize(z_next.float(), dim=-1)
         cosine_dist = 1.0 - (z_hat_norm * z_next_norm).sum(dim=-1)
 
         return z_hat, error, cosine_dist, value_pred

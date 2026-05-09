@@ -1,7 +1,8 @@
 """
 Nexus-r V1: Foundational Layers
 ================================
-Standard PyTorch primitives. No fused GRU.
+DirectML-safe primitives. No scatter_add_, no complex tensors, no fused GRU.
+All ops verified against AMD RX 7600 / RTX 2050 constraints.
 
 Based on:
 - Samsung TRM (layers.py) — CastedLinear, RoPE, SwiGLU, RMSNorm
@@ -13,31 +14,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple, Optional
-
-
-def scaled_dot_product_attention_gqa(
-    q: torch.Tensor,
-    k: torch.Tensor,
-    v: torch.Tensor,
-    *,
-    is_causal: bool = False,
-) -> torch.Tensor:
-    """Run SDPA with grouped-query attention when query and KV head counts differ."""
-    if q.size(1) == k.size(1):
-        return F.scaled_dot_product_attention(q, k, v, is_causal=is_causal)
-
-    if k.size(1) != v.size(1):
-        raise ValueError("Key and value head counts must match for grouped attention")
-    if q.size(1) % k.size(1) != 0:
-        raise ValueError("Query head count must be divisible by KV head count")
-
-    try:
-        return F.scaled_dot_product_attention(q, k, v, is_causal=is_causal, enable_gqa=True)
-    except TypeError:
-        rep = q.size(1) // k.size(1)
-        k = k.unsqueeze(2).expand(-1, -1, rep, -1, -1).reshape(q.size(0), q.size(1), q.size(2), q.size(3))
-        v = v.unsqueeze(2).expand(-1, -1, rep, -1, -1).reshape(q.size(0), q.size(1), q.size(2), q.size(3))
-        return F.scaled_dot_product_attention(q, k, v, is_causal=is_causal)
 
 # ============================================================================
 # INIT UTILITIES
@@ -157,7 +133,7 @@ class SwiGLU(nn.Module):
 
 
 # ============================================================================
-# MULTI-HEAD ATTENTION (standard, via SDPA)
+# MULTI-HEAD ATTENTION (standard, DirectML-safe via SDPA)
 # ============================================================================
 
 class Attention(nn.Module):
@@ -186,9 +162,15 @@ class Attention(nn.Module):
         if cos_sin is not None:
             q, k = apply_rotary_pos_emb(q, k, *cos_sin)
 
+        # GQA expand
+        if self.n_kv_heads < self.n_heads:
+            rep = self.n_heads // self.n_kv_heads
+            k = k.repeat_interleave(rep, dim=2)
+            v = v.repeat_interleave(rep, dim=2)
+
         # BHSD for SDPA
         q, k, v = (t.transpose(1, 2) for t in (q, k, v))
-        out = scaled_dot_product_attention_gqa(q, k, v, is_causal=is_causal)
+        out = F.scaled_dot_product_attention(q, k, v, is_causal=is_causal)
         out = out.transpose(1, 2).reshape(B, T, -1)
         return self.drop(self.out(out))
 

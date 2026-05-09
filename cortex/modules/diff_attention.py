@@ -126,21 +126,11 @@ class DiffAttentionLayer(nn.Module):
             v1e = v1.unsqueeze(2).expand(-1, -1, r, -1, -1).reshape(B, q1.size(1), T, self.head_dim)
             k2e = k2.unsqueeze(2).expand(-1, -1, r, -1, -1).reshape(B, q1.size(1), T, self.head_dim)
             v2e = v2.unsqueeze(2).expand(-1, -1, r, -1, -1).reshape(B, q1.size(1), T, self.head_dim)
-            with torch.nn.attention.sdpa_kernel(
-                [torch.nn.attention.SDPBackend.FLASH_ATTENTION,
-                 torch.nn.attention.SDPBackend.EFFICIENT_ATTENTION,
-                 torch.nn.attention.SDPBackend.MATH]
-            ):
-                a1 = F.scaled_dot_product_attention(q1, k1e, v1e, is_causal=is_causal)
-                a2 = F.scaled_dot_product_attention(q2, k2e, v2e, is_causal=is_causal)
+            a1 = F.scaled_dot_product_attention(q1, k1e, v1e, is_causal=is_causal)
+            a2 = F.scaled_dot_product_attention(q2, k2e, v2e, is_causal=is_causal)
         else:
-            with torch.nn.attention.sdpa_kernel(
-                [torch.nn.attention.SDPBackend.FLASH_ATTENTION,
-                 torch.nn.attention.SDPBackend.EFFICIENT_ATTENTION,
-                 torch.nn.attention.SDPBackend.MATH]
-            ):
-                a1 = F.scaled_dot_product_attention(q1, k1, v1, is_causal=is_causal)
-                a2 = F.scaled_dot_product_attention(q2, k2, v2, is_causal=is_causal)
+            a1 = F.scaled_dot_product_attention(q1, k1, v1, is_causal=is_causal)
+            a2 = F.scaled_dot_product_attention(q2, k2, v2, is_causal=is_causal)
 
         lam = self._compute_lambda()
         diff_attn = (a1 - lam * a2) * (1.0 / (1.0 + lam.abs()))

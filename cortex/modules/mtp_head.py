@@ -55,26 +55,29 @@ class MultiTokenPredictor(nn.Module):
             losses = []
             # Main head: logits[t] predicts labels[t] (next token from input[t])
             # labels is already shifted by 1 (labels[k] = input[k+1])
-            losses.append(F.cross_entropy(
-                logits_main[:, :-1].reshape(-1, V),
-                labels[:, :-1].reshape(-1),
-                ignore_index=-100,
-            ))
+            valid_main = (labels[:, :-1] != -100).sum()
+            if valid_main > 0:
+                losses.append(F.cross_entropy(
+                    logits_main[:, :-1].reshape(-1, V),
+                    labels[:, :-1].reshape(-1),
+                    ignore_index=-100,
+                ))
 
             for head_idx, norm in enumerate(self.extra_norms):
                 offset = head_idx + 2  # predict token at offset steps ahead
                 logits_extra = self.shared_head(norm(x[:, :-offset]))
                 # labels[k] = token[k+1], so we need labels[offset-1 : T-1]
                 labels_extra = labels[:, offset - 1: -1]
-                if labels_extra.numel() > 0:
+                valid_extra = (labels_extra != -100).sum()
+                if labels_extra.numel() > 0 and valid_extra > 0:
                     losses.append(self.mtp_weight * F.cross_entropy(
                         logits_extra.reshape(-1, V),
                         labels_extra.reshape(-1),
                         ignore_index=-100,
                     ))
 
-            result['loss'] = sum(losses)
-            result['ce_loss'] = losses[0]
+            result['loss'] = sum(losses) if losses else torch.tensor(0.0, device=x.device)
+            result['ce_loss'] = losses[0] if losses else torch.tensor(0.0, device=x.device)
             result['mtp_losses'] = losses[1:] if len(losses) > 1 else []
 
         return result

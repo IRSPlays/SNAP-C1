@@ -47,7 +47,8 @@ class LTCCortex(nn.Module):
 
     def _ltc_step(self, x: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
         combined = torch.cat([h, x], dim=-1)
-        tau = F.softplus(self.tau_linear(combined)) + 1e-4
+        tau = F.softplus(self.tau_linear(combined).float()) + 1e-4
+        tau = tau.to(h.dtype)
         dh_val = -h / tau + torch.tanh(self.hidden_proj(h) + self.input_proj(x))
         return h + self.dt_per_step * dh_val
 

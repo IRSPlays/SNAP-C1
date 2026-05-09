@@ -1,0 +1,9 @@
+{"instruction": "Calculate the sum of thirty-six and twenty", "output": "36 + 20 = 56\nAnswer: 56"}
+{"instruction": "You spend 8 minutes on each of 15 tasks. Total time in minutes?", "output": "8 x 15 = 120 minutes.\nFinal answer: 120"}
+{"instruction": "Start with 15, then decrease by 9, then scale by 3, then Subtract 54 from 63. What is the result?", "output": "30 - 9 = 21. 21 x 3 = 63. 63 - 54 = 9\nFinal answer: 9"}
+{"instruction": "In a room, 33 people are present. 20 more arrive. Later, 5 exit. Count the people left.", "output": "33 + 20 = 53. 53 - 5 = 48.\nThe solution is 48."}
+{"instruction": "What is twelve times twelve?", "output": "12 x 12 = 144\nResult: 144"}
+{"instruction": "You buy 4 apples at $4 each and 9 bananas at $9 each. Total cost?", "output": "4 x 4 = 16. 9 x 9 = 81. 16 + 81 = 97. The answer is 97."}
+{"instruction": "Calculate twenty-six * fifty", "output": "26 x 50 = 1300\nAnswer: 1300"}
+{"instruction": "Evaluate: 50 * 50", "output": "We compute 50 x 50 = 2500\n#### 2500"}
+{"instruction": "At $19/hour, working 15 hours earns how much?", "output": "19 x 15 = 285. The answer is 285."}

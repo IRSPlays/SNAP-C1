@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Train Nexus-R BPE",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"nexus_v1.training.train_bpe"
+			],
+			"isBackground": true,
+			"group": "build"
+		}
+	]
+}

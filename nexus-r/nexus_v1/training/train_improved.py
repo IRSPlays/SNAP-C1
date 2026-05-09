@@ -1,14 +1,9 @@
-"""
-Improved Training Script with BPE Tokenizer and WSD LR Schedule
-===============================================================
+"""Older experimental trainer with alternative optimization choices.
 
-Key improvements over baseline:
-1. BPE subword tokenization (8K vocab vs 50 char)
-2. WSD learning rate schedule (proven better than cosine)
-3. Better weight initialization (T5-style)
-4. Gradient clipping and stable training
-5. Dynamic Batch Size Optimization with memory profiling for AMD RX 7600
-6. Gradient accumulation for effective larger batches
+This file predates the current `train_bpe.py` path and keeps a more exploratory
+setup around BPE tokenization, WSD scheduling, initialization tweaks, and
+device-specific training utilities. It is useful as a reference when comparing
+training recipes, but it is not the main entry point for the active GSM8K runs.
 """
 
 import torch

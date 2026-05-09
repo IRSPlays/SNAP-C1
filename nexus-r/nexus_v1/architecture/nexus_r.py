@@ -10,7 +10,7 @@ Architecture flow:
                                 → Final Norm → LM Head
 
 Model sizes:
-  - build_nexus_tiny():  ~7M params  (for smoke tests)
+  - build_nexus_tiny():  ~7M params  (for DirectML/RTX 2050 smoke tests)
   - build_nexus_small(): ~30M params (for real training on RX 7600)
 """
 
@@ -39,13 +39,7 @@ class NexusConfig:
     ffn_expansion: float = 8/3
     max_seq_len: int = 512
     halt_threshold: float = 0.001
-    max_halt_steps: int = 8
-    step_bias_scale: float = 0.1
     dropout: float = 0.0      # Off for small models
-    noise_scale: float = 0.01
-    label_smoothing: float = 0.02
-    aux_loss_coeff: float = 0.1
-    eos_token_id: Optional[int] = None
 
 
 class AnchorEncoder(nn.Module):
@@ -165,8 +159,6 @@ class NexusR(nn.Module):
             L_cycles=cfg.L_cycles,
             H_cycles=cfg.H_cycles,
             halt_threshold=cfg.halt_threshold,
-            max_halt_steps=getattr(cfg, 'max_halt_steps', 8),
-            step_bias_scale=getattr(cfg, 'step_bias_scale', 0.1),
             ffn_expansion=cfg.ffn_expansion,
             dropout=cfg.dropout,
         )
@@ -205,9 +197,8 @@ class NexusR(nn.Module):
 
         # Embedding-space noise: annealed by training loop (Fix 2)
         if self.training:
-            noise_scale = getattr(self, '_current_noise_scale', getattr(self.cfg, 'noise_scale', 0.01))
-            if noise_scale > 0:
-                x = x + torch.randn_like(x) * noise_scale
+            noise_scale = getattr(self, '_current_noise_scale', 0.1)
+            x = x + torch.randn_like(x) * noise_scale
 
         # RoPE
         cos_sin = self.rope(T)
@@ -236,7 +227,7 @@ class NexusR(nn.Module):
         # Do NOT shift again here -- just compute cross-entropy directly.
         if labels is not None:
             # R12b: Final-step-only CE (best config: eval=0.639)
-            label_smoothing = getattr(self, '_current_label_smoothing', getattr(self.cfg, 'label_smoothing', 0.02))
+            label_smoothing = getattr(self, '_current_label_smoothing', 0.02)
             ce_loss = F.cross_entropy(
                 logits.view(-1, logits.size(-1)),
                 labels.view(-1),
@@ -244,14 +235,27 @@ class NexusR(nn.Module):
                 label_smoothing=label_smoothing,
             )
 
+            # R12b: Progression loss — encourage consecutive intermediates to differ
+            # Each H-step should produce a genuinely different thought vector
+            intermediates = recursion_info.get('intermediates', [])
+            prog_loss = torch.tensor(0.0, device=logits.device)
+            if len(intermediates) > 1:
+                for j in range(1, len(intermediates)):
+                    cos_dist = 1.0 - F.cosine_similarity(
+                        intermediates[j].detach().flatten(1),
+                        intermediates[j-1].detach().flatten(1),
+                        dim=-1
+                    ).mean()
+                    prog_loss = prog_loss + cos_dist
+                prog_loss = prog_loss / (len(intermediates) - 1)
+
             aux_loss = recursion_info.get('diversity_loss', 0.0)
-            if not torch.is_tensor(aux_loss):
-                aux_loss = torch.tensor(aux_loss, device=logits.device, dtype=ce_loss.dtype)
-            aux_coeff = getattr(self.cfg, 'aux_loss_coeff', 0.1)
-            loss = ce_loss + aux_coeff * aux_loss
+            aux_coeff = 0.1  # R12b config
+            loss = ce_loss + aux_coeff * aux_loss + 0.1 * prog_loss
             result['loss'] = loss
             result['ce_loss'] = ce_loss
             result['aux_loss'] = aux_loss
+            result['prog_loss'] = prog_loss
 
         return result
 
@@ -281,17 +285,9 @@ class NexusR(nn.Module):
         temperature: float = 0.8,
         top_k: int = 50,
         repetition_penalty: float = 1.3,
-        eos_token_id: Optional[int] = None,
     ) -> torch.Tensor:
-        """Autoregressive generation with repetition penalty and optional EOS stopping."""
-        device = next(self.parameters()).device
-        input_ids = input_ids.to(device)
-        batch_size = input_ids.size(0)
-        generated_counts = [{} for _ in range(batch_size)]
-        finished = torch.zeros(batch_size, dtype=torch.bool, device=device)
-        if eos_token_id is None:
-            eos_token_id = getattr(self.cfg, 'eos_token_id', None)
-
+        """Autoregressive generation with repetition penalty."""
+        generated_counts = {}
         for _ in range(max_new_tokens):
             # Crop to max_seq_len
             idx_cond = input_ids[:, -self.cfg.max_seq_len:]
@@ -300,41 +296,23 @@ class NexusR(nn.Module):
 
             # Repetition penalty
             if repetition_penalty != 1.0:
-                for batch_idx, token_counts in enumerate(generated_counts):
-                    if finished[batch_idx]:
-                        continue
-                    for token_id in token_counts:
-                        if logits[batch_idx, token_id] > 0:
-                            logits[batch_idx, token_id] /= repetition_penalty
-                        else:
-                            logits[batch_idx, token_id] *= repetition_penalty
+                for token_id, count in generated_counts.items():
+                    if logits[0, token_id] > 0:
+                        logits[0, token_id] /= repetition_penalty
+                    else:
+                        logits[0, token_id] *= repetition_penalty
 
             # Temperature + top-k sampling
-            if temperature <= 0:
-                next_token = torch.argmax(logits, dim=-1, keepdim=True)
-            else:
-                logits = logits / max(temperature, 1e-5)
-                if top_k > 0:
-                    v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                    logits = logits.masked_fill(logits < v[:, [-1]], float('-inf'))
-                probs = F.softmax(logits, dim=-1)
-                if eos_token_id is not None and finished.any():
-                    probs[finished] = 0.0
-                    probs[finished, eos_token_id] = 1.0
-                next_token = torch.multinomial(probs, num_samples=1)
+            logits = logits / max(temperature, 1e-5)
+            if top_k > 0:
+                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+                logits[logits < v[:, [-1]]] = float('-inf')
+            probs = F.softmax(logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
 
-            for batch_idx in range(batch_size):
-                if finished[batch_idx]:
-                    continue
-                tid = int(next_token[batch_idx, 0].item())
-                generated_counts[batch_idx][tid] = generated_counts[batch_idx].get(tid, 0) + 1
-                if eos_token_id is not None and tid == eos_token_id:
-                    finished[batch_idx] = True
-
+            tid = next_token.item()
+            generated_counts[tid] = generated_counts.get(tid, 0) + 1
             input_ids = torch.cat([input_ids, next_token], dim=1)
-
-            if eos_token_id is not None and bool(finished.all()):
-                break
 
         return input_ids
 

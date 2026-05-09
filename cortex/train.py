@@ -309,7 +309,19 @@ def train(pretrain: bool = False):
         if os.path.exists(pretrain_path):
             print(f"  Loading pretrained weights from {pretrain_path}")
             pretrain_ckpt = torch.load(pretrain_path, map_location=device)
-            model.load_state_dict(pretrain_ckpt['model_state_dict'], strict=False)
+            pretrain_state = pretrain_ckpt['model_state_dict']
+            # Filter out params with size mismatch (different vocab size)
+            model_state = model.state_dict()
+            compatible = {}
+            skipped = []
+            for key, val in pretrain_state.items():
+                if key in model_state and val.shape == model_state[key].shape:
+                    compatible[key] = val
+                else:
+                    skipped.append(key)
+            if skipped:
+                print(f"  Skipped {len(skipped)} incompatible params (different vocab): {skipped[:5]}...")
+            model.load_state_dict(compatible, strict=False)
             del pretrain_ckpt
         else:
             print(f"  WARNING: No pretrain checkpoint found at {pretrain_path} — training from scratch")
@@ -410,6 +422,60 @@ def train(pretrain: bool = False):
         ppl_train = math.exp(min(avg_train, 20))
         ppl_eval = math.exp(min(avg_eval, 20))
         gap = avg_eval - avg_train
+
+        # ── Arithmetic accuracy test (every 4 epochs on held-out synthetic) ──
+        acc_str = ""
+        if pretrain and epoch % 4 == 0:
+            @torch.no_grad()
+            def eval_accuracy():
+                import re
+                model.eval()
+                correct = 0
+                total = 0
+                # Match all v2 answer formats: ####, Answer:, Result:, The answer is, etc.
+                answer_patterns = [
+                    r'####\s*(\d+(?:\.\d+)?)',
+                    r'Answer:\s*(\d+(?:\.\d+)?)',
+                    r'Result:\s*(\d+(?:\.\d+)?)',
+                    r'answer is\s*(\d+(?:\.\d+)?)',
+                    r'solution is\s*(\d+(?:\.\d+)?)',
+                    r'Therefore.*?result is\s*(\d+(?:\.\d+)?)',
+                    r'Final answer:\s*(\d+(?:\.\d+)?)',
+                ]
+                # Test on held-out synthetic eval examples
+                for idx in range(0, min(40, len(eval_examples))):
+                    ex = eval_examples[idx]
+                    inp_test = ex[0].unsqueeze(0).to(device)
+                    full_text = eval_texts[idx] if idx < len(eval_texts) else ""
+                    gt = None
+                    for pat in answer_patterns:
+                        m = re.search(pat, full_text, re.IGNORECASE)
+                        if m:
+                            gt = float(m.group(1))
+                            break
+                    if gt is None:
+                        continue
+                    # Generate
+                    gen_out = model.generate(inp_test, max_new_tokens=40,
+                                             temperature=0.0, top_k=1,
+                                             eos_token_id=bpe_to_local.get(enc.eot_token, 0))
+                    gen_ids = gen_out[0].tolist()[inp_test.size(1):]
+                    eot_l = bpe_to_local.get(enc.eot_token, 0)
+                    if eot_l in gen_ids:
+                        gen_ids = gen_ids[:gen_ids.index(eot_l)]
+                    gen_bpe = [local_to_bpe.get(g, -1) for g in gen_ids if g > 0]
+                    gen_text = enc.decode([g for g in gen_bpe if g >= 0])
+                    # Extract predicted number (last number in output)
+                    pred_match = re.findall(r'\b(\d+)\b', gen_text)
+                    if pred_match:
+                        pred = float(pred_match[-1])
+                        if abs(pred - gt) < 0.5:
+                            correct += 1
+                    total += 1
+                model.train()
+                return correct, total
+            acc_correct, acc_total = eval_accuracy()
+            acc_str = f"acc={100*acc_correct/max(acc_total,1):.1f}% ({acc_correct}/{acc_total}) | "
         best_marker = ""
 
         if avg_eval < best_eval:
@@ -427,6 +493,7 @@ def train(pretrain: bool = False):
             }, os.path.join(save_dir, ckpt_name))
 
         print(f"  Epoch {epoch+1:3d}/{N_EPOCHS}  "
+              f"{acc_str}"
               f"train={avg_train:.4f} (ppl={ppl_train:.1f})  "
               f"eval={avg_eval:.4f} (ppl={ppl_eval:.1f})  "
               f"gap={gap:+.4f}  lr={scheduler.get_last_lr()[0]:.2e}  "
@@ -487,5 +554,8 @@ if __name__ == '__main__':
             for item in data:
                 f.write(json.dumps(item) + '\n')
         print(f"Generated {len(data)} synthetic examples -> {out_path}")
+        if not args.pretrain:
+            print("Done. Run with --pretrain to train on synthetic.")
+            sys.exit(0)
 
     train(pretrain=args.pretrain)

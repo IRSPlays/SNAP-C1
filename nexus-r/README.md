@@ -1,169 +1,108 @@
-# NEXUS-R: Reasoning-Capable AGI Architecture
+# NEXUS-R
 
-## Project Overview
+NEXUS-R is the active research workspace for a consumer-GPU recursive language
+model. The current implementation lives in `nexus_v1/` and experiments with a
+split architecture: an anchor stream encodes the prompt once, while a thought
+stream revisits that frozen context through recursive reasoning steps.
 
-NEXUS-R is a next-generation AI architecture designed to move beyond pattern matching toward genuine reasoning, planning, and self-improvement.
+## Current Focus
 
-### The Core Problem with LLMs
+The code in `nexus_v1/` is centered on three questions:
 
-LLMs only predict the next token. They don't:
-- Reason through problems step-by-step
-- Understand causality or physics
-- Plan multi-step solutions
-- Evaluate their own reasoning
-- Learn continuously
+- Can a small model use repeated cross-attention over a frozen prompt instead
+    of standard self-attention-only decoding?
+- Can that recursive path stay trainable on 4 GB class GPUs?
+- Does the architecture learn useful reasoning traces on real supervision such
+    as GSM8K, not just synthetic toy prompts?
 
-### NEXUS-R Vision
+## Active Architecture
 
-Build systems that:
-1. **Reason** - Not just predict, but think through problems
-2. **Plan** - Decompose complex tasks into subgoals
-3. **Self-Evaluate** - Recognize and correct their own mistakes
-4. **Learn Continuously** - Never stop improving
+`nexus_v1/architecture/` defines the current model stack:
 
----
+- `layers.py`: shared low-level components such as RMSNorm, RoPE, SwiGLU, and
+    grouped-query attention helpers.
+- `dual_stream_mla.py`: the anchor/thought cross-attention module.
+- `recursive_block.py`: the weight-tied recursive reasoning loop with halting
+    diagnostics and diversity regularization.
+- `nexus_r.py`: top-level model assembly, generation, and small builder
+    configs.
 
-## Version History
+The runtime path is:
 
-### Legacy (v1-v7)
+`tokens -> embedding -> anchor encoder -> frozen K/V -> recursive thought updates -> LM head`
 
-These versions represent the evolution of NEXUS from scratch:
+## Training Entry Points
 
-| Version | Description | Status |
-|---------|-------------|--------|
-| v1 | LoRA fine-tuning on Qwen | Failed - frozen params |
-| v2 | From-scratch SSM | Failed - random targets |
-| v3 | ODE solver + AST decoder | Failed - crashes |
-| v4 | MoE + RAG | Failed - dead code |
-| v5 | Binary embedding | Failed - incomplete |
-| v6 | Consolidated NEXUS | Failed - learning collapse |
-| v7 | Simplified transformer | **Working** |
+The main training scripts are in `nexus_v1/training/`.
 
-### NEXUS-V1 (Current)
+- `train_bpe.py`: current BPE trainer. Supports restricted-vocab and full GPT-2
+    BPE runs, answer-only masking, EMA checkpoints, and dataset profiles such as
+    `gsm8k`, `diverse_qa`, and `mixed`.
+- `train_v1.py`: earlier character-level validation trainer kept for simpler
+    debugging runs.
+- `train_improved.py`: older experimental trainer with WSD scheduling and BPE
+    utilities.
 
-Based on V7's proven architecture with modern optimizations:
+Typical launch from this folder:
 
-**Architecture:**
-- Flash Attention (F.scaled_dot_product_attention)
-- RoPE positional encoding
-- SwiGLU activation
-- Grouped Query Attention (GQA)
-- RMSNorm
-- Cosine LR scheduler with warmup
-
-**Model Sizes:**
-| Model | Params | KV Heads |
-|-------|--------|----------|
-| Tiny | 14.1M | 2 |
-| Small | 29.6M | 2 |
-| Medium | 62.0M | 2 |
-
-**Status:** Validated on TinyShakespeare (real data)
-- Train perplexity: ~4.7
-- Val perplexity: ~5.5
-- No memorization
-
----
-
-## Roadmap
-
-### Phase 1: Validation (nexus_v1)
-- Validate V7 architecture on GPU
-- Benchmark on standard tasks
-- Confirm learning works
-
-### Phase 2: Working Memory (nexus_v2)
-- Add persistent working memory
-- Hash-based O(1) attention
-- Query-relevant facts
-
-### Phase 3: Reasoning Engine (nexus_v3)
-- Program synthesis module
-- Chain-of-thought reasoning
-- Differentiable neural programs
-
-### Phase 4: World Model (nexus_v4)
-- Causal reasoning
-- Predictive modeling
-- Physics intuition
-
-### Phase 5: Self-Improvement (nexus_v5+)
-- Meta-learning
-- Self-modification
-- Continuous learning
-
----
-
-## Why This Could Beat 10-100x Larger Models
-
-| Traditional LLM | NEXUS-R |
-|------------------|---------|
-| Predicts tokens | Reasons through problems |
-| Statistical patterns | Causal understanding |
-| Single forward pass | Multi-step planning |
-| Fixed reasoning | Learns to reason |
-| Passive learning | Active experimentation |
-| No self-awareness | Self-evaluating |
-
----
-
-## Getting Started
-
-### Requirements
-- Python 3.10+
-- PyTorch 2.0+
-- CUDA-capable GPU (for training)
-
-### Training
 ```bash
-cd nexus-r/nexus_v1
-python training/train.py --model small --steps 10000
+cd nexus-r
+python -m nexus_v1.training.train_bpe
 ```
 
-### Evaluation
+Useful environment variables:
+
+- `NEXUS_DATA_PROFILE=gsm8k|diverse_qa|mixed`
+- `NEXUS_TRAIN_PROFILE=baseline|rtx2050-expanded|rtx2050-restricted-wide`
+- `NEXUS_VOCAB_MODE=restricted|full`
+
+## Data Workflow
+
+The current real-data path is GSM8K.
+
+- Prepare local files from the repo root:
+
 ```bash
-python evaluation/benchmark.py --tasks tiny_shakespeare,gsm8k
+python data/gsm8k/prepare_gsm8k.py
 ```
 
----
+- This writes `data/gsm8k/train.jsonl` and `data/gsm8k/eval.jsonl` in the same
+    `instruction/output` format used by the trainer.
 
-## Research Questions
+Synthetic and mixed-data experiments still exist under `data/diverse_qa/`.
 
-1. Can we learn reasoning strategies from data?
-2. Does world model improve causal reasoning?
-3. Can systems self-diagnose failures?
-4. Can architecture modify itself?
+## Evaluation
 
----
+Checkpoint evaluation scripts live beside the trainers:
 
-## Project Structure
+- `eval_suite_runner.py`: full checkpoint evaluation over a JSONL suite.
+- `eval_greedy_only.py`: faster greedy-only pass for quick comparisons.
 
+Example:
+
+```bash
+cd nexus-r
+python -m nexus_v1.training.eval_suite_runner --checkpoint nexus_v1/checkpoints/nexus_r_v1_best.pt
 ```
+
+## Repository Layout
+
+```text
 nexus-r/
-├── legacy/           # v1-v7 (old versions)
-│   ├── v1_legacy/
-│   ├── v2_core/
-│   ├── v3_core/
-│   ├── v4_core/
-│   ├── v5_core/
-│   ├── v6_core/
-│   └── v7_core/
-│
-└── nexus_v1/        # Reasoning-capable version
-    ├── architecture/ # Model code
-    ├── training/     # Training scripts
-    ├── evaluation/    # Benchmarks
-    └── docs/         # Documentation
+├── legacy/               # older architecture generations and archived experiments
+├── nexus_v1/             # active model code
+│   ├── architecture/     # recursive model components
+│   ├── training/         # trainers and evaluation runners
+│   ├── tests/            # smoke tests
+│   ├── tokenizer.py      # tokenizer wrapper utilities
+│   └── scheduler.py      # scheduler experiments
+├── logs/                 # run logs and debugging output
+└── README.md             # this file
 ```
 
----
+## Notes
 
-## Contributing
-
-This is a research project. See docs/ for architecture specifications.
-
----
-
-## License
-
-TBD - Research use only.
+- This is a research repository. Interfaces change as training issues and
+    architectural failures are investigated.
+- The `legacy/` tree is kept for reference, but current work should target the
+    active `nexus_v1/` code.

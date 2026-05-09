@@ -17,11 +17,12 @@ Reference: DeepSeek MLA concept (latent KV compression), but routing is novel.
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from typing import Tuple, Optional
 
 from .layers import (
-    CastedLinear,
-    scaled_dot_product_attention_gqa,
+    CastedLinear, RMSNorm, rms_norm,
+    apply_rotary_pos_emb, RotaryEmbedding,
 )
 
 
@@ -88,7 +89,15 @@ class DualStreamMLA(nn.Module):
 
         q = q.transpose(1, 2)  # [B, H, T, D]
 
+        # GQA expand if needed
+        if self.n_kv_heads < self.n_heads:
+            rep = self.n_heads // self.n_kv_heads
+            k = anchor_k.repeat_interleave(rep, dim=1)
+            v = anchor_v.repeat_interleave(rep, dim=1)
+        else:
+            k, v = anchor_k, anchor_v
+
         # Attention (CAUSAL — thought at position i must not see anchor positions > i)
-        out = scaled_dot_product_attention_gqa(q, anchor_k, anchor_v, is_causal=True)
+        out = F.scaled_dot_product_attention(q, k, v, is_causal=True)
         out = out.transpose(1, 2).reshape(B, T, -1)
         return self.out_proj(out)
