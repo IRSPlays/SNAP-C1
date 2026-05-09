@@ -68,8 +68,13 @@ class LTCCortex(nn.Module):
         if h is None:
             h = torch.zeros(B, T, D, device=x.device, dtype=x.dtype)
 
+        # TD learning: track per-iteration error for self-improvement signal
+        td_errors = []
         for _ in range(iterations):
+            h_prev = h.clone()
             h = self._ltc_step(normed, h)
+            # TD error: how much did this iteration change the state?
+            td_errors.append(F.mse_loss(h, h_prev, reduction='none').mean(dim=-1))  # [B, T]
 
         gate = F.silu(self.gate_proj(self.norm_mid(h)))
         up = self.up_proj(self.norm_mid(h))

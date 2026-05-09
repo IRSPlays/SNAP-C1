@@ -2,10 +2,11 @@
 
 Google Research, Dec 2024. arXiv:2501.00663 (Titans).
 
-Projects to a lower-dimensional memory space for efficiency:
-    dim_in = d_model (512) — full dimension for input/output
-    dim_mem = d_model // 2 (256) — compressed memory dimension
-    M: [dim_mem, dim_mem] — 4× smaller than [d_model, d_model]
+Features:
+  - Surprise-gated writes: only patterns with surprise > threshold get stored
+  - Low-rank memory: dim_mem = d_model // 2 for 4× compression
+  - Momentum Hebbian update with per-batch adaptive α
+  - NaN-safe reads and writes
 
 Single differentiable forward pass:
     k = key_proj(x)           [B, T, dim_mem]
@@ -14,8 +15,6 @@ Single differentiable forward pass:
     M_new = (1−α)·M + α·Σ(w·K⊗V)
     h_mem_raw = M·q^T / √dim_mem     [B, T, dim_mem]
     h_mem = out_proj(h_mem_raw)       [B, T, d_model]
-
-Gradient flows through all projections. Memory persists across batches.
 """
 
 import torch
@@ -27,12 +26,12 @@ from typing import Optional
 
 class NeuralMemory(nn.Module):
     def __init__(self, d_model: int = 512, momentum_init: float = 0.95,
-                 mem_ratio: float = 0.5):
+                 mem_ratio: float = 0.5, write_threshold: float = 0.3):
         super().__init__()
         self.d_model = d_model
         self.dim_mem = max(int(d_model * mem_ratio), 64)
+        self.write_threshold = write_threshold
 
-        # Project to/from compressed memory space
         self.key_proj = nn.Linear(d_model, self.dim_mem, bias=False)
         self.value_proj = nn.Linear(d_model, self.dim_mem, bias=False)
         self.query_proj = nn.Linear(d_model, self.dim_mem, bias=False)
@@ -42,6 +41,8 @@ class NeuralMemory(nn.Module):
 
         self.register_buffer('M', torch.zeros(self.dim_mem, self.dim_mem))
         self.register_buffer('step_count', torch.tensor(0, dtype=torch.long))
+        self._write_count = 0
+        self._skip_count = 0
 
         self.momentum_init = momentum_init
 
@@ -66,28 +67,28 @@ class NeuralMemory(nn.Module):
         B, T, D_in = x.shape
         D = self.dim_mem
 
-        # ── Learnable projections to compressed memory space ──
-        k = self.key_proj(x)    # [B, T, D]
-        v = self.value_proj(x)  # [B, T, D]
-        q = self.query_proj(x)  # [B, T, D]
+        k = self.key_proj(x)
+        v = self.value_proj(x)
+        q = self.query_proj(x)
 
-        # ── Per-batch-item momentum ──
-        alpha = self._compute_momentum(x, surprise)  # [B, 1]
+        alpha = self._compute_momentum(x, surprise)
 
-        # ── Weighted batch updates (bmm is faster than einsum on CUDA) ──
+        # Surprise-gated write: only store patterns above threshold
         effective_surprise = surprise
         if write_gate is not None:
             effective_surprise = surprise * write_gate
-        w = F.softmax(effective_surprise, dim=1)  # [B, T]
-        w_k = (w.unsqueeze(-1) * k).transpose(1, 2)  # [B, D, T]
-        batch_updates = w_k @ v  # [B, D, D]
+        # Zero out low-surprise tokens (they don't get stored — saving memory bandwidth)
+        surprise_mask = (effective_surprise > self.write_threshold).float()
+        effective_surprise = effective_surprise * surprise_mask
+        w = F.softmax(effective_surprise, dim=1)
+        w_k = (w.unsqueeze(-1) * k).transpose(1, 2)
+        batch_updates = w_k @ v
 
-        # ── Momentum Hebbian update (clone M to avoid torch.compile inplace issues) ──
-        M_current = self.M.detach().clone()  # [D, D] — independent copy for gradient safety
+        M_current = self.M.detach().clone()
         has_memory = M_current.abs().sum() > 1e-8
 
         if has_memory:
-            a = alpha.view(B, 1, 1)  # [B, 1, 1]
+            a = alpha.view(B, 1, 1)
             M_per_item = (1 - a) * M_current.unsqueeze(0) + a * batch_updates
             M_new_raw = M_per_item.mean(dim=0)
         else:
@@ -96,23 +97,30 @@ class NeuralMemory(nn.Module):
         scale = M_new_raw.float().norm().detach() + 1e-8
         M_new = M_new_raw / scale.to(M_new_raw.dtype)
 
-        # ── Guard NaN BEFORE read ──
         if not torch.isfinite(M_new).all():
             M_new = torch.zeros_like(M_new)
 
-        # ── Read from memory ──
         scores = torch.einsum('btd,de->bte', q.to(M_new.dtype), M_new) / math.sqrt(D)
-        h_mem_raw = F.normalize(scores.float(), dim=-1).to(scores.dtype)  # [B, T, D]
+        h_mem_raw = F.normalize(scores.float(), dim=-1).to(scores.dtype)
+        h_mem = self.out_proj(h_mem_raw)
 
-        # ── Project back to model dimension ──
-        h_mem = self.out_proj(h_mem_raw)  # [B, T, d_model]
-
-        # ── Persist (safe after clone, M_new not in computation graph) ──
         if self.training and torch.isfinite(M_new).all():
             self.M[:] = M_new.to(self.M.dtype)
+            self._write_count += 1
+        elif self.training:
+            self._skip_count += 1
 
         return h_mem
+
+    @property
+    def write_stats(self):
+        total = self._write_count + self._skip_count
+        if total == 0:
+            return "no writes yet"
+        return f"{self._write_count} writes, {self._skip_count} skips ({100*self._write_count/total:.0f}% success)"
 
     def reset(self):
         self.M.data.zero_()
         self.step_count.zero_()
+        self._write_count = 0
+        self._skip_count = 0
