@@ -216,6 +216,7 @@ def train(pretrain: bool = False):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Device: {device}")
     if device.type == 'cuda':
+        torch.set_float32_matmul_precision('high')
         print(f"GPU: {torch.cuda.get_device_name(0)}")
         print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
 

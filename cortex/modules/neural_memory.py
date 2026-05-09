@@ -110,9 +110,10 @@ class NeuralMemory(nn.Module):
         # ── Persist ──
         if self.training:
             if torch.isfinite(M_new).all():
-                self.M.data = M_new.detach()
+                M_new_detached = M_new.detach().to(self.M.dtype)
+                self.M.data = M_new_detached
             else:
-                self.M.data.zero_()
+                self.M.data = torch.zeros_like(self.M)
 
         return h_mem
 
