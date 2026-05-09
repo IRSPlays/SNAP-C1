@@ -221,24 +221,45 @@ def train(pretrain: bool = False):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Device: {device}")
+    vram_gb = 0
     if device.type == 'cuda':
         torch.set_float32_matmul_precision('high')
+        vram_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
         print(f"GPU: {torch.cuda.get_device_name(0)}")
-        print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+        print(f"VRAM: {vram_gb:.1f} GB")
+
+    # Scale config based on available VRAM
+    if device.type == 'cuda' and vram_gb >= 16:
+        scale = 'large'
+        config_model = dict(d_model=768, n_heads=12, n_kv_heads=6, n_layers=8,
+                            batch_size=32, accum_steps=1)
+    elif device.type == 'cuda' and vram_gb >= 8:
+        scale = 'medium'
+        config_model = dict(d_model=640, n_heads=10, n_kv_heads=5, n_layers=6,
+                            batch_size=16, accum_steps=2)
+    else:
+        scale = 'small'
+        config_model = dict(d_model=512, n_heads=8, n_kv_heads=4, n_layers=4,
+                            batch_size=4, accum_steps=2)
 
     CONFIG = {
-        'd_model': 512,
-        'n_heads': 8,
-        'n_kv_heads': 4,
-        'n_layers': 4,
-        'seq_len': 96 if pretrain else 192,     # synthetic is 15-40 tokens, GSM8K needs full
-        'batch_size': 4,                          # 2× throughput over batch=2
-        'accum_steps': 2,                         # effective batch = 4×2 = 8 (unchanged)
+        'd_model': config_model['d_model'],
+        'n_heads': config_model['n_heads'],
+        'n_kv_heads': config_model['n_kv_heads'],
+        'n_layers': config_model['n_layers'],
+        'seq_len': 96 if pretrain else 192,
+        'batch_size': config_model['batch_size'],
+        'accum_steps': config_model['accum_steps'],
         'epochs': 30 if pretrain else 15,
         'lr': 5e-5,
         'dropout': 0.2,
         'vocab_mode': 'restricted',
-        'amp': True,                              # fp16 mixed precision → 40% faster
+        'amp': True,
+        'max_eval': 256,
+        'gen_interval': 10 if pretrain else 3,
+        'gen_prompts': 3 if pretrain else 8,
+    }
+    print(f"  Scale: {scale} ({config_model['d_model']}d, {config_model['n_layers']}L, batch={config_model['batch_size']})")
         'max_eval': 256,
         'gen_interval': 10 if pretrain else 3,    # generate every N epochs
         'gen_prompts': 3 if pretrain else 8,      # fewer prompts = faster epochs
