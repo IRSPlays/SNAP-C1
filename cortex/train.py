@@ -31,6 +31,7 @@ from torch.utils.data import Dataset, DataLoader
 # Allow torch.compile to capture Tensor.item() calls in the graph
 try:
     torch._dynamo.config.capture_scalar_outputs = True
+    torch._dynamo.config.suppress_errors = True  # fall back to eager on compile errors
 except Exception:
     pass
 
