@@ -260,10 +260,6 @@ def train(pretrain: bool = False):
         'gen_prompts': 3 if pretrain else 8,
     }
     print(f"  Scale: {scale} ({config_model['d_model']}d, {config_model['n_layers']}L, batch={config_model['batch_size']})")
-        'max_eval': 256,
-        'gen_interval': 10 if pretrain else 3,    # generate every N epochs
-        'gen_prompts': 3 if pretrain else 8,      # fewer prompts = faster epochs
-    }
 
     enc = tiktoken.get_encoding('gpt2')
 
